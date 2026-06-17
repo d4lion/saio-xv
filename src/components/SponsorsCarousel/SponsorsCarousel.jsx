@@ -1,45 +1,42 @@
 
+import { sponsors } from "./data"
 
-const sponsors = [
-  'Partner 1', 'Partner 2', 'Partner 3', 'Partner 4',
-  'Partner 5', 'Partner 6', 'Partner 7',
-]
-
-// Duplicate for infinite loop
 const allSponsors = [...sponsors, ...sponsors, ...sponsors]
 
-function SponsorCard({ name }) {
+function SponsorCard({ logo, name, src }) {
   return (
-    <div className="flex-shrink-0 flex items-center justify-center px-8 py-3 mx-3 glass rounded-xl border border-purple-500/20 hover:border-purple-400/40 transition-colors duration-300 cursor-default">
-      <span className="text-secondary text-sm font-medium tracking-wider whitespace-nowrap">
-        {name}
-      </span>
+    <a href={src} target="_blank" rel="noopener noreferrer">
+    <div 
+      className="flex-shrink-0 flex items-center justify-center px-8 py-2 mx-4 transition-all duration-300 opacity-50 hover:opacity-100 cursor-pointer"
+    
+      >
+      <img 
+        src={logo} 
+        alt={`Logo de ${name}`} 
+        className="h-10 md:h-14 w-auto object-contain filter hover:grayscale-0 transition-all duration-300"
+      />
     </div>
+    </a>
   )
 }
 
 export default function SponsorsCarousel() {
   return (
     <div className="w-full py-6 relative">
-      {/* Fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to right, #040b0f, transparent)' }} />
-      <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to left, #040b0f, transparent)' }} />
-
-      {/* Heading */}
       <p className="text-center text-xs tracking-[0.3em] text-muted uppercase mb-4 font-medium">
         Con el apoyo de
       </p>
 
-      {/* Marquee track */}
-      <div className="overflow-hidden">
+      <div 
+        className="overflow-hidden"
+        style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
+      >
         <div
           className="flex animate-marquee"
           style={{ width: 'max-content' }}
         >
-          {allSponsors.map((name, i) => (
-            <SponsorCard key={i} name={name} />
+          {allSponsors.map((sponsor, i) => (
+            <SponsorCard key={`${sponsor.id}-${i}`} logo={sponsor.logo} name={sponsor.name} src={sponsor.src}/>
           ))}
         </div>
       </div>

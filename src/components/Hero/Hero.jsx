@@ -1,24 +1,21 @@
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronDown, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import SpaceScene from '../SpaceScene/SpaceScene'
 import SponsorsCarousel from '../SponsorsCarousel/SponsorsCarousel'
 import logo from '../../assets/logo.png'
+import bgVideo from '../../assets/bg.mp4'
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 40, filter: 'blur(10px)' },
+  hidden: { opacity: 0, y: 40 },
   visible: (i = 0) => ({
-    opacity: 1, y: 0, filter: 'blur(0px)',
+    opacity: 1, y: 0,
     transition: { duration: 0.9, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }
   }),
 }
 
 export default function Hero() {
   const scrollRef = useRef(null)
-
-  const scrollDown = () => {
-    document.getElementById('new-data')?.scrollIntoView({ behavior: 'smooth' })
-  }
 
   return (
     <section
@@ -29,7 +26,7 @@ export default function Hero() {
       {/* === VIDEO LAYER === */}
       <video
         className="absolute inset-0 w-full h-full object-cover z-0"
-        src="/bg.mp4"
+        src={bgVideo}
         autoPlay
         muted
         loop
@@ -41,9 +38,11 @@ export default function Hero() {
       {/* Oscurecido de 65% a 85% para mayor contraste */}
       <div className="absolute inset-0 z-[1] bg-[#040b0f]/85" />
 
+
+
       {/* === PURPLE NEBULA === */}
       <div
-        className="absolute inset-0 z-[2] pointer-events-none"
+        className="absolute inset-0 z-[3] pointer-events-none"
         style={{
           background: `
             radial-gradient(ellipse 80% 60% at 50% 10%, rgba(76,41,182,0.35) 0%, transparent 60%),
@@ -53,8 +52,8 @@ export default function Hero() {
         }}
       />
 
-      {/* === SPACE SCENE (planets, stars) === */}
-      <div className="absolute inset-0 z-[3]">
+      {/* === SPACE SCENE (planets) === */}
+      <div className="absolute inset-0 z-[4]">
         <SpaceScene />
       </div>
 
@@ -73,7 +72,7 @@ export default function Hero() {
         {/* Logo image replacing text title, with added glow */}
         <motion.div
           variants={fadeUp} custom={1} initial="hidden" animate="visible"
-          className="flex justify-center mb-8 relative"
+          className="flex justify-center mb-1 relative"
         >
           {/* Backlight glow for logo */}
           <div className="absolute inset-0 bg-purple-500/20 blur-[60px] rounded-full pointer-events-none" />
@@ -83,16 +82,16 @@ export default function Hero() {
             className="w-auto object-contain relative z-10"
             style={{ 
               maxHeight: 'clamp(220px, 22vw, 320px)',
-              filter: 'drop-shadow(0 0 25px rgba(156,58,237,0.8)) drop-shadow(0 0 60px rgba(76,41,182,0.6))'
+              filter: 'drop-shadow(0 0 15px rgba(156,58,237,0.5))'
             }}
           />
         </motion.div>
 
-        {/* Divider line */}
+        {/* Divider line (Base for logo) */}
         <motion.div
           variants={fadeUp} custom={3} initial="hidden" animate="visible"
-          className="w-24 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent my-8"
-          style={{ boxShadow: '0 0 15px rgba(156,58,237,1)' }}
+          className="w-64 sm:w-80 h-[2px] bg-gradient-to-r from-transparent via-purple-300 to-transparent mt-0 mb-8"
+          style={{ boxShadow: '0 0 20px rgba(156,58,237,1)' }}
         />
 
         {/* Tagline with glow-text added */}
@@ -141,20 +140,7 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        onClick={scrollDown}
-        className="relative z-[4] flex flex-col items-center gap-2 pb-8 mx-auto text-muted hover:text-secondary transition-colors"
-        aria-label="Scroll down"
-      >
-        <span className="text-[10px] tracking-widest uppercase">Descubrir</span>
-        <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-          <ChevronDown size={18} />
-        </motion.div>
-      </motion.button>
+
     </section>
   )
 }
