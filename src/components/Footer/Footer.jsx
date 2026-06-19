@@ -17,7 +17,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="relative border-t border-purple-500/15 overflow-hidden">
+    <footer className="relative border-t border-purple-500/15 overflow-hidden snap-end">
       {/* Gradient top edge */}
       <div
         className="absolute top-0 left-0 right-0 h-px"

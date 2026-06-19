@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Brain, BarChart3, Cpu, Link2 } from 'lucide-react'
+import UniverseBackground from '../UniverseBackground/UniverseBackground'
 
 const capabilities = [
   {
@@ -48,14 +49,10 @@ export default function Features() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section id="capabilities" ref={ref} className="relative py-28 overflow-hidden">
-      {/* Section glow */}
-      <div
-        className="absolute right-0 top-0 w-1/2 h-full pointer-events-none opacity-30"
-        style={{ background: 'radial-gradient(ellipse at 100% 50%, rgba(156,58,237,0.15) 0%, transparent 55%)' }}
-      />
+    <section id="capabilities" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
+      <UniverseBackground opacity={0.25} nebulaColor="rgba(156,58,237,0.2)" />
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}

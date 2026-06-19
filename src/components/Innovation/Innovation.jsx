@@ -70,7 +70,7 @@ export default function Innovation() {
   const getNode = (id) => nodes.find(n => n.id === id)
 
   return (
-    <section id="innovation" ref={ref} className="relative py-28 overflow-hidden">
+    <section id="innovation" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(76,41,182,0.1) 0%, transparent 65%)' }}

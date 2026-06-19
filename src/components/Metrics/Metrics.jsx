@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
+import UniverseBackground from '../UniverseBackground/UniverseBackground'
 
 function useCountUp(end, duration = 2500, decimals = 0, active = false) {
   const [value, setValue] = useState(0)
@@ -69,13 +70,10 @@ export default function Metrics() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section id="metrics" ref={ref} className="relative py-28 overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 70% 60% at 80% 50%, rgba(76,41,182,0.1) 0%, transparent 60%)' }}
-      />
+    <section id="metrics" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
+      <UniverseBackground opacity={0.35} nebulaColor="rgba(76,41,182,0.2)" />
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}

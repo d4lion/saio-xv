@@ -5,6 +5,7 @@ import SpaceScene from '../SpaceScene/SpaceScene'
 import SponsorsCarousel from '../SponsorsCarousel/SponsorsCarousel'
 import logo from '../../assets/logo.png'
 import bgVideo from '../../assets/bg.mp4'
+import hero_poster from '../../assets/hero_poster.webp'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -31,6 +32,7 @@ export default function Hero() {
         muted
         loop
         playsInline
+        poster={hero_poster}
         aria-hidden="true"
       />
 
@@ -134,13 +136,11 @@ export default function Hero() {
         {/* Sponsors Carousel — inside the hero */}
         <motion.div
           variants={fadeUp} custom={8} initial="hidden" animate="visible"
-          className="w-full max-w-4xl mt-16"
+          className="w-full max-w-6xl mt-16"
         >
           <SponsorsCarousel />
         </motion.div>
       </div>
-
-
     </section>
   )
 }

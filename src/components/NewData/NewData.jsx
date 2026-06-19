@@ -57,7 +57,7 @@ export default function NewData() {
   const inView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section id="new-data" ref={ref} className="relative py-28 overflow-hidden">
+    <section id="new-data" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
       {/* Background glow */}
       <div
         className="absolute inset-0 pointer-events-none"
