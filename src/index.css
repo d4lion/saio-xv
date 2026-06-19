@@ -24,6 +24,17 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (min-width: 1024px) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+
+  section {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -160,7 +171,7 @@ body {
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
-.animate-marquee { animation: marquee 30s linear infinite; }
+.animate-marquee { animation: marquee 20s linear infinite; }
 .animate-marquee:hover { animation-play-state: paused; }
 .animate-shooting-star { animation: shootingStar 2s ease-out forwards; }
 
