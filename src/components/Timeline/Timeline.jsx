@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Database, Cpu, BarChart2, Eye, Zap } from 'lucide-react'
+import UniverseBackground from '../UniverseBackground/UniverseBackground'
 
 const steps = [
   { icon: Database, label: 'Registro', desc: 'Inscríbete y asegura tu lugar en SAIO XV', color: '#9c3aed' },
@@ -15,13 +16,10 @@ export default function Timeline() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section id="timeline" ref={ref} className="relative py-28 overflow-hidden">
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 60% at 20% 50%, rgba(48,34,127,0.12) 0%, transparent 60%)' }}
-      />
+    <section id="timeline" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
+      <UniverseBackground opacity={0.3} nebulaColor="rgba(48,34,127,0.2)" />
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}

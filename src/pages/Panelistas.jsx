@@ -1,5 +1,4 @@
-import { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowLeft, Globe, Mic, Award, Users, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar/Navbar'
@@ -113,11 +112,11 @@ const stats = [
 
 /* ─── Helpers ───────────────────────────────────────── */
 const fadeUp = {
-  hidden: { opacity: 0, y: 40, filter: 'blur(8px)' },
-  visible: (i = 0) => ({
-    opacity: 1, y: 0, filter: 'blur(0px)',
-    transition: { duration: 0.8, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] },
-  }),
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1, scale: 1,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+  },
 }
 
 const stagger = {
@@ -187,11 +186,8 @@ function TopicBadge({ label, color }) {
 
 /* ─── Featured Speaker ──────────────────────────────── */
 function FeaturedSpeaker() {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
-
   return (
-    <section ref={ref} className="relative py-20 overflow-hidden">
+    <section className="relative py-20 overflow-hidden">
       {/* Glow */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -206,7 +202,8 @@ function FeaturedSpeaker() {
       <div className="max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
@@ -221,10 +218,7 @@ function FeaturedSpeaker() {
           </h2>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={inView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 0.9, delay: 0.15 }}
+        <div
           className="relative rounded-3xl overflow-hidden p-0.5"
           style={{
             background: `linear-gradient(135deg, ${featured.color}66, rgba(76,41,182,0.4), ${featured.color}22)`,
@@ -232,7 +226,7 @@ function FeaturedSpeaker() {
         >
           <div
             className="rounded-3xl p-10 md:p-14 flex flex-col md:flex-row gap-10 items-center"
-            style={{ background: 'rgba(4,11,15,0.92)', backdropFilter: 'blur(20px)' }}
+            style={{ background: 'rgba(4,11,15,0.92)' }}
           >
             {/* Avatar */}
             <div className="flex-shrink-0 flex flex-col items-center gap-5">
@@ -285,24 +279,16 @@ function FeaturedSpeaker() {
               background: `radial-gradient(circle at 100% 0%, ${featured.color}20, transparent 60%)`,
             }}
           />
-        </motion.div>
+        </div>
       </div>
     </section>
   )
 }
 
 /* ─── Speaker Card ──────────────────────────────────── */
-function SpeakerCard({ speaker, index }) {
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-50px' })
-
+function SpeakerCard({ speaker }) {
   return (
-    <motion.div
-      ref={ref}
-      variants={fadeUp}
-      custom={index}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
+    <div
       className="group relative rounded-2xl glass border border-purple-500/20 hover:border-purple-400/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden cursor-default flex flex-col"
     >
       {/* Card hover glow */}
@@ -415,7 +401,7 @@ function SpeakerCard({ speaker, index }) {
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -534,13 +520,12 @@ function PageHero() {
           animate="visible"
           className="flex flex-wrap justify-center gap-6 mt-4"
         >
-          {stats.map((stat, i) => {
+          {stats.map((stat) => {
             const Icon = stat.icon
             return (
               <motion.div
                 key={stat.label}
                 variants={fadeUp}
-                custom={i}
                 className="flex items-center gap-3 px-5 py-3 rounded-full glass border border-purple-500/20"
               >
                 <Icon size={15} className="text-accent" />
@@ -576,7 +561,7 @@ export default function Panelistas() {
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(76,41,182,0.3), transparent)' }} />
 
       {/* Speaker Grid */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(48,34,127,0.08) 0%, transparent 70%)' }}
@@ -602,8 +587,8 @@ export default function Panelistas() {
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {speakers.map((speaker, i) => (
-              <SpeakerCard key={speaker.name} speaker={speaker} index={i} />
+            {speakers.map((speaker) => (
+              <SpeakerCard key={speaker.name} speaker={speaker} />
             ))}
           </div>
         </div>
@@ -612,7 +597,7 @@ export default function Panelistas() {
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.4), transparent)' }} />
 
       {/* CTA */}
-      <section className="relative py-32 overflow-hidden">
+      <section className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
@@ -631,7 +616,7 @@ export default function Panelistas() {
         ].map((orb, i) => (
           <div
             key={i}
-            className="absolute rounded-full animate-float blur-2xl pointer-events-none"
+            className="absolute rounded-full animate-float pointer-events-none"
             style={{
               width: orb.size, height: orb.size,
               left: orb.x, top: orb.y,

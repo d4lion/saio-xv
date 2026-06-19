@@ -113,7 +113,7 @@ export default function Tickets() {
   const inView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section id="tickets" ref={ref} className="relative py-28 overflow-hidden">
+    <section id="tickets" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
       {/* Background */}
       <div
         className="absolute inset-0 pointer-events-none"
