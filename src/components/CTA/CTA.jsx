@@ -21,7 +21,7 @@ export default function CTA() {
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
-    <section id="cta" ref={ref} className="relative py-40 overflow-hidden">
+    <section id="cta" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
       {/* Intense nebula bg */}
       <div className="absolute inset-0"
         style={{
