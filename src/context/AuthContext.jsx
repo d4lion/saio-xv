@@ -7,6 +7,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
+import { ROLES } from '../constants/roles';
 
 const AuthContext = createContext();
 
@@ -41,7 +42,7 @@ export function AuthProvider({ children }) {
       correo: email,
       cedula: additionalData.cedula,
       puntos: 0,
-      rol: "asistente",
+      rol: ROLES.ASISTENTE,
       fechaCreacion: new Date().toISOString()
     });
 

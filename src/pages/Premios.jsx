@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { pointsService } from '../services/pointsService';
 import { Gift, Award, CheckCircle, AlertTriangle, Coins } from 'lucide-react';
@@ -22,22 +22,48 @@ const themedSwal = Swal.mixin({
 
 export default function Premios() {
   const { user } = useAuth();
+  const [rewardsList, setRewardsList] = useState([]);
+  const [claimedRewards, setClaimedRewards] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(null); // ID del premio canjeándose
 
-  // Lista de premios
-  const rewardsList = [
-    { id: 'vip_access', title: 'Acceso VIP SAIO-XV', cost: 8000, desc: 'Entrada prioritaria y asientos preferenciales en los workshops del auditorio principal.' },
-    { id: 'nfc_badge', title: 'Credencial Física NFC', cost: 12000, desc: 'Identificación física del evento equipada con chip NFC para intercambiar datos de contacto.' },
-    { id: 'dev_hoodie', title: 'Hoddie Oficial SAIO-XV', cost: 20000, desc: 'Chaqueta de algodón de edición limitada con bordado premium de constelaciones.' },
-    { id: 'digital_nft', title: 'NFT Conmemorativo', cost: 3000, desc: 'Coleccionable digital verificado de asistencia certificado en blockchain.' },
-    { id: 'coffee_mug', title: 'Mug Térmico Metálico', cost: 5000, desc: 'Vaso térmico con grabado láser de SAIO-XV, ideal para el café durante las conferencias.' },
-  ];
+  const loadData = async () => {
+    if (!user?.uid) return;
+    try {
+      setIsLoading(true);
+      const active = await pointsService.getActiveRewards();
+      setRewardsList(active);
+
+      const history = await pointsService.getTransactionHistory(user.uid);
+      const claimed = history
+        .filter(t => t.code && t.code.startsWith('CANJE_'))
+        .map(t => t.code.replace('CANJE_', ''));
+      setClaimedRewards(claimed);
+    } catch (err) {
+      console.error("Error al cargar premios:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [user]);
 
   const handleRedeem = async (reward) => {
     if (!user?.uid) return;
     
+    if (claimedRewards.includes(reward.id)) {
+      themedSwal.fire({
+        icon: 'warning',
+        title: 'Premio ya Canjeado',
+        text: 'Ya has reclamado este premio anteriormente y solo se permite un canje por persona.'
+      });
+      return;
+    }
+
     if (user.puntos < reward.cost) {
       themedSwal.fire({
         icon: 'error',
@@ -69,6 +95,8 @@ export default function Premios() {
         title: '¡Premio Canjeado!',
         text: `Has canjeado "${reward.title}" con éxito.`
       });
+      // Actualizar estado local de reclamados
+      setClaimedRewards(prev => [...prev, reward.id]);
     } catch (err) {
       console.error(err);
       themedSwal.fire({
@@ -136,53 +164,108 @@ export default function Premios() {
           </div>
         )}
 
-        {/* Grid de Premios */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rewardsList.map((reward) => {
-            const canAfford = (user?.puntos || 0) >= reward.cost;
-            return (
-              <div 
-                key={reward.id} 
-                className="glass-light p-6 rounded-2xl border border-muted/15 flex flex-col justify-between hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5 transition-all duration-300 relative group"
-              >
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start gap-4">
-                    <h3 className="font-heading font-bold text-sm text-white group-hover:text-accent transition-colors">
-                      {reward.title}
-                    </h3>
-                    <div className="p-2 rounded-xl bg-primary/20 text-accent font-heading font-extrabold text-xs shrink-0 font-mono">
-                      {reward.cost.toLocaleString()} PTS
+        {/* Carga del Catálogo */}
+        {isLoading ? (
+          <div className="py-16 text-center text-secondary text-sm flex flex-col items-center justify-center gap-3">
+            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+            <p className="font-heading text-xs tracking-wider uppercase">Cargando Premios de la Base de Datos...</p>
+          </div>
+        ) : (
+          /* Grid de Premios */
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {rewardsList.map((reward) => {
+              const canAfford = (user?.puntos || 0) >= reward.cost;
+              const isClaimed = claimedRewards.includes(reward.id);
+              const isOutOfStock = reward.stock !== undefined && reward.stock <= 0;
+              
+              return (
+                <div 
+                  key={reward.id} 
+                  className={`glass-light p-6 rounded-2xl border flex flex-col justify-between hover:shadow-lg hover:shadow-accent/5 transition-all duration-300 relative group
+                    ${isClaimed 
+                      ? 'border-emerald-500/15 opacity-70 bg-emerald-500/[0.02]' 
+                      : isOutOfStock
+                        ? 'border-red-500/15 opacity-60 bg-red-500/[0.01]'
+                        : 'border-muted/15 hover:border-accent/30'
+                    }`}
+                >
+                  {isClaimed && (
+                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-heading text-[9px] font-bold tracking-widest uppercase border border-emerald-500/35 z-10">
+                      Canjeado
                     </div>
-                  </div>
-                  <p className="text-xs text-secondary leading-relaxed">
-                    {reward.desc}
-                  </p>
-                </div>
+                  )}
+                  {!isClaimed && isOutOfStock && (
+                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 font-heading text-[9px] font-bold tracking-widest uppercase border border-red-500/35 z-10">
+                      Agotado
+                    </div>
+                  )}
 
-                <div className="mt-6 pt-4 border-t border-muted/10">
-                  <button
-                    onClick={() => handleRedeem(reward)}
-                    disabled={isRedeeming !== null || !canAfford}
-                    className={`w-full py-2 rounded-xl font-heading text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer
-                      ${canAfford 
-                        ? 'bg-gradient-to-r from-primary-light to-accent hover:opacity-95 text-white hover:shadow-[0_0_15px_rgba(156,58,237,0.3)]' 
-                        : 'bg-muted/10 text-secondary/40 border border-muted/10 cursor-not-allowed'
-                      }`}
-                  >
-                    {isRedeeming === reward.id ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <Gift className="w-4 h-4" />
-                        <span>{canAfford ? 'Canjear Premio' : 'Puntos Insuficientes'}</span>
-                      </>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start gap-4">
+                      <h3 className={`font-heading font-bold text-sm transition-colors
+                        ${isClaimed 
+                          ? 'text-emerald-400' 
+                          : 'text-white group-hover:text-accent'
+                        }`}
+                      >
+                        {reward.title}
+                      </h3>
+                      <div className="p-2 rounded-xl bg-primary/20 text-accent font-heading font-extrabold text-xs shrink-0 font-mono">
+                        {reward.cost.toLocaleString()} PTS
+                      </div>
+                    </div>
+                    <p className="text-xs text-secondary leading-relaxed">
+                      {reward.desc}
+                    </p>
+
+                    {reward.stock !== undefined && (
+                      <div className="pt-2 flex items-center gap-1.5 text-[10px] uppercase font-semibold tracking-wider">
+                        <span className="text-secondary">Disponibles:</span>
+                        <span className={reward.stock > 0 ? 'text-accent font-mono font-bold' : 'text-red-400 font-mono font-bold'}>
+                          {reward.stock > 0 ? `${reward.stock} uds` : 'Agotado'}
+                        </span>
+                      </div>
                     )}
-                  </button>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-muted/10">
+                    <button
+                      onClick={() => handleRedeem(reward)}
+                      disabled={isRedeeming !== null || isClaimed || isOutOfStock || !canAfford}
+                      className={`w-full py-2 rounded-xl font-heading text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer
+                        ${isClaimed
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-not-allowed'
+                          : isOutOfStock
+                            ? 'bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed'
+                            : canAfford 
+                              ? 'bg-gradient-to-r from-primary-light to-accent hover:opacity-95 text-white hover:shadow-[0_0_15px_rgba(156,58,237,0.3)]' 
+                              : 'bg-muted/10 text-secondary/40 border border-muted/10 cursor-not-allowed'
+                        }`}
+                    >
+                      {isRedeeming === reward.id ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <>
+                          <Gift className="w-4 h-4" />
+                          <span>
+                            {isClaimed 
+                              ? 'Premio Reclamado' 
+                              : isOutOfStock 
+                                ? 'Agotado' 
+                                : canAfford 
+                                  ? 'Canjear Premio' 
+                                  : 'Puntos Insuficientes'
+                            }
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </section>
+              );
+            })}
+          </section>
+        )}
       </main>
 
       <footer className="py-4 px-6 text-center text-xs text-secondary mt-auto border-t border-muted/10 bg-black/20">

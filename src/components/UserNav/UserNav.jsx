@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { User, QrCode, Ticket, Gift } from 'lucide-react';
+import { User, QrCode, Ticket, Gift, Trophy } from 'lucide-react';
 
 export default function UserNav() {
   const tabs = [
     { label: 'Mi Entrada', to: '/mi-entrada', icon: Ticket },
     { label: 'Mis Puntos', to: '/mis-puntos', icon: QrCode },
     { label: 'Premios', to: '/premios', icon: Gift },
+    { label: 'Ranking', to: '/ranking', icon: Trophy },
     { label: 'Perfil', to: '/perfil', icon: User },
   ];
 

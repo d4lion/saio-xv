@@ -7,7 +7,10 @@ import {
   addDoc, 
   getDocs, 
   query, 
-  where 
+  where,
+  runTransaction,
+  orderBy,
+  limit
 } from 'firebase/firestore';
 
 // Calcular la distancia usando la fórmula de Haversine en kilómetros
@@ -246,6 +249,48 @@ export const pointsService = {
   },
 
   /**
+   * Obtiene la lista de premios activos de Firestore.
+   */
+  async getActiveRewards() {
+    if (!db) {
+      return [
+        { id: 'vip_access', title: 'Acceso VIP SAIO-XV', cost: 8000, desc: 'Entrada prioritaria y asientos preferenciales en los workshops del auditorio principal.', stock: 10 },
+        { id: 'nfc_badge', title: 'Credencial Física NFC', cost: 12000, desc: 'Identificación física del evento equipada con chip NFC para intercambiar datos de contacto.', stock: 5 },
+        { id: 'dev_hoodie', title: 'Hoddie Oficial SAIO-XV', cost: 20000, desc: 'Chaqueta de algodón de edición limitada con bordado premium de constelaciones.', stock: 2 },
+        { id: 'digital_nft', title: 'NFT Conmemorativo', cost: 3000, desc: 'Coleccionable digital verificado de asistencia certificado en blockchain.', stock: 99 },
+        { id: 'coffee_mug', title: 'Mug Térmico Metálico', cost: 5000, desc: 'Vaso térmico con grabado láser de SAIO-XV, ideal para el café durante las conferencias.', stock: 0 },
+      ];
+    }
+
+    try {
+      const rewardsRef = collection(db, "rewards");
+      const q = query(rewardsRef, where("activo", "==", true));
+      const querySnapshot = await getDocs(q);
+      
+      const rewards = [];
+      querySnapshot.forEach((doc) => {
+        rewards.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Si la colección de Firestore está vacía, proveer los mock codes locales como autoseed
+      if (rewards.length === 0) {
+        return [
+          { id: 'vip_access', title: 'Acceso VIP SAIO-XV', cost: 8000, desc: 'Entrada prioritaria y asientos preferenciales en los workshops del auditorio principal.', stock: 10 },
+          { id: 'nfc_badge', title: 'Credencial Física NFC', cost: 12000, desc: 'Identificación física del evento equipada con chip NFC para intercambiar datos de contacto.', stock: 5 },
+          { id: 'dev_hoodie', title: 'Hoddie Oficial SAIO-XV', cost: 20000, desc: 'Chaqueta de algodón de edición limitada con bordado premium de constelaciones.', stock: 2 },
+          { id: 'digital_nft', title: 'NFT Conmemorativo', cost: 3000, desc: 'Coleccionable digital verificado de asistencia certificado en blockchain.', stock: 99 },
+          { id: 'coffee_mug', title: 'Mug Térmico Metálico', cost: 5000, desc: 'Vaso térmico con grabado láser de SAIO-XV, ideal para el café durante las conferencias.', stock: 0 },
+        ];
+      }
+      
+      return rewards;
+    } catch (error) {
+      console.error("Error al cargar los premios:", error);
+      return [];
+    }
+  },
+
+  /**
    * Canjea un premio descontando los puntos y registrando la transacción.
    */
   async redeemReward(uid, rewardId, cost, title) {
@@ -254,39 +299,133 @@ export const pointsService = {
     }
 
     const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) {
-      throw new Error("El perfil del usuario no existe.");
-    }
-
-    const userData = userSnap.data();
-    const currentPoints = userData.puntos || 0;
-
-    if (currentPoints < cost) {
-      throw new Error("Puntos estelares insuficientes.");
-    }
-
-    const newPoints = currentPoints - cost;
-
-    // 1. Descontar los puntos
-    await updateDoc(userRef, {
-      puntos: newPoints
-    });
-
-    // 2. Registrar la transacción
+    const rewardRef = doc(db, "rewards", rewardId);
     const transactionsRef = collection(db, "points_transactions");
-    await addDoc(transactionsRef, {
-      uid,
-      code: `CANJE_${rewardId}`,
-      puntos: -cost, // Puntos descontados (negativo)
-      fecha: new Date().toISOString(),
-      premioCanjeado: title,
-      coordenadas: null // Canje no requiere GPS obligatorio
+    const newTxRef = doc(transactionsRef);
+
+    // 1. Verificar duplicado ANTES de la transacción (los queries no corren dentro de transacciones)
+    const checkQuery = query(
+      transactionsRef, 
+      where("uid", "==", uid), 
+      where("code", "==", `CANJE_${rewardId}`)
+    );
+    const checkSnapshot = await getDocs(checkQuery);
+    if (!checkSnapshot.empty) {
+      throw new Error("Ya has reclamado este premio anteriormente.");
+    }
+
+    // 2. Ejecutar transacción para verificar puntos y stock de forma atómica
+    await runTransaction(db, async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) {
+        throw new Error("El perfil del usuario no existe.");
+      }
+
+      let rewardData = null;
+      const rewardSnap = await transaction.get(rewardRef);
+      
+      if (rewardSnap.exists()) {
+        rewardData = rewardSnap.data();
+      } else {
+        // Fallback local si el premio no está en base de datos física
+        const mockRewards = {
+          'vip_access': { cost: 8000, stock: 10 },
+          'nfc_badge': { cost: 12000, stock: 5 },
+          'dev_hoodie': { cost: 20000, stock: 2 },
+          'digital_nft': { cost: 3000, stock: 99 },
+          'coffee_mug': { cost: 5000, stock: 0 }
+        };
+        if (mockRewards[rewardId]) {
+          rewardData = mockRewards[rewardId];
+        } else {
+          throw new Error("El premio no existe.");
+        }
+      }
+
+      // Validar Stock
+      if (rewardData.stock !== undefined && rewardData.stock <= 0) {
+        throw new Error("Este premio se encuentra agotado.");
+      }
+
+      // Validar Puntos
+      const userData = userSnap.data();
+      const currentPoints = userData.puntos || 0;
+      if (currentPoints < cost) {
+        throw new Error("Puntos estelares insuficientes.");
+      }
+
+      const newPoints = currentPoints - cost;
+
+      // Actualizar puntos del usuario
+      transaction.update(userRef, { puntos: newPoints });
+
+      // Actualizar stock del premio (solo si existe el documento en Firestore)
+      if (rewardSnap.exists() && rewardData.stock !== undefined) {
+        transaction.update(rewardRef, { stock: rewardData.stock - 1 });
+      }
+
+      // Guardar transacción de puntos
+      transaction.set(newTxRef, {
+        uid,
+        code: `CANJE_${rewardId}`,
+        puntos: -cost,
+        fecha: new Date().toISOString(),
+        premioCanjeado: title,
+        coordenadas: null
+      });
     });
 
     return {
-      success: true,
-      nuevosPuntos: newPoints
+      success: true
     };
+  },
+
+  /**
+   * Obtiene los usuarios ordenados por puntos de mayor a menor (Top 10).
+   */
+  async getLeaderboard(limitCount = 10) {
+    if (!db) {
+      // Mock local de prueba para desarrollo
+      return [
+        { uid: '1', nombre: 'Andrés Mendoza', puntos: 15400, rol: 'asistente' },
+        { uid: '2', nombre: 'Camila Rojas', puntos: 12800, rol: 'asistente' },
+        { uid: '3', nombre: 'Santiago Delgado', puntos: 11500, rol: 'asistente' },
+        { uid: '4', nombre: 'Valeria Gómez', puntos: 9500, rol: 'asistente' },
+        { uid: '5', nombre: 'Daniela Castro', puntos: 8200, rol: 'asistente' },
+        { uid: '6', nombre: 'Mateo Ortiz', puntos: 7600, rol: 'asistente' },
+        { uid: '7', nombre: 'Sofía Herrera', puntos: 5400, rol: 'asistente' },
+        { uid: '8', nombre: 'Lucas Guerrero', puntos: 4300, rol: 'asistente' },
+      ];
+    }
+
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, orderBy("puntos", "desc"), limit(limitCount));
+      const querySnapshot = await getDocs(q);
+      
+      const leaderboard = [];
+      querySnapshot.forEach((doc) => {
+        leaderboard.push({ uid: doc.id, ...doc.data() });
+      });
+
+      return leaderboard;
+    } catch (error) {
+      console.error("Error al obtener la tabla de posiciones:", error);
+      try {
+        // En caso de que falte crear el índice compuesto en Firestore, 
+        // ordenamos en memoria para evitar colapsar la UI
+        const allUsersSnapshot = await getDocs(collection(db, "users"));
+        const allUsers = [];
+        allUsersSnapshot.forEach((doc) => {
+          allUsers.push({ uid: doc.id, ...doc.data() });
+        });
+        return allUsers
+          .sort((a, b) => (b.puntos || 0) - (a.puntos || 0))
+          .slice(0, limitCount);
+      } catch (err2) {
+        console.error("Fallback en memoria fallido:", err2);
+        return [];
+      }
+    }
   }
 };

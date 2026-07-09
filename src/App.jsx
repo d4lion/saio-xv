@@ -8,7 +8,10 @@ import Perfil from './pages/Perfil'
 import MisPuntos from './pages/MisPuntos'
 import MiEntrada from './pages/MiEntrada'
 import Premios from './pages/Premios'
+import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
+import Dashboard from './pages/Dashboard'
+import { ROLES } from './constants/roles'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -92,6 +95,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Premios />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/ranking" 
+          element={
+            <ProtectedRoute>
+              <Ranking />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.COORDINADOR]}>
+              <Dashboard />
             </ProtectedRoute>
           } 
         />

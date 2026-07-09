@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Award, Zap, ChevronRight, Gift, History, Sparkles, LogOut, ArrowLeft } from 'lucide-react';
 
 export default function Puntos() {
-  const { currentUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [points, setPoints] = useState(15420);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
