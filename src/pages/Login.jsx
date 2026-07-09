@@ -19,8 +19,10 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Obtener ruta previa o redirigir a /perfil por defecto
-  const from = location.state?.from?.pathname || '/perfil';
+  // Obtener ruta previa (con query params) o redirigir a /perfil por defecto
+  const from = location.state?.from
+    ? (location.state.from.pathname + (location.state.from.search || ''))
+    : '/perfil';
 
   async function handleSubmit(e) {
     e.preventDefault();

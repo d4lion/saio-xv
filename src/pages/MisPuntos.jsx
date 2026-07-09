@@ -88,6 +88,31 @@ export default function MisPuntos() {
     loadHistory();
   }, [user]);
 
+  // Reclamar automáticamente si hay un código pendiente en sessionStorage
+  useEffect(() => {
+    if (user && geoStatus === 'SUCCESS') {
+      const pendingCode = sessionStorage.getItem('pendingClaimCode');
+      if (pendingCode) {
+        sessionStorage.removeItem('pendingClaimCode');
+        handleClaimCode(pendingCode);
+      }
+    }
+  }, [user, geoStatus]);
+
+  useEffect(() => {
+    if (user && geoStatus === 'ERROR') {
+      const pendingCode = sessionStorage.getItem('pendingClaimCode');
+      if (pendingCode) {
+        sessionStorage.removeItem('pendingClaimCode');
+        themedSwal.fire({
+          icon: 'error',
+          title: 'Ubicación Requerida',
+          text: `Se detectó un intento de registro automático para el código "${pendingCode.toUpperCase()}", pero es necesario habilitar el GPS para validar la distancia.`
+        });
+      }
+    }
+  }, [user, geoStatus]);
+
   // Inicializar Escáner QR
   useEffect(() => {
     if (activeTab === 'camera') {
