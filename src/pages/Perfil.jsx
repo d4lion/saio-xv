@@ -6,6 +6,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { User, Shield, Mail, Calendar, Award, LogOut, CheckCircle, AlertCircle, Phone } from 'lucide-react';
 import UserNav from '../components/UserNav/UserNav';
 import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 // Configuración de SweetAlert2 con temática espacial
 const themedSwal = Swal.mixin({
@@ -93,11 +94,7 @@ export default function Perfil() {
     }
 
     if (Object.keys(updates).length === 0) {
-      themedSwal.fire({
-        icon: 'info',
-        title: 'Sin cambios',
-        text: 'No has modificado ningún campo o ya los has actualizado anteriormente.'
-      });
+      toast.info('Sin cambios: No has modificado ningún campo o ya los has actualizado anteriormente.');
       return;
     }
 
@@ -118,21 +115,13 @@ export default function Perfil() {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, updates);
         
-        themedSwal.fire({
-          icon: 'success',
-          title: '¡Perfil Actualizado!',
-          text: 'Tus datos se guardaron con éxito en Firestore.'
-        });
+        toast.success('¡Perfil Actualizado! Tus datos se guardaron con éxito en Firestore.');
       } else {
         throw new Error("Base de datos no disponible.");
       }
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Ocurrió un error al intentar guardar los datos en Firestore.'
-      });
+      toast.error('Error: Ocurrió un error al intentar guardar los datos en Firestore.');
     } finally {
       setIsUpdating(false);
     }

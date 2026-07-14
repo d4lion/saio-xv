@@ -12,6 +12,7 @@ import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import Dashboard from './pages/Dashboard/Dashboard'
 import { ROLES } from './constants/roles'
+import { Toaster } from 'sonner';
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -60,6 +61,7 @@ export default function App() {
     <AuthProvider>
       <ScrollToTop />
       <PendingClaimHandler />
+      <Toaster position="bottom-right" richColors closeButton />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/panelistas" element={<Panelistas />} />

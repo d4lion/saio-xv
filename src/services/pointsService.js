@@ -271,17 +271,6 @@ export const pointsService = {
       querySnapshot.forEach((doc) => {
         rewards.push({ id: doc.id, ...doc.data() });
       });
-
-      // Si la colección de Firestore está vacía, proveer los mock codes locales como autoseed
-      if (rewards.length === 0) {
-        return [
-          { id: 'vip_access', title: 'Acceso VIP SAIO-XV', cost: 8000, desc: 'Entrada prioritaria y asientos preferenciales en los workshops del auditorio principal.', stock: 10 },
-          { id: 'nfc_badge', title: 'Credencial Física NFC', cost: 12000, desc: 'Identificación física del evento equipada con chip NFC para intercambiar datos de contacto.', stock: 5 },
-          { id: 'dev_hoodie', title: 'Hoddie Oficial SAIO-XV', cost: 20000, desc: 'Chaqueta de algodón de edición limitada con bordado premium de constelaciones.', stock: 2 },
-          { id: 'digital_nft', title: 'NFT Conmemorativo', cost: 3000, desc: 'Coleccionable digital verificado de asistencia certificado en blockchain.', stock: 99 },
-          { id: 'coffee_mug', title: 'Mug Térmico Metálico', cost: 5000, desc: 'Vaso térmico con grabado láser de SAIO-XV, ideal para el café durante las conferencias.', stock: 0 },
-        ];
-      }
       
       return rewards;
     } catch (error) {
@@ -327,19 +316,7 @@ export const pointsService = {
       if (rewardSnap.exists()) {
         rewardData = rewardSnap.data();
       } else {
-        // Fallback local si el premio no está en base de datos física
-        const mockRewards = {
-          'vip_access': { cost: 8000, stock: 10 },
-          'nfc_badge': { cost: 12000, stock: 5 },
-          'dev_hoodie': { cost: 20000, stock: 2 },
-          'digital_nft': { cost: 3000, stock: 99 },
-          'coffee_mug': { cost: 5000, stock: 0 }
-        };
-        if (mockRewards[rewardId]) {
-          rewardData = mockRewards[rewardId];
-        } else {
-          throw new Error("El premio no existe.");
-        }
+        throw new Error("El premio no existe.");
       }
 
       // Validar Stock

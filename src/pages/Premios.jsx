@@ -4,6 +4,7 @@ import { pointsService } from '../services/pointsService';
 import { Gift, Award, CheckCircle, AlertTriangle, Coins } from 'lucide-react';
 import UserNav from '../components/UserNav/UserNav';
 import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 // Configuración de SweetAlert2 con temática espacial
 const themedSwal = Swal.mixin({
@@ -56,20 +57,12 @@ export default function Premios() {
     if (!user?.uid) return;
     
     if (claimedRewards.includes(reward.id)) {
-      themedSwal.fire({
-        icon: 'warning',
-        title: 'Premio ya Canjeado',
-        text: 'Ya has reclamado este premio anteriormente y solo se permite un canje por persona.'
-      });
+      toast.warning('Premio ya Canjeado: Ya has reclamado este premio anteriormente.');
       return;
     }
 
     if (user.puntos < reward.cost) {
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Puntos Insuficientes',
-        text: `Necesitas ${reward.cost} PTS para canjear este premio, tu saldo actual es de ${user.puntos} PTS.`
-      });
+      toast.error(`Puntos Insuficientes: Necesitas ${reward.cost} PTS, tu saldo actual es de ${user.puntos} PTS.`);
       return;
     }
 
@@ -90,20 +83,12 @@ export default function Premios() {
 
     try {
       await pointsService.redeemReward(user.uid, reward.id, reward.cost, reward.title);
-      themedSwal.fire({
-        icon: 'success',
-        title: '¡Premio Canjeado!',
-        text: `Has canjeado "${reward.title}" con éxito.`
-      });
+      toast.success(`¡Premio Canjeado! Has canjeado "${reward.title}" con éxito.`);
       // Actualizar estado local de reclamados
       setClaimedRewards(prev => [...prev, reward.id]);
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || 'Error al procesar el canje.'
-      });
+      toast.error(err.message || 'Error al procesar el canje.');
     } finally {
       setIsRedeeming(null);
     }

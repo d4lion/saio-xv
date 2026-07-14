@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom';
 import QRCode from 'qrcode';
+import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/adminService';
 import { ROLES } from '../../constants/roles';
@@ -302,11 +303,7 @@ export default function Dashboard() {
           userForm.rol
         );
         addTerminalEvent(`Usuario creado exitosamente: ${userForm.correo}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Usuario Creado',
-          text: `El usuario ${userForm.nombre} ha sido registrado.`
-        });
+        toast.success(`Usuario Creado: El usuario ${userForm.nombre} ha sido registrado.`);
       } else {
         addTerminalEvent(`Actualizando datos del usuario: ${userForm.nombre} (UID: ${selectedUserUid})...`);
         await adminService.updateUser(selectedUserUid, {
@@ -316,22 +313,14 @@ export default function Dashboard() {
           rol: userForm.rol
         });
         addTerminalEvent(`Usuario actualizado exitosamente: ${userForm.nombre}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Usuario Actualizado',
-          text: `Se actualizaron los datos de ${userForm.nombre}.`
-        });
+        toast.success(`Usuario Actualizado: Se actualizaron los datos de ${userForm.nombre}.`);
       }
       setShowUserModal(false);
       fetchUsers();
       fetchLogs();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error de Guardado',
-        text: err.message || 'Ocurrió un error al procesar el usuario.'
-      });
+      toast.error(`Error de Guardado: ${err.message || 'Ocurrió un error al procesar el usuario.'}`);
     }
   };
 
@@ -344,11 +333,7 @@ export default function Dashboard() {
       fetchUsers();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo cambiar el estado de actividad.'
-      });
+      toast.error('Error: No se pudo cambiar el estado de actividad.');
     }
   };
 
@@ -367,19 +352,11 @@ export default function Dashboard() {
       addTerminalEvent(`Eliminando perfil del usuario: ${u.nombre} (UID: ${u.uid})...`);
       await adminService.deleteUser(u.uid);
       addTerminalEvent(`Perfil eliminado de Firestore: ${u.nombre}`);
-      themedSwal.fire({
-        icon: 'success',
-        title: 'Usuario Eliminado',
-        text: 'El perfil de Firestore ha sido removido con éxito.'
-      });
+      toast.success('Usuario Eliminado: El perfil de Firestore ha sido removido con éxito.');
       fetchUsers();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || 'No se pudo eliminar el usuario.'
-      });
+      toast.error(`Error: ${err.message || 'No se pudo eliminar el usuario.'}`);
     }
   };
 
@@ -423,11 +400,7 @@ export default function Dashboard() {
   const handleCaptureGps = () => {
     setGpsLoading(true);
     if (!navigator.geolocation) {
-      themedSwal.fire({
-        icon: 'error',
-        title: 'GPS No Soportado',
-        text: 'La geolocalización no está disponible en este navegador.'
-      });
+      toast.error('GPS No Soportado: La geolocalización no está disponible en este navegador.');
       setGpsLoading(false);
       return;
     }
@@ -443,23 +416,13 @@ export default function Dashboard() {
         }));
         setGpsLoading(false);
         addTerminalEvent(`Coordenadas de GPS capturadas con éxito: Lat ${lat}, Lng ${lng}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Ubicación Capturada',
-          text: `Coordenadas: Lat ${lat}, Lng ${lng}`,
-          timer: 2000,
-          showConfirmButton: false
-        });
+        toast.success(`Ubicación Capturada: Lat ${lat}, Lng ${lng}`);
       },
       (error) => {
         console.error(error);
         setGpsLoading(false);
         addTerminalEvent(`[ERROR] Error al capturar GPS: ${error.message}`);
-        themedSwal.fire({
-          icon: 'error',
-          title: 'Fallo al Capturar GPS',
-          text: 'No se pudo obtener la ubicación. Por favor concede los permisos e inténtalo de nuevo.'
-        });
+        toast.error('Fallo al Capturar GPS: No se pudo obtener la ubicación. Por favor concede los permisos.');
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
@@ -494,30 +457,18 @@ export default function Dashboard() {
         addTerminalEvent(`Registrando código de puntos: ${uppercaseId}...`);
         await adminService.createCode(uppercaseId, payload);
         addTerminalEvent(`Código de puntos creado: ${uppercaseId}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Código Creado',
-          text: `El código ${uppercaseId} ha sido creado con éxito.`
-        });
+        toast.success(`Código Creado: El código ${uppercaseId} ha sido creado con éxito.`);
       } else {
         addTerminalEvent(`Actualizando parámetros del código: ${selectedCodeId}...`);
         await adminService.updateCode(selectedCodeId, payload);
         addTerminalEvent(`Código actualizado: ${selectedCodeId}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Código Modificado',
-          text: `Los parámetros de ${selectedCodeId} fueron actualizados.`
-        });
+        toast.success(`Código Modificado: Los parámetros de ${selectedCodeId} fueron actualizados.`);
       }
       setShowCodeModal(false);
       fetchCodes();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error al Guardar Código',
-        text: err.message || 'No se pudo guardar la información del código.'
-      });
+      toast.error(`Error al Guardar Código: ${err.message || 'No se pudo guardar la información del código.'}`);
     }
   };
 
@@ -530,11 +481,7 @@ export default function Dashboard() {
       fetchCodes();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Fallo al actualizar el estado del código.'
-      });
+      toast.error('Error: Fallo al actualizar el estado del código.');
     }
   };
 
@@ -553,19 +500,11 @@ export default function Dashboard() {
       addTerminalEvent(`Eliminando código: ${c.id} de Firestore...`);
       await adminService.deleteCode(c.id);
       addTerminalEvent(`Código eliminado: ${c.id}`);
-      themedSwal.fire({
-        icon: 'success',
-        title: 'Código Eliminado',
-        text: `El código ${c.id} ha sido borrado del sistema.`
-      });
+      toast.success(`Código Eliminado: El código ${c.id} ha sido borrado del sistema.`);
       fetchCodes();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || 'No se pudo eliminar el código.'
-      });
+      toast.error(`Error: ${err.message || 'No se pudo eliminar el código.'}`);
     }
   };
 
@@ -573,13 +512,7 @@ export default function Dashboard() {
   const handleCopyLink = (codeId) => {
     const url = `${window.location.origin}/mis-puntos?code=${codeId}`;
     navigator.clipboard.writeText(url);
-    themedSwal.fire({
-      icon: 'success',
-      title: 'Enlace Copiado',
-      text: 'El enlace de reclamo se copió al portapapeles.',
-      timer: 1500,
-      showConfirmButton: false
-    });
+    toast.success('Enlace Copiado: El enlace de reclamo se copió al portapapeles.');
     addTerminalEvent(`Enlace de reclamo copiado: ${codeId}`);
   };
 
@@ -656,30 +589,18 @@ export default function Dashboard() {
         addTerminalEvent(`Registrando nuevo premio: ${lowercaseId}...`);
         await adminService.createReward(lowercaseId, payload);
         addTerminalEvent(`Premio registrado con éxito: ${lowercaseId}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Premio Creado',
-          text: `El premio ${rewardForm.title} ha sido registrado.`
-        });
+        toast.success(`Premio Creado: El premio ${rewardForm.title} ha sido registrado.`);
       } else {
         addTerminalEvent(`Actualizando parámetros del premio: ${selectedRewardId}...`);
         await adminService.updateReward(selectedRewardId, payload);
         addTerminalEvent(`Premio actualizado con éxito: ${selectedRewardId}`);
-        themedSwal.fire({
-          icon: 'success',
-          title: 'Premio Modificado',
-          text: `Se actualizaron los datos del premio ${rewardForm.title}.`
-        });
+        toast.success(`Premio Modificado: Se actualizaron los datos del premio ${rewardForm.title}.`);
       }
       setShowRewardModal(false);
       fetchRewards();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error de Premios',
-        text: err.message || 'Ocurrió un error al guardar el premio.'
-      });
+      toast.error(`Error de Premios: ${err.message || 'Ocurrió un error al guardar el premio.'}`);
     }
   };
 
@@ -692,11 +613,7 @@ export default function Dashboard() {
       fetchRewards();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Fallo al actualizar el estado del premio.'
-      });
+      toast.error('Error: Fallo al actualizar el estado del premio.');
     }
   };
 
@@ -715,32 +632,18 @@ export default function Dashboard() {
       addTerminalEvent(`Eliminando premio ${r.id} de Firestore...`);
       await adminService.deleteReward(r.id);
       addTerminalEvent(`Premio eliminado: ${r.id}`);
-      themedSwal.fire({
-        icon: 'success',
-        title: 'Premio Eliminado',
-        text: `El premio ha sido removido de la base de datos.`
-      });
+      toast.success('Premio Eliminado: El premio ha sido removido de la base de datos.');
       fetchRewards();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: err.message || 'No se pudo eliminar el premio.'
-      });
+      toast.error(`Error: ${err.message || 'No se pudo eliminar el premio.'}`);
     }
   };
 
   // Clipboard handler
   const handleCopyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text);
-    themedSwal.fire({
-      icon: 'success',
-      title: 'Copiado',
-      text: `${label} copiado al portapapeles.`,
-      timer: 1000,
-      showConfirmButton: false
-    });
+    toast.success(`${label} copiado al portapapeles.`);
   };
 
   const formatCentsToCop = (cents, currency = 'COP') => {

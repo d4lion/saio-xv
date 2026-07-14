@@ -5,6 +5,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Camera, Keyboard, MapPin, AlertTriangle, CheckCircle, RefreshCw, History, ShieldAlert } from 'lucide-react';
 import UserNav from '../components/UserNav/UserNav';
 import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 // Configuración de SweetAlert2 con temática espacial
 const themedSwal = Swal.mixin({
@@ -104,11 +105,7 @@ export default function MisPuntos() {
       const pendingCode = sessionStorage.getItem('pendingClaimCode');
       if (pendingCode) {
         sessionStorage.removeItem('pendingClaimCode');
-        themedSwal.fire({
-          icon: 'error',
-          title: 'Ubicación Requerida',
-          text: `Se detectó un intento de registro automático para el código "${pendingCode.toUpperCase()}", pero es necesario habilitar el GPS para validar la distancia.`
-        });
+        toast.error(`Ubicación Requerida: Se detectó un intento de registro automático para el código "${pendingCode.toUpperCase()}", pero es necesario habilitar el GPS para validar la distancia.`);
       }
     }
   }, [user, geoStatus]);
@@ -149,11 +146,7 @@ export default function MisPuntos() {
   const handleClaimCode = async (code) => {
     const targetCode = code || manualCode;
     if (!targetCode.trim()) {
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Código Vacío',
-        text: 'Por favor escribe o escanea un código antes de reclamar.'
-      });
+      toast.error('Código Vacío: Por favor escribe o escanea un código antes de reclamar.');
       return;
     }
 
@@ -181,21 +174,13 @@ export default function MisPuntos() {
         ? `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta.\n\n[Verificación Haversine: Aceptado a ${res.distancia.toFixed(3)} km del stand]`
         : `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta.`;
 
-      themedSwal.fire({
-        icon: 'success',
-        title: '¡Código Registrado!',
-        text: successText
-      });
+      toast.success(`¡Código Registrado! ${successText}`);
       
       setManualCode('');
       loadHistory();
     } catch (err) {
       console.error(err);
-      themedSwal.fire({
-        icon: 'error',
-        title: 'Error de Registro',
-        text: err.message || 'El código es inválido o ya ha sido registrado.'
-      });
+      toast.error(err.message || 'El código es inválido o ya ha sido registrado.');
     } finally {
       setIsSubmitting(false);
     }
