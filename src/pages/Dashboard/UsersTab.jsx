@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, UserPlus, ToggleRight, ToggleLeft, Edit, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Edit, Trash2 } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
 export default function UsersTab({
@@ -85,17 +85,14 @@ export default function UsersTab({
                     </td>
                     <td className="px-6 py-4.5 font-bold text-blue-600 font-mono">{u.puntos || 0} PTS</td>
                     <td className="px-6 py-4.5">
-                      <button
-                        onClick={() => handleToggleUserStatus(u)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold cursor-pointer border ${
-                          u.activo !== false
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                            : 'bg-red-50 border-red-200 text-red-700'
-                        }`}
-                      >
-                        {u.activo !== false ? <ToggleRight className="w-4.5 h-4.5 text-emerald-600" /> : <ToggleLeft className="w-4.5 h-4.5 text-red-600" />}
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border ${
+                        u.activo !== false
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-red-50 border-red-200 text-red-700'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${u.activo !== false ? 'bg-emerald-600' : 'bg-red-600'}`} />
                         <span>{u.activo !== false ? 'Activo' : 'Suspendido'}</span>
-                      </button>
+                      </span>
                     </td>
                     <td className="px-6 py-4.5 text-right">
                       <div className="flex justify-end gap-2">

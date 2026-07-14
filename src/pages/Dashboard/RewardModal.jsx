@@ -13,7 +13,7 @@ export default function RewardModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xl relative text-gray-900">
+      <div className="w-full max-w-2xl bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xl relative text-gray-900">
         <button 
           type="button"
           onClick={onClose}

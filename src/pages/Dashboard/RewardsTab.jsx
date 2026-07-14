@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Award, ToggleRight, ToggleLeft, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Award, Edit, Trash2 } from 'lucide-react';
 
 export default function RewardsTab({
   rewards,
@@ -84,17 +84,14 @@ export default function RewardsTab({
                       </span>
                     </td>
                     <td className="px-6 py-4.5">
-                      <button
-                        onClick={() => handleToggleRewardStatus(r)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold cursor-pointer border ${
-                          r.activo
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                            : 'bg-red-50 border-red-200 text-red-700'
-                        }`}
-                      >
-                        {r.activo ? <ToggleRight className="w-4.5 h-4.5 text-emerald-600" /> : <ToggleLeft className="w-4.5 h-4.5 text-red-600" />}
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border ${
+                        r.activo
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-red-50 border-red-200 text-red-700'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${r.activo ? 'bg-emerald-600' : 'bg-red-600'}`} />
                         <span>{r.activo ? 'Activo' : 'Desactivado'}</span>
-                      </button>
+                      </span>
                     </td>
                     <td className="px-6 py-4.5 text-right">
                       <div className="flex justify-end gap-2">

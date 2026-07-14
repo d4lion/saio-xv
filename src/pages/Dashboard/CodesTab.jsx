@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, MapPin, ToggleRight, ToggleLeft, QrCode, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, MapPin, QrCode, Edit, Trash2 } from 'lucide-react';
 
 export default function CodesTab({
   codes,
@@ -96,17 +96,14 @@ export default function CodesTab({
                         )}
                       </td>
                       <td className="px-6 py-4.5">
-                        <button
-                          onClick={() => handleToggleCodeStatus(c)}
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold cursor-pointer border ${
-                            c.activo
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                              : 'bg-red-50 border-red-200 text-red-700'
-                          }`}
-                        >
-                          {c.activo ? <ToggleRight className="w-4.5 h-4.5 text-emerald-600" /> : <ToggleLeft className="w-4.5 h-4.5 text-red-600" />}
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border ${
+                          c.activo
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            : 'bg-red-50 border-red-200 text-red-700'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${c.activo ? 'bg-emerald-600' : 'bg-red-600'}`} />
                           <span>{c.activo ? 'Activo' : 'Desactivado'}</span>
-                        </button>
+                        </span>
                       </td>
                       <td className="px-6 py-4.5 text-right">
                         <div className="flex justify-end gap-2">
