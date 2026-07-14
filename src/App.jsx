@@ -10,7 +10,7 @@ import MiEntrada from './pages/MiEntrada'
 import Premios from './pages/Premios'
 import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
-import Dashboard from './pages/Dashboard'
+import Dashboard from './pages/Dashboard/Dashboard'
 import { ROLES } from './constants/roles'
 
 function ScrollToTop() {
@@ -107,7 +107,7 @@ export default function App() {
           } 
         />
         <Route 
-          path="/dashboard" 
+          path="/dashboard/*" 
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.COORDINADOR]}>
               <Dashboard />
