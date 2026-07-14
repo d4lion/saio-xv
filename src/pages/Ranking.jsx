@@ -268,7 +268,15 @@ export default function Ranking() {
       </main>
 
       <footer className="py-4 px-6 text-center text-xs text-secondary mt-auto border-t border-muted/10 bg-black/20">
-        © 2026 SAIO-XV Admin Portal. Tabla global de asistentes en vivo.
+        © 2026 SAIO-XV. Creado por{' '}
+        <a 
+          href="https://www.adamind.cloud" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-secondary hover:text-white underline transition-colors duration-200"
+        >
+          Adamind Technologies
+        </a>
       </footer>
     </div>
   );
