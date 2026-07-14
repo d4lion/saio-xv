@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, MapPin, User, Shield, CreditCard, Sparkles } from 'lucide-react';
 import UserNav from '../components/UserNav/UserNav';
+import QRCode from 'qrcode';
 
 export default function MiEntrada() {
   const { user } = useAuth();
+  const [qrSrc, setQrSrc] = useState('');
 
-  // Generar QR a través del API público qrserver.com
-  const qrUrl = user?.uid 
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${user.uid}&color=040b0f&bgcolor=ffffff&margin=10`
-    : null;
+  useEffect(() => {
+    if (user?.uid) {
+      QRCode.toDataURL(user.uid, { 
+        width: 250, 
+        margin: 2,
+        color: {
+          dark: '#040b0f',
+          light: '#ffffff'
+        }
+      })
+        .then(url => setQrSrc(url))
+        .catch(err => console.error("Error generating native QR code:", err));
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-[#040b0f] text-white flex flex-col font-sans relative overflow-hidden select-none">
@@ -53,9 +65,9 @@ export default function MiEntrada() {
 
           {/* Código QR Dinámico */}
           <div className="relative p-4 bg-white rounded-3xl mb-6 shadow-inner glow-purple">
-            {qrUrl ? (
+            {qrSrc ? (
               <img 
-                src={qrUrl} 
+                src={qrSrc} 
                 alt="Ticket QR Code" 
                 className="w-48 h-48 rounded-2xl block object-contain"
                 loading="lazy"

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import QRCode from 'qrcode';
 
 export default function QrPreviewModal({
   isOpen,
@@ -8,6 +9,17 @@ export default function QrPreviewModal({
   onDownloadQr,
   onCopyLink
 }) {
+  const [qrSrc, setQrSrc] = useState('');
+
+  useEffect(() => {
+    if (isOpen && previewCode) {
+      const url = `${window.location.origin}/mis-puntos?code=${previewCode.id}`;
+      QRCode.toDataURL(url, { width: 350, margin: 1 })
+        .then(dataUrl => setQrSrc(dataUrl))
+        .catch(err => console.error("Error generating QR code:", err));
+    }
+  }, [isOpen, previewCode]);
+
   if (!isOpen || !previewCode) return null;
 
   return (
@@ -33,11 +45,17 @@ export default function QrPreviewModal({
         <div className="p-6 flex flex-col items-center space-y-6">
           {/* QR Frame */}
           <div className="p-4 bg-white rounded-2xl shadow-md border border-gray-200 relative group">
-            <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`${window.location.origin}/mis-puntos?code=${previewCode.id}`)}`}
-              alt={`QR Code for ${previewCode.id}`}
-              className="w-64 h-64 select-none object-contain"
-            />
+            {qrSrc ? (
+              <img 
+                src={qrSrc}
+                alt={`QR Code for ${previewCode.id}`}
+                className="w-64 h-64 select-none object-contain"
+              />
+            ) : (
+              <div className="w-64 h-64 flex items-center justify-center text-xs text-gray-400">
+                Generando QR...
+              </div>
+            )}
             <div className="absolute inset-0 rounded-2xl border border-gray-100 pointer-events-none"></div>
           </div>
 

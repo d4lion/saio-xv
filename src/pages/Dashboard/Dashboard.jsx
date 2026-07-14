@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/adminService';
 import { ROLES } from '../../constants/roles';
@@ -584,24 +585,19 @@ export default function Dashboard() {
 
   const handleDownloadQr = async (codeId) => {
     const url = `${window.location.origin}/mis-puntos?code=${codeId}`;
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
     try {
-      addTerminalEvent(`Generando archivo PNG para el código QR: ${codeId}...`);
-      const response = await fetch(qrApiUrl);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      addTerminalEvent(`Generando archivo PNG nativo para el código QR: ${codeId}...`);
+      const dataUrl = await QRCode.toDataURL(url, { width: 500, margin: 2 });
       const a = document.createElement('a');
-      a.href = blobUrl;
+      a.href = dataUrl;
       a.download = `QR_${codeId}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
       addTerminalEvent(`[SUCCESS] QR descargado para el código: ${codeId}`);
     } catch (e) {
       console.error(e);
-      addTerminalEvent(`[ERROR] No se pudo descargar el QR: ${e.message}`);
-      window.open(qrApiUrl, '_blank');
+      addTerminalEvent(`[ERROR] No se pudo generar/descargar el QR: ${e.message}`);
     }
   };
 

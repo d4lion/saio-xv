@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, Plus, MapPin, QrCode, Edit, Trash2 } from 'lucide-react';
 
 export default function CodesTab({
@@ -8,7 +7,6 @@ export default function CodesTab({
   codeSearchSet,
   handleOpenCreateCode,
   handleOpenEditCode,
-  handleToggleCodeStatus,
   handleDeleteCode,
   setPreviewCode,
   setShowQrPreviewModal
