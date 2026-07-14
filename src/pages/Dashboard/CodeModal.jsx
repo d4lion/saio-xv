@@ -133,17 +133,29 @@ export default function CodeModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-2">
-            <input
-              type="checkbox"
-              id="code_activo"
-              checked={form.activo}
-              onChange={(e) => setForm(prev => ({ ...prev, activo: e.target.checked }))}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="code_activo" className="text-xs font-heading font-semibold text-gray-700 cursor-pointer select-none">
-              Código Habilitado Inmediatamente
-            </label>
+          <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="space-y-0.5">
+              <span className="text-xs font-heading font-bold text-gray-800">Estado del Código</span>
+              <p className="text-[10px] text-gray-500 font-sans">
+                El código se encuentra: {' '}
+                <span className={`font-semibold ${form.activo ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {form.activo ? 'Activo (Habilitado)' : 'Inactivo (Desactivado)'}
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm(prev => ({ ...prev, activo: !prev.activo }))}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                form.activo ? 'bg-emerald-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  form.activo ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           <div className="border-t border-gray-150 pt-4 mt-6 flex justify-end gap-2 bg-gray-50 -mx-5 -mb-5 p-5">
