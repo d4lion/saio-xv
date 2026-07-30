@@ -6,7 +6,6 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc,
-  query,
   getDoc
 } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
@@ -512,5 +511,38 @@ export const adminService = {
     }
     const rewardRef = doc(db, "rewards", rewardId);
     await deleteDoc(rewardRef);
+  },
+
+  // --- CLAIMS MANAGEMENT ---
+  async getAllClaims() {
+    if (!db || !isConfigValid) {
+      return getLocalStorage('mock_claims', []);
+    }
+    try {
+      const claimsRef = collection(db, "claims");
+      const snap = await getDocs(claimsRef);
+      const list = [];
+      snap.forEach((d) => {
+        list.push({ id: d.id, ...d.data() });
+      });
+      return list.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    } catch (e) {
+      console.error("Error al obtener tickets de canje:", e);
+      return [];
+    }
+  },
+
+  async deliverClaim(claimId) {
+    if (!db || !isConfigValid) {
+      const claims = getLocalStorage('mock_claims', []);
+      const idx = claims.findIndex(c => c.id === claimId);
+      if (idx !== -1) {
+        claims[idx].estado = 'entregado';
+        setLocalStorage('mock_claims', claims);
+      }
+      return;
+    }
+    const claimRef = doc(db, "claims", claimId);
+    await updateDoc(claimRef, { estado: 'entregado' });
   }
 };

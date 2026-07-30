@@ -4,10 +4,11 @@ import QRCode from 'qrcode';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/adminService';
+import { telemetryService } from '../../services/telemetryService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award
 } from 'lucide-react';
 
 // Subcomponents
@@ -17,6 +18,7 @@ import CodesTab from './CodesTab';
 import RewardsTab from './RewardsTab';
 import PaymentsTab from './PaymentsTab';
 import LogsTab from './LogsTab';
+import ClaimsTab from './ClaimsTab';
 
 // Modals
 import UserModal from './UserModal';
@@ -80,6 +82,7 @@ export default function Dashboard() {
   const [rewards, setRewards] = useState([]);
   const [payments, setPayments] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [claims, setClaims] = useState([]);
   
   // Loaders
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -87,14 +90,24 @@ export default function Dashboard() {
   const [loadingRewards, setLoadingRewards] = useState(false);
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [loadingClaims, setLoadingClaims] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Terminal activity logs
-  const [terminalEvents, setTerminalEvents] = useState([
-    `[${new Date().toLocaleTimeString()}] Inicializando consola de administración SAIO-XV...`,
-    `[${new Date().toLocaleTimeString()}] Cargando módulos de seguridad y telemetría...`,
-    `[${new Date().toLocaleTimeString()}] Conexión con base de datos establecida.`
-  ]);
+  // Realtime Telemetry logs from Firestore
+  const [telemetryLogs, setTelemetryLogs] = useState([]);
+  const [loadingTelemetry, setLoadingTelemetry] = useState(true);
+
+  useEffect(() => {
+    setLoadingTelemetry(true);
+    const unsubscribe = telemetryService.subscribeToTelemetryLogs((logs) => {
+      setTelemetryLogs(logs);
+      setLoadingTelemetry(false);
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   // Search states (passed to subtabs)
   const [userSearch, setUserSearch] = useState('');
@@ -103,6 +116,7 @@ export default function Dashboard() {
   const [paymentSearch, setPaymentSearch] = useState('');
   const [logSearch, setLogSearch] = useState('');
   const [logTypeFilter, setLogTypeFilter] = useState('all');
+  const [claimSearch, setClaimSearch] = useState('');
 
   // Modals state
   const [showUserModal, setShowUserModal] = useState(false);
@@ -215,9 +229,81 @@ export default function Dashboard() {
     }
   };
 
-  const addTerminalEvent = (text) => {
-    const time = new Date().toLocaleTimeString();
-    setTerminalEvents(prev => [...prev, `[${time}] ${text}`]);
+  const fetchClaims = async () => {
+    setLoadingClaims(true);
+    try {
+      const data = await adminService.getAllClaims();
+      setClaims(data);
+    } catch (e) {
+      console.error(e);
+      addTerminalEvent(`[ERROR] No se pudieron cargar los canjes: ${e.message}`);
+    } finally {
+      setLoadingClaims(false);
+    }
+  };
+
+  const handleDeliverClaim = async (claimId) => {
+    try {
+      addTerminalEvent(`Marcando canje ${claimId} como entregado...`);
+      await adminService.deliverClaim(claimId);
+      addTerminalEvent(`Canje ${claimId} marcado como entregado con éxito.`);
+      toast.success("Premio entregado con éxito.");
+      fetchClaims();
+    } catch (err) {
+      console.error(err);
+      toast.error(`Error al entregar premio: ${err.message}`);
+    }
+  };
+
+  const addTerminalEvent = (text, category = 'SYSTEM') => {
+    let type = 'INFO';
+    if (text.includes('[ERROR]')) type = 'ERROR';
+    else if (text.includes('[SUCCESS]')) type = 'SUCCESS';
+    else if (text.includes('[WARNING]')) type = 'WARNING';
+
+    telemetryService.logEvent({
+      type,
+      category,
+      message: text,
+      userEmail: user?.email || 'admin'
+    });
+  };
+
+  const handleClearTelemetryLogs = async () => {
+    const confirm = await themedSwal.fire({
+      icon: 'warning',
+      title: '¿Limpiar Consola de Telemetría?',
+      text: 'Esta acción borrará permanentemente los registros de eventos de Firestore.',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, Limpiar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await telemetryService.clearTelemetryLogs();
+      toast.success("Telemetría limpiada con éxito.");
+    } catch (e) {
+      toast.error("Error al limpiar telemetría.");
+    }
+  };
+
+  const handleRefreshTelemetryLogs = async () => {
+    setLoadingTelemetry(true);
+    const logs = await telemetryService.getTelemetryLogs(100);
+    setTelemetryLogs(logs);
+    setLoadingTelemetry(false);
+  };
+
+  const handleTestFirestore = async () => {
+    toast.loading("Probando conexión de escritura con Firestore...", { id: "test-fs" });
+    const res = await telemetryService.testFirestoreConnection();
+    if (res.success) {
+      toast.success(res.message, { id: "test-fs", duration: 5000 });
+      handleRefreshTelemetryLogs();
+    } else {
+      toast.error(res.message, { id: "test-fs", duration: 8000 });
+    }
   };
 
   const handleRefreshAll = async () => {
@@ -225,7 +311,7 @@ export default function Dashboard() {
     addTerminalEvent("Iniciando sincronización completa con Firestore...");
     const promises = [fetchCodes(), fetchRewards()];
     if (user?.rol === ROLES.ADMIN) {
-      promises.push(fetchUsers(), fetchPayments(), fetchLogs());
+      promises.push(fetchUsers(), fetchPayments(), fetchLogs(), fetchClaims());
     }
     await Promise.all(promises);
     addTerminalEvent("Sincronización finalizada exitosamente.");
@@ -238,6 +324,7 @@ export default function Dashboard() {
         fetchUsers();
         fetchPayments();
         fetchLogs();
+        fetchClaims();
       }
       fetchCodes();
       fetchRewards();
@@ -710,6 +797,7 @@ export default function Dashboard() {
               { path: '/dashboard/usuarios', label: 'Usuarios', icon: User, roles: [ROLES.ADMIN] },
               { path: '/dashboard/codigos', label: 'Códigos QR', icon: Key, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
               { path: '/dashboard/premios', label: 'Premios', icon: Gift, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
+              { path: '/dashboard/canjes', label: 'Canjes', icon: Award, roles: [ROLES.ADMIN] },
               { path: '/dashboard/pagos', label: 'Pagos', icon: CreditCard, roles: [ROLES.ADMIN] },
               { path: '/dashboard/historial', label: 'Historial', icon: Clock, roles: [ROLES.ADMIN] }
             ].filter(t => t.roles.includes(user?.rol)).map(tab => {
@@ -757,7 +845,12 @@ export default function Dashboard() {
                     codes={codes} 
                     rewards={rewards} 
                     payments={payments} 
-                    terminalEvents={terminalEvents} 
+                    telemetryLogs={telemetryLogs} 
+                    loadingTelemetry={loadingTelemetry}
+                    onClearLogs={handleClearTelemetryLogs}
+                    onRefreshLogs={handleRefreshTelemetryLogs}
+                    onTestFirestore={handleTestFirestore}
+                    userRole={user?.rol}
                     navigate={navigate} 
                   />
                 ) : (
@@ -833,6 +926,23 @@ export default function Dashboard() {
                     extractTxFields={extractTxFields} 
                     setSelectedPayment={setSelectedPayment} 
                     setShowPaymentDetailModal={setShowPaymentDetailModal} 
+                  />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
+            <Route 
+              path="canjes" 
+              element={
+                user?.rol === ROLES.ADMIN ? (
+                  <ClaimsTab 
+                    claims={claims} 
+                    loadingClaims={loadingClaims} 
+                    claimSearch={claimSearch} 
+                    setClaimSearch={setClaimSearch} 
+                    handleDeliverClaim={handleDeliverClaim} 
                   />
                 ) : (
                   <Navigate to="/dashboard/codigos" replace />

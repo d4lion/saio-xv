@@ -1,4 +1,5 @@
 import { db } from '../firebase/config';
+import { telemetryService } from './telemetryService';
 import { 
   doc, 
   getDoc, 
@@ -216,6 +217,8 @@ export const pointsService = {
       } : null
     });
 
+    telemetryService.logSuccess('QR_CODE', `Código QR ${uppercaseCode} canjeado exitosamente (+${codeData.puntos} pts).`, { uid });
+
     return {
       success: true,
       puntosReclamados: codeData.puntos,
@@ -291,6 +294,9 @@ export const pointsService = {
     const rewardRef = doc(db, "rewards", rewardId);
     const transactionsRef = collection(db, "points_transactions");
     const newTxRef = doc(transactionsRef);
+    
+    const claimsRef = collection(db, "claims");
+    const newClaimRef = doc(claimsRef);
 
     // 1. Verificar duplicado ANTES de la transacción (los queries no corren dentro de transacciones)
     const checkQuery = query(
@@ -350,11 +356,47 @@ export const pointsService = {
         premioCanjeado: title,
         coordenadas: null
       });
+
+      // Guardar ticket de canje único
+      transaction.set(newClaimRef, {
+        uid,
+        nombre: userData.nombre || 'Sin nombre',
+        correo: userData.correo || userData.email || '',
+        telefono: userData.telefono || 'Sin teléfono',
+        cedula: userData.cedula || 'N/A',
+        rewardId,
+        premio: title,
+        costo: cost,
+        fecha: new Date().toISOString(),
+        estado: 'pendiente'
+      });
     });
+
+    telemetryService.logSuccess('REWARDS', `Premio "${title}" reclamado exitosamente (-${cost} pts).`, { uid });
 
     return {
       success: true
     };
+  },
+
+  /**
+   * Obtiene la lista de tickets de canje activos de un asistente.
+   */
+  async getUserClaims(uid) {
+    if (!db) return [];
+    try {
+      const claimsRef = collection(db, "claims");
+      const q = query(claimsRef, where("uid", "==", uid));
+      const querySnapshot = await getDocs(q);
+      const list = [];
+      querySnapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() });
+      });
+      return list;
+    } catch (error) {
+      console.error("Error al obtener los tickets de canje:", error);
+      return [];
+    }
   },
 
   /**

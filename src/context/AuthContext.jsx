@@ -8,6 +8,7 @@ import {
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { ROLES } from '../constants/roles';
+import { telemetryService } from '../services/telemetryService';
 
 const AuthContext = createContext();
 
@@ -46,23 +47,35 @@ export function AuthProvider({ children }) {
       fechaCreacion: new Date().toISOString()
     });
 
+    telemetryService.logSuccess('AUTH', `Nuevo usuario registrado: ${email}`, { userEmail: email, uid: user.uid });
+
     return userCredential;
   }
 
   // Iniciar sesión
-  function login(email, password) {
+  async function login(email, password) {
     if (!auth) {
-      return Promise.reject(new Error("Firebase no está configurado. Por favor completa las variables de entorno en el archivo .env"));
+      throw new Error("Firebase no está configurado. Por favor completa las variables de entorno en el archivo .env");
     }
-    return signInWithEmailAndPassword(auth, email, password);
+    try {
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      telemetryService.logInfo('AUTH', `Inicio de sesión exitoso: ${email}`, { userEmail: email });
+      return res;
+    } catch (err) {
+      telemetryService.logError('AUTH', `Fallo al iniciar sesión (${email}): ${err.message}`, { userEmail: email });
+      throw err;
+    }
   }
 
   // Cerrar sesión
-  function logout() {
+  async function logout() {
     if (!auth) {
-      return Promise.reject(new Error("Firebase no está configurado. Por favor completa las variables de entorno en el archivo .env"));
+      throw new Error("Firebase no está configurado. Por favor completa las variables de entorno en el archivo .env");
     }
-    return signOut(auth);
+    const email = currentUser?.email || 'usuario';
+    const res = await signOut(auth);
+    telemetryService.logInfo('AUTH', `Cierre de sesión: ${email}`, { userEmail: email });
+    return res;
   }
 
   useEffect(() => {

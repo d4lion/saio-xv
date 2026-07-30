@@ -5,6 +5,7 @@ import { Gift, Award, CheckCircle, AlertTriangle, Coins } from 'lucide-react';
 import UserNav from '../components/UserNav/UserNav';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
+import QRCode from 'qrcode';
 
 // Configuración de SweetAlert2 con temática espacial
 const themedSwal = Swal.mixin({
@@ -29,6 +30,10 @@ export default function Premios() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(null); // ID del premio canjeándose
+  const [userClaims, setUserClaims] = useState([]);
+  const [selectedClaim, setSelectedClaim] = useState(null);
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [claimQrUrl, setClaimQrUrl] = useState('');
 
   const loadData = async () => {
     if (!user?.uid) return;
@@ -37,10 +42,9 @@ export default function Premios() {
       const active = await pointsService.getActiveRewards();
       setRewardsList(active);
 
-      const history = await pointsService.getTransactionHistory(user.uid);
-      const claimed = history
-        .filter(t => t.code && t.code.startsWith('CANJE_'))
-        .map(t => t.code.replace('CANJE_', ''));
+      const claims = await pointsService.getUserClaims(user.uid);
+      setUserClaims(claims);
+      const claimed = claims.map(c => c.rewardId);
       setClaimedRewards(claimed);
     } catch (err) {
       console.error("Error al cargar premios:", err);
@@ -52,6 +56,27 @@ export default function Premios() {
   useEffect(() => {
     loadData();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedClaim?.id) {
+      QRCode.toDataURL(selectedClaim.id, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#ffffff',
+          light: '#0e0a34'
+        }
+      })
+      .then(url => {
+        setClaimQrUrl(url);
+      })
+      .catch(err => {
+        console.error("Error al generar QR de canje:", err);
+      });
+    } else {
+      setClaimQrUrl('');
+    }
+  }, [selectedClaim]);
 
   const handleRedeem = async (reward) => {
     if (!user?.uid) return;
@@ -84,8 +109,7 @@ export default function Premios() {
     try {
       await pointsService.redeemReward(user.uid, reward.id, reward.cost, reward.title);
       toast.success(`¡Premio Canjeado! Has canjeado "${reward.title}" con éxito.`);
-      // Actualizar estado local de reclamados
-      setClaimedRewards(prev => [...prev, reward.id]);
+      await loadData();
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Error al procesar el canje.');
@@ -215,11 +239,21 @@ export default function Premios() {
 
                   <div className="mt-6 pt-4 border-t border-muted/10">
                     <button
-                      onClick={() => handleRedeem(reward)}
-                      disabled={isRedeeming !== null || isClaimed || isOutOfStock || !canAfford}
+                      onClick={() => {
+                        if (isClaimed) {
+                          const claim = userClaims.find(c => c.rewardId === reward.id);
+                          if (claim) {
+                            setSelectedClaim(claim);
+                            setShowClaimModal(true);
+                          }
+                        } else {
+                          handleRedeem(reward);
+                        }
+                      }}
+                      disabled={isRedeeming !== null || (isOutOfStock && !isClaimed) || (!canAfford && !isClaimed)}
                       className={`w-full py-2 rounded-xl font-heading text-xs font-semibold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer
                         ${isClaimed
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-not-allowed'
+                          ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/35 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]'
                           : isOutOfStock
                             ? 'bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed'
                             : canAfford 
@@ -234,7 +268,7 @@ export default function Premios() {
                           <Gift className="w-4 h-4" />
                           <span>
                             {isClaimed 
-                              ? 'Premio Reclamado' 
+                              ? 'Ver Ticket QR' 
                               : isOutOfStock 
                                 ? 'Agotado' 
                                 : canAfford 
@@ -252,6 +286,70 @@ export default function Premios() {
           </section>
         )}
       </main>
+
+      {/* Modal del Ticket QR de Canje */}
+      {showClaimModal && selectedClaim && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="relative w-full max-w-sm overflow-hidden border border-purple-500/25 rounded-3xl bg-[#0e0a34] text-white shadow-2xl p-6 flex flex-col items-center">
+            {/* Cabecera */}
+            <div className="w-full flex justify-between items-center mb-6">
+              <span className="font-heading font-bold text-xs uppercase tracking-widest text-accent">Ticket de Canje</span>
+              <button 
+                onClick={() => {
+                  setShowClaimModal(false);
+                  setSelectedClaim(null);
+                }}
+                className="text-secondary hover:text-white transition-colors cursor-pointer text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Detalles del Premio */}
+            <h4 className="text-lg font-heading font-extrabold text-white text-center mb-1">
+              {selectedClaim.premio}
+            </h4>
+            <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 font-heading text-[10px] font-bold rounded-full uppercase tracking-wider mb-6 border border-emerald-500/30">
+              Estado: {selectedClaim.estado === 'pendiente' ? 'Pendiente de Entrega' : 'Entregado'}
+            </div>
+
+            {/* Imagen del Código QR */}
+            <div className="p-4 bg-[#040b0f] border border-purple-500/20 rounded-2xl mb-6 shadow-inner flex items-center justify-center">
+              {claimQrUrl ? (
+                <img 
+                  src={claimQrUrl} 
+                  alt="Código QR de Canje" 
+                  className="w-48 h-48 object-contain rounded-lg shadow-glow-purple" 
+                />
+              ) : (
+                <div className="w-48 h-48 flex items-center justify-center text-xs text-secondary animate-pulse">
+                  Generando QR...
+                </div>
+              )}
+            </div>
+
+            {/* Información adicional del ticket */}
+            <div className="w-full space-y-2 border-t border-muted/15 pt-4 text-xs">
+              <div className="flex justify-between">
+                <span className="text-secondary">Código único:</span>
+                <span className="font-mono text-white font-semibold uppercase">{selectedClaim.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-secondary">Costo:</span>
+                <span className="font-mono text-accent font-bold">{selectedClaim.costo} PTS</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-secondary">Fecha:</span>
+                <span className="text-white font-medium">{new Date(selectedClaim.fecha).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <p className="mt-6 text-[10px] text-center text-secondary/70 leading-relaxed uppercase tracking-wider">
+              Muestra este código al staff del evento para reclamar tu premio físico.
+            </p>
+          </div>
+        </div>
+      )}
 
       <footer className="py-4 px-6 text-center text-xs text-secondary mt-auto border-t border-muted/10 bg-black/20">
         © 2026 SAIO-XV. Creado por{' '}

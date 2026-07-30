@@ -13,20 +13,12 @@ const navLinks = [
   { label: 'Boletas', href: '/#tickets' },
 ]
 
-const authenticatedLinks = [
-  { label: 'Mi Entrada', href: '/mi-entrada', isRoute: true },
-  { label: 'Mis Puntos', href: '/mis-puntos', isRoute: true },
-  { label: 'Premios', href: '/premios', isRoute: true },
-]
-
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user } = useAuth()
 
-  const currentNavLinks = user 
-    ? [...navLinks.filter(l => l.label !== 'Boletas'), ...authenticatedLinks]
-    : navLinks;
+  const currentNavLinks = navLinks;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
