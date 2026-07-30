@@ -170,10 +170,10 @@ export default function MisPuntos() {
     try {
       const res = await pointsService.claimCode(user.uid, targetCode, coords);
       
-      const successText = res.distancia !== undefined
-        ? `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta.\n\n[Verificación Haversine: Aceptado a ${res.distancia.toFixed(3)} km del stand]`
-        : `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta.`;
-
+      const successText = !(res.distancia !== undefined && import.meta.env.VITE_PRODUCTION_MODE === 'true')
+        ? `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta.`
+        : `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta [DEBUG: ${res.distancia.toFixed(3)} km]`
+      
       toast.success(`¡Código Registrado! ${successText}`);
       
       setManualCode('');
