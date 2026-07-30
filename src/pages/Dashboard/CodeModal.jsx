@@ -1,5 +1,6 @@
-import React from 'react';
-import { Key, X, MapPin, RefreshCw, Calendar } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Key, X, MapPin, RefreshCw, Calendar, ChevronDown, Navigation } from 'lucide-react';
+import { PRESET_LOCATIONS } from '../../constants/locations';
 
 export default function CodeModal({
   isOpen,
@@ -11,7 +12,43 @@ export default function CodeModal({
   onCaptureGps,
   gpsLoading
 }) {
+  const [locationMode, setLocationMode] = useState('none');
+
+  // Detect current location mode from form values when modal opens
+  const detectLocationMode = useCallback(() => {
+    if (!form.latitud && !form.longitud) return 'none';
+    const match = PRESET_LOCATIONS.find(
+      loc => loc.lat === String(form.latitud) && loc.lng === String(form.longitud)
+    );
+    return match ? match.id : 'custom';
+  }, [form.latitud, form.longitud]);
+
+  // Sync locationMode with form on first meaningful render
+  React.useEffect(() => {
+    setLocationMode(detectLocationMode());
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleLocationSelect = (value) => {
+    setLocationMode(value);
+    if (value === 'none') {
+      setForm(prev => ({ ...prev, latitud: '', longitud: '' }));
+    } else if (value === 'custom' || value === 'gps') {
+      if (value === 'gps') {
+        onCaptureGps();
+      }
+      // Keep current values for custom, GPS will fill via onCaptureGps
+    } else {
+      const preset = PRESET_LOCATIONS.find(loc => loc.id === value);
+      if (preset) {
+        setForm(prev => ({ ...prev, latitud: preset.lat, longitud: preset.lng }));
+      }
+    }
+  };
+
   if (!isOpen) return null;
+
+  const isPreset = PRESET_LOCATIONS.some(loc => loc.id === locationMode);
+  const showCoordinates = locationMode !== 'none';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
@@ -60,48 +97,99 @@ export default function CodeModal({
 
           {/* Geolocation Section */}
           <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-600 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                Restricción por Ubicación
-              </span>
-              <button
-                type="button"
-                onClick={onCaptureGps}
-                className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-semibold flex items-center gap-1.5 cursor-pointer transition-all duration-200"
-                disabled={gpsLoading}
-              >
-                <RefreshCw className={`w-3 h-3 ${gpsLoading ? 'animate-spin' : ''}`} />
-                <span>Usar Ubicación Actual</span>
-              </button>
+            <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-600 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-blue-600" />
+              Restricción por Ubicación
+            </span>
+
+            {/* Location Selector Dropdown */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-heading font-semibold uppercase text-gray-500">Ubicación Predefinida</label>
+              <div className="relative">
+                <select
+                  value={locationMode}
+                  onChange={(e) => handleLocationSelect(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-200 appearance-none cursor-pointer pr-8"
+                >
+                  <option value="none">Sin restricción de ubicación</option>
+                  {PRESET_LOCATIONS.map(loc => (
+                    <option key={loc.id} value={loc.id}>
+                      📍 {loc.name}
+                    </option>
+                  ))}
+                  <option value="gps">📡 Usar mi ubicación actual (GPS)</option>
+                  <option value="custom">✏️ Ingresar coordenadas manualmente</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-[9px] font-heading font-semibold uppercase text-gray-500">Latitud (GPS)</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={form.latitud}
-                  onChange={(e) => setForm(prev => ({ ...prev, latitud: e.target.value }))}
-                  placeholder="Ej: 4.609710"
-                  className="w-full px-2.5 py-1.5 bg-white border border-gray-300 focus:border-blue-500 rounded-lg text-xs text-gray-900 outline-none font-mono"
-                />
+            {/* Show selected preset info badge */}
+            {isPreset && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg animate-fadeIn">
+                <Navigation className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span className="text-[10px] text-blue-700 font-medium">
+                  Coordenadas cargadas: <span className="font-mono font-semibold">{form.latitud}, {form.longitud}</span>
+                </span>
               </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-heading font-semibold uppercase text-gray-500">Longitud (GPS)</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={form.longitud}
-                  onChange={(e) => setForm(prev => ({ ...prev, longitud: e.target.value }))}
-                  placeholder="Ej: -74.081750"
-                  className="w-full px-2.5 py-1.5 bg-white border border-gray-300 focus:border-blue-500 rounded-lg text-xs text-gray-900 outline-none font-mono"
-                />
+            )}
+
+            {/* GPS loading indicator */}
+            {locationMode === 'gps' && gpsLoading && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                <RefreshCw className="w-3.5 h-3.5 text-amber-600 animate-spin shrink-0" />
+                <span className="text-[10px] text-amber-700 font-medium">Obteniendo ubicación GPS...</span>
               </div>
-            </div>
+            )}
+
+            {/* Manual coordinate inputs - shown for custom, gps, and presets (read-only for presets) */}
+            {showCoordinates && (
+              <div className="grid grid-cols-2 gap-3 animate-fadeIn">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-heading font-semibold uppercase text-gray-500">Latitud (GPS)</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={form.latitud}
+                    onChange={(e) => {
+                      setForm(prev => ({ ...prev, latitud: e.target.value }));
+                      if (isPreset) setLocationMode('custom');
+                    }}
+                    placeholder="Ej: 6.261630"
+                    readOnly={isPreset}
+                    className={`w-full px-2.5 py-1.5 border rounded-lg text-xs text-gray-900 outline-none font-mono transition-all duration-200 ${
+                      isPreset
+                        ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-default'
+                        : 'bg-white border-gray-300 focus:border-blue-500'
+                    }`}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-heading font-semibold uppercase text-gray-500">Longitud (GPS)</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={form.longitud}
+                    onChange={(e) => {
+                      setForm(prev => ({ ...prev, longitud: e.target.value }));
+                      if (isPreset) setLocationMode('custom');
+                    }}
+                    placeholder="Ej: -75.577697"
+                    readOnly={isPreset}
+                    className={`w-full px-2.5 py-1.5 border rounded-lg text-xs text-gray-900 outline-none font-mono transition-all duration-200 ${
+                      isPreset
+                        ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-default'
+                        : 'bg-white border-gray-300 focus:border-blue-500'
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
             <p className="text-[9px] text-gray-500 leading-relaxed">
-              * Deja estos campos vacíos si no quieres restringir la reclamación por distancia.
+              {locationMode === 'none'
+                ? '* Selecciona una ubicación si quieres restringir la reclamación por distancia.'
+                : '* El usuario deberá estar cerca de esta ubicación para reclamar el código.'}
             </p>
           </div>
 
