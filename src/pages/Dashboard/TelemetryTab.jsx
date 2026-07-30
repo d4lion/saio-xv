@@ -173,16 +173,6 @@ export default function TelemetryTab({
               </button>
             )}
 
-            {userRole === 'admin' && onClearLogs && (
-              <button
-                onClick={onClearLogs}
-                className="p-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Limpiar telemetría de Firestore"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Limpiar Consola</span>
-              </button>
-            )}
           </div>
         </div>
 
