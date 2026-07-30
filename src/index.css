@@ -25,11 +25,11 @@ html {
 }
 
 @media (min-width: 1024px) {
-  html {
+  .snap-container {
     scroll-snap-type: y mandatory;
   }
 
-  section {
+  .snap-container section {
     scroll-snap-align: center;
     scroll-snap-stop: always;
   }

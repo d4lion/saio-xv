@@ -73,7 +73,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-purple-500/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-muted text-xs">
-            © {year} Hecho con ❤️ por <a href="https://adamind.cloud" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-secondary-light transition-colors duration-300">Adamind Technologies</a> para Saio XV · Todos los derechos reservados.
+            © {year} Hecho con ❤️ por <a href="https://www.adamind.cloud" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-secondary-light transition-colors duration-300">Adamind Technologies</a> para Saio XV · Todos los derechos reservados.
           </p>
           <div className="flex gap-6">
             {['Privacidad', 'Términos', 'Cookies'].map((item) => (

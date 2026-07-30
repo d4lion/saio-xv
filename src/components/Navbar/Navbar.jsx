@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import logo from '../../assets/logo.png'
+import { useAuth } from '../../context/AuthContext'
 
 const navLinks = [
   { label: 'Inicio', href: '/#hero' },
@@ -15,6 +16,9 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { user } = useAuth()
+
+  const currentNavLinks = navLinks;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -44,7 +48,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
+            {currentNavLinks.map((link) => (
               <li key={link.label}>
                 {link.isRoute ? (
                   <Link
@@ -68,12 +72,21 @@ export default function Navbar() {
           </ul>
 
           {/* CTA */}
-          <Link
-            to="/#tickets"
-            className="hidden md:flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary-light to-accent text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(156,58,237,0.5)] hover:scale-105 transition-all duration-300"
-          >
-            Comprar boleta
-          </Link>
+          <div className="hidden md:flex items-center gap-6">
+            <Link
+              to={user ? "/perfil" : "/login"}
+              className="text-secondary hover:text-white text-sm font-semibold tracking-wide transition-colors duration-300 relative group"
+            >
+              {user ? "Mi Perfil" : "Acceso Portal"}
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-purple-400 to-accent group-hover:w-full transition-all duration-300" />
+            </Link>
+            <Link
+              to="/#tickets"
+              className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary-light to-accent text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(156,58,237,0.5)] hover:scale-105 transition-all duration-300"
+            >
+              Comprar boleta
+            </Link>
+          </div>
 
           {/* Mobile toggle */}
           <button
@@ -97,7 +110,7 @@ export default function Navbar() {
             className="fixed top-16 left-4 right-4 z-40 glass rounded-2xl p-6 border border-purple-500/20"
           >
             <ul className="flex flex-col gap-5">
-              {navLinks.map((link) => (
+              {currentNavLinks.map((link) => (
                 <li key={link.label}>
                   {link.isRoute ? (
                     <Link
@@ -118,6 +131,15 @@ export default function Navbar() {
                   )}
                 </li>
               ))}
+              <li>
+                <Link
+                  to={user ? "/perfil" : "/login"}
+                  onClick={() => setMobileOpen(false)}
+                  className="text-secondary hover:text-white text-base tracking-wide transition-colors duration-300 block font-semibold"
+                >
+                  {user ? "Mi Perfil" : "Acceso Portal"}
+                </Link>
+              </li>
               <li>
                 <a
                   href="/#tickets"

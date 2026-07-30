@@ -11,7 +11,7 @@ import Footer from '../components/Footer/Footer'
 
 export default function Home() {
   return (
-    <main className="relative bg-[#040b0f]">
+    <main className="relative bg-[#040b0f] snap-container">
       <Navbar />
       <Hero />
 
