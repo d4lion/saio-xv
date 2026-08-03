@@ -1,114 +1,16 @@
 import { motion } from 'framer-motion'
-import { ArrowLeft, Globe, Mic, Award, Users, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Globe, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar/Navbar'
 import Footer from '../components/Footer/Footer'
 import logo from '../assets/logo.png'
 
-/* ─── Brand icons (lucide-react no incluye brand icons) ─── */
-function IconLinkedin({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect x="2" y="9" width="4" height="12" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  )
-}
-
-function IconTwitterX({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  )
-}
-
 /* ─── Data ─────────────────────────────────────────── */
-const featured = {
-  name: 'Dr. Alejandra Moreno',
-  role: 'Directora de IA',
-  company: 'Tech Latam',
-  bio: 'Pionera en machine learning aplicado a sistemas de salud en América Latina. Con más de 15 años de experiencia, ha liderado proyectos de IA en Google, Microsoft y startups del ecosistema latinoamericano. Conferencista internacional y mentora de cientos de estudiantes.',
-  topics: ['Machine Learning', 'IA en Salud', 'Liderazgo Tech'],
-  color: '#9c3aed',
-  initials: 'AM',
-}
+import { speakers, featured, stats } from '../constants/panelistas/data'
 
-const speakers = [
-  {
-    name: 'Carlos Ramírez',
-    role: 'Data Engineer Senior',
-    company: 'Rappi',
-    bio: 'Especialista en arquitecturas de datos a escala. Construye pipelines que procesan millones de transacciones diarias.',
-    topics: ['Data Engineering', 'Spark', 'Kafka'],
-    color: '#4c29b6',
-    initials: 'CR',
-    photo: null,
-    social: { linkedin: '#', twitter: '#' },
-  },
-  {
-    name: 'Valeria Torres',
-    role: 'ML Research Lead',
-    company: 'Mercado Libre',
-    bio: 'Lidera investigación en modelos de recomendación y NLP para el mayor e-commerce de LATAM.',
-    topics: ['NLP', 'Recomendación', 'Deep Learning'],
-    color: '#9c3aed',
-    initials: 'VT',
-    photo: null,
-    social: { linkedin: '#', twitter: '#' },
-  },
-  {
-    name: 'Andrés Fuentes',
-    role: 'Head of Analytics',
-    company: 'Bancolombia',
-    bio: 'Transforma datos financieros en estrategias de negocio. Experto en analítica prescriptiva y modelos de riesgo.',
-    topics: ['Analytics', 'Fintech', 'Business Intelligence'],
-    color: '#828dbc',
-    initials: 'AF',
-    photo: null,
-    social: { linkedin: '#', twitter: '#' },
-  },
-  {
-    name: 'Laura Jiménez',
-    role: 'Cloud Architect',
-    company: 'AWS Latam',
-    bio: 'Diseña infraestructuras escalables en la nube para startups y corporaciones. Certificada en múltiples plataformas cloud.',
-    topics: ['Cloud', 'AWS', 'DevOps'],
-    color: '#c3abdc',
-    initials: 'LJ',
-    photo: null,
-    social: { linkedin: '#', twitter: '#' },
-  },
-  {
-    name: 'Miguel Ángel Cruz',
-    role: 'AI Product Manager',
-    company: 'Nubank',
-    bio: 'Lleva productos de IA de la idea al mercado. Ha lanzado más de 20 features impulsados por modelos de ML en producción.',
-    topics: ['Product Management', 'IA Aplicada', 'Fintech'],
-    color: '#4c29b6',
-    initials: 'MC',
-    photo: null,
-    social: { linkedin: '#', twitter: '#' },
-  },
-  {
-    name: 'Sofía Herrera',
-    role: 'Data Scientist',
-    company: 'Kavak',
-    bio: 'Aplica ciencia de datos al mercado automotriz. Especialista en modelos de valuación predictiva y análisis de fraude.',
-    topics: ['Data Science', 'Python', 'Modelado Predictivo'],
-    color: '#9c3aed',
-    initials: 'SH',
-    photo: null,
-    social: { linkedin: '#', twitter: '#' },
-  },
-]
+/* ─── Brand icons (lucide-react no incluye brand icons) ─── */
+import { IconLinkedin, IconTwitterX } from '../components/utils/BrandIcons'
 
-const stats = [
-  { icon: Mic, value: '20+', label: 'Ponentes confirmados' },
-  { icon: Award, value: '15+', label: 'Años de experiencia promedio' },
-  { icon: Users, value: '8', label: 'Empresas representadas' },
-]
 
 /* ─── Helpers ───────────────────────────────────────── */
 const fadeUp = {
