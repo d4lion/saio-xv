@@ -1,10 +1,12 @@
 import adamindLogo from '../../assets/sponsor/adamind.png';
+import colantaLogo from '../../assets/sponsor/colanta.png'
+import buguiLogo from '../../assets/sponsor/bugui.webp'
+import mounsieurWaffle from '../../assets/sponsor/monsieurWaffle.jpg'
+
 
 export const sponsors = [
   { id: 1, name: 'Adamind Technologies', logo: adamindLogo, src: 'https://www.adamind.cloud' },
-  { id: 2, name: 'Partner 2', logo: 'https://placehold.co/150x50?text=Tu+negocio+aqui', src: 'https://www.adamind.cloud' },
-  { id: 3, name: 'Partner 3', logo: 'https://placehold.co/150x50?text=Tu+negocio+aqui', src: 'https://www.adamind.cloud' },
-  { id: 4, name: 'Partner 4', logo: 'https://placehold.co/150x50?text=Tu+negocio+aqui', src: 'https://www.adamind.cloud' },
-  { id: 5, name: 'Partner 5', logo: 'https://placehold.co/150x50?text=Tu+negocio+aqui', src: 'https://www.adamind.cloud' },
-  { id: 6, name: 'Partner 6', logo: 'https://placehold.co/150x50?text=Tu+negocio+aqui', src: 'https://www.adamind.cloud' },
+  { id: 2, name: 'Colanta', logo: colantaLogo, src: 'https://www.colanta.com' },
+  { id: 3, name: 'Bugui', logo: buguiLogo, src: 'https://heladosbugui.co/' },
+  { id: 4, name: 'Monsieur Waffle', logo: mounsieurWaffle, src: 'https://www.instagram.com/monsieurwaffle/' }
 ]
