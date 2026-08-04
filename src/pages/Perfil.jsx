@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
-import { User, Shield, Mail, Calendar, Award, LogOut, CheckCircle, AlertCircle, Phone } from 'lucide-react';
+import { User, Shield, Mail, Calendar, Award, LogOut, CheckCircle, AlertCircle, Phone, LayoutDashboard } from 'lucide-react';
 import UserNav from '../components/UserNav/UserNav';
+import { ROLES } from '../constants/roles';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
@@ -161,7 +162,17 @@ export default function Perfil() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {(user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR) && (
+              <Link
+                to="/dashboard"
+                className="px-3.5 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 border border-purple-400/30 text-purple-200 hover:text-white font-heading text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all duration-300 shadow-sm"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-purple-400" />
+                <span>Ir al Dashboard</span>
+              </Link>
+            )}
+
             <button
               onClick={handleLogout}
               className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 text-red-200 hover:text-white font-heading text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 disabled:opacity-50"

@@ -1,5 +1,6 @@
 import { db } from '../firebase/config';
 import { telemetryService } from './telemetryService';
+import { ROLES } from '../constants/roles';
 import { 
   doc, 
   getDoc, 
@@ -400,43 +401,54 @@ export const pointsService = {
   },
 
   /**
-   * Obtiene los usuarios ordenados por puntos de mayor a menor (Top 10).
+   * Obtiene los usuarios asistentes ordenados por puntos de mayor a menor.
    */
   async getLeaderboard(limitCount = 10) {
     if (!db) {
       // Mock local de prueba para desarrollo
       return [
-        { uid: '1', nombre: 'Andrés Mendoza', puntos: 15400, rol: 'asistente' },
-        { uid: '2', nombre: 'Camila Rojas', puntos: 12800, rol: 'asistente' },
-        { uid: '3', nombre: 'Santiago Delgado', puntos: 11500, rol: 'asistente' },
-        { uid: '4', nombre: 'Valeria Gómez', puntos: 9500, rol: 'asistente' },
-        { uid: '5', nombre: 'Daniela Castro', puntos: 8200, rol: 'asistente' },
-        { uid: '6', nombre: 'Mateo Ortiz', puntos: 7600, rol: 'asistente' },
-        { uid: '7', nombre: 'Sofía Herrera', puntos: 5400, rol: 'asistente' },
-        { uid: '8', nombre: 'Lucas Guerrero', puntos: 4300, rol: 'asistente' },
+        { uid: '1', nombre: 'Andrés Mendoza', puntos: 15400, rol: ROLES.ASISTENTE },
+        { uid: '2', nombre: 'Camila Rojas', puntos: 12800, rol: ROLES.ASISTENTE },
+        { uid: '3', nombre: 'Santiago Delgado', puntos: 11500, rol: ROLES.ASISTENTE },
+        { uid: '4', nombre: 'Valeria Gómez', puntos: 9500, rol: ROLES.ASISTENTE },
+        { uid: '5', nombre: 'Daniela Castro', puntos: 8200, rol: ROLES.ASISTENTE },
+        { uid: '6', nombre: 'Mateo Ortiz', puntos: 7600, rol: ROLES.ASISTENTE },
+        { uid: '7', nombre: 'Sofía Herrera', puntos: 5400, rol: ROLES.ASISTENTE },
+        { uid: '8', nombre: 'Lucas Guerrero', puntos: 4300, rol: ROLES.ASISTENTE },
       ];
     }
 
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, orderBy("puntos", "desc"), limit(limitCount));
+      const q = query(
+        usersRef, 
+        where("rol", "==", ROLES.ASISTENTE), 
+        orderBy("puntos", "desc"), 
+        limit(limitCount)
+      );
       const querySnapshot = await getDocs(q);
       
       const leaderboard = [];
       querySnapshot.forEach((doc) => {
-        leaderboard.push({ uid: doc.id, ...doc.data() });
+        const u = { uid: doc.id, ...doc.data() };
+        if (!u.rol || u.rol === ROLES.ASISTENTE || u.role === ROLES.ASISTENTE) {
+          leaderboard.push(u);
+        }
       });
 
       return leaderboard;
     } catch (error) {
-      console.error("Error al obtener la tabla de posiciones:", error);
+      console.warn("Consulta directa con índice de Firestore falló, usando filtrado seguro en memoria:", error);
       try {
-        // En caso de que falte crear el índice compuesto en Firestore, 
-        // ordenamos en memoria para evitar colapsar la UI
         const allUsersSnapshot = await getDocs(collection(db, "users"));
         const allUsers = [];
         allUsersSnapshot.forEach((doc) => {
-          allUsers.push({ uid: doc.id, ...doc.data() });
+          const u = { uid: doc.id, ...doc.data() };
+          // Solo incluimos a los usuarios con rol de asistente (excluyendo admins y coordinadores)
+          const isAsistente = !u.rol || u.rol === ROLES.ASISTENTE || u.role === ROLES.ASISTENTE;
+          if (isAsistente) {
+            allUsers.push(u);
+          }
         });
         return allUsers
           .sort((a, b) => (b.puntos || 0) - (a.puntos || 0))
