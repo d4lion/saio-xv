@@ -11,6 +11,7 @@ import Premios from './pages/Premios'
 import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import Dashboard from './pages/Dashboard/Dashboard'
+
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
 
