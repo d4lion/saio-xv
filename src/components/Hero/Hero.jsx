@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import SpaceScene from '../SpaceScene/SpaceScene'
 import SponsorsCarousel from '../SponsorsCarousel/SponsorsCarousel'
+import Countdown from '../Countdown/Countdown'
 import logo from '../../assets/logo.png'
 import bgVideo from '../../assets/bg.mp4'
 import hero_poster from '../../assets/hero_poster.webp'
@@ -37,10 +38,7 @@ export default function Hero() {
       />
 
       {/* === DARK OVERLAY === */}
-      {/* Oscurecido de 65% a 85% para mayor contraste */}
       <div className="absolute inset-0 z-[1] bg-[#040b0f]/85" />
-
-
 
       {/* === PURPLE NEBULA === */}
       <div
@@ -62,13 +60,9 @@ export default function Hero() {
       {/* === HERO CONTENT === */}
       <div className="relative z-[4] flex flex-col flex-1 justify-center items-center text-center px-6 pt-28 pb-8">
 
-        {/* Badge */}
-        <motion.div
-          variants={fadeUp} custom={0} initial="hidden" animate="visible"
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-purple-400/30 mb-8"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-          <span className="text-xs text-secondary-light tracking-[0.2em] uppercase">Evento Estudiantil · ANIAP</span>
+        {/* Countdown Pill Bar (Above Logo) */}
+        <motion.div variants={fadeUp} custom={0} initial="hidden" animate="visible">
+          <Countdown targetDate="2026-10-15T08:00:00" />
         </motion.div>
 
         {/* Logo image replacing text title, with added glow */}
@@ -83,7 +77,7 @@ export default function Hero() {
             alt="SAIO XV Entropix"
             className="w-auto object-contain relative z-10"
             style={{ 
-              maxHeight: 'clamp(220px, 22vw, 320px)',
+              maxHeight: 'clamp(200px, 20vw, 300px)',
               filter: 'drop-shadow(0 0 15px rgba(156,58,237,0.5))'
             }}
           />
@@ -99,7 +93,7 @@ export default function Hero() {
         {/* Tagline with glow-text added */}
         <motion.p
           variants={fadeUp} custom={4} initial="hidden" animate="visible"
-          className="text-white text-[clamp(1.2rem,3vw,1.6rem)] font-medium tracking-wide max-w-xl mb-4 glow-text"
+          className="text-white text-[clamp(1.2rem,3vw,1.6rem)] font-medium tracking-wide max-w-xl mb-3 glow-text"
         >
           Aprende, conecta y crece con la industria.
         </motion.p>
