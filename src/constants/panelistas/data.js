@@ -1,0 +1,86 @@
+import { Mic, Award, Users } from 'lucide-react'
+
+export const featured = {
+  name: 'Dr. Alejandra Moreno',
+  role: 'Directora de IA',
+  company: 'Tech Latam',
+  bio: 'Pionera en machine learning aplicado a sistemas de salud en América Latina. Con más de 15 años de experiencia, ha liderado proyectos de IA en Google, Microsoft y startups del ecosistema latinoamericano. Conferencista internacional y mentora de cientos de estudiantes.',
+  topics: ['Machine Learning', 'IA en Salud', 'Liderazgo Tech'],
+  color: '#9c3aed',
+  initials: 'AM',
+}
+
+export const speakers = [
+  {
+    name: 'Carlos Ramírez',
+    role: 'Data Engineer Senior',
+    company: 'Rappi',
+    bio: 'Especialista en arquitecturas de datos a escala. Construye pipelines que procesan millones de transacciones diarias.',
+    topics: ['Data Engineering', 'Spark', 'Kafka'],
+    color: '#4c29b6',
+    initials: 'CR',
+    photo: null,
+    social: { linkedin: '#', twitter: '#' },
+  },
+  {
+    name: 'Valeria Torres',
+    role: 'ML Research Lead',
+    company: 'Mercado Libre',
+    bio: 'Lidera investigación en modelos de recomendación y NLP para el mayor e-commerce de LATAM.',
+    topics: ['NLP', 'Recomendación', 'Deep Learning'],
+    color: '#9c3aed',
+    initials: 'VT',
+    photo: null,
+    social: { linkedin: '#', twitter: '#' },
+  },
+  {
+    name: 'Andrés Fuentes',
+    role: 'Head of Analytics',
+    company: 'Bancolombia',
+    bio: 'Transforma datos financieros en estrategias de negocio. Experto en analítica prescriptiva y modelos de riesgo.',
+    topics: ['Analytics', 'Fintech', 'Business Intelligence'],
+    color: '#828dbc',
+    initials: 'AF',
+    photo: null,
+    social: { linkedin: '#', twitter: '#' },
+  },
+  {
+    name: 'Laura Jiménez',
+    role: 'Cloud Architect',
+    company: 'AWS Latam',
+    bio: 'Diseña infraestructuras escalables en la nube para startups y corporaciones. Certificada en múltiples plataformas cloud.',
+    topics: ['Cloud', 'AWS', 'DevOps'],
+    color: '#c3abdc',
+    initials: 'LJ',
+    photo: null,
+    social: { linkedin: '#', twitter: '#' },
+  },
+  {
+    name: 'Miguel Ángel Cruz',
+    role: 'AI Product Manager',
+    company: 'Nubank',
+    bio: 'Lleva productos de IA de la idea al mercado. Ha lanzado más de 20 features impulsados por modelos de ML en producción.',
+    topics: ['Product Management', 'IA Aplicada', 'Fintech'],
+    color: '#4c29b6',
+    initials: 'MC',
+    photo: null,
+    social: { linkedin: '#', twitter: '#' },
+  },
+  {
+    name: 'Sofía Herrera',
+    role: 'Data Scientist',
+    company: 'Kavak',
+    bio: 'Aplica ciencia de datos al mercado automotriz. Especialista en modelos de valuación predictiva y análisis de fraude.',
+    topics: ['Data Science', 'Python', 'Modelado Predictivo'],
+    color: '#9c3aed',
+    initials: 'SH',
+    photo: null,
+    social: { linkedin: '#', twitter: '#' },
+  },
+]
+
+export const stats = [
+  { icon: Mic, value: '20+', label: 'Ponentes confirmados' },
+  { icon: Award, value: '15+', label: 'Años de experiencia promedio' },
+  { icon: Users, value: '8', label: 'Empresas representadas' },
+]
