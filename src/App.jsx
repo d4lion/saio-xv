@@ -12,6 +12,8 @@ import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import Dashboard from './pages/Dashboard/Dashboard'
 
+import MiTienda from './pages/MiTienda'
+
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
 
@@ -74,7 +76,7 @@ export default function App() {
         <Route 
           path="/perfil" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
               <Perfil />
             </ProtectedRoute>
           } 
@@ -82,7 +84,7 @@ export default function App() {
         <Route 
           path="/mis-puntos" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
               <MisPuntos />
             </ProtectedRoute>
           } 
@@ -90,7 +92,7 @@ export default function App() {
         <Route 
           path="/mi-entrada" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
               <MiEntrada />
             </ProtectedRoute>
           } 
@@ -98,7 +100,7 @@ export default function App() {
         <Route 
           path="/premios" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
               <Premios />
             </ProtectedRoute>
           } 
@@ -106,11 +108,30 @@ export default function App() {
         <Route 
           path="/ranking" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
               <Ranking />
             </ProtectedRoute>
           } 
         />
+
+        {/* Ruta Protegida de Tiendas/Vendedores */}
+        <Route 
+          path="/saio/mi-tienda" 
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR, ROLES.ADMIN, ROLES.COORDINADOR]}>
+              <MiTienda />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/store" 
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR, ROLES.ADMIN, ROLES.COORDINADOR]}>
+              <MiTienda />
+            </ProtectedRoute>
+          } 
+        />
+
         <Route 
           path="/dashboard/*" 
           element={

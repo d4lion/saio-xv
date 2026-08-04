@@ -5,10 +5,11 @@ import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { adminService } from '../../services/adminService';
 import { telemetryService } from '../../services/telemetryService';
+import { storeService } from '../../services/storeService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X
 } from 'lucide-react';
 
 // Subcomponents
@@ -20,6 +21,8 @@ import PaymentsTab from './PaymentsTab';
 import LogsTab from './LogsTab';
 import ClaimsTab from './ClaimsTab';
 import PanelistasTab from './PanelistasTab';
+import StoreRulesTab from './StoreRulesTab';
+import ComerciosTab from './ComerciosTab';
 
 // Modals
 import UserModal from './UserModal';
@@ -106,6 +109,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Data lists
   const [users, setUsers] = useState([]);
@@ -115,6 +119,8 @@ export default function Dashboard() {
   const [logs, setLogs] = useState([]);
   const [claims, setClaims] = useState([]);
   const [panelistas, setPanelistas] = useState([]);
+  const [storeRules, setStoreRules] = useState([]);
+  const [comercios, setComercios] = useState([]);
   
   // Loaders
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -124,6 +130,8 @@ export default function Dashboard() {
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [loadingClaims, setLoadingClaims] = useState(false);
   const [loadingPanelistas, setLoadingPanelistas] = useState(false);
+  const [loadingStoreRules, setLoadingStoreRules] = useState(false);
+  const [loadingComercios, setLoadingComercios] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Realtime Telemetry logs from Firestore
@@ -307,6 +315,51 @@ export default function Dashboard() {
     }
   };
 
+  const fetchStoreRules = async () => {
+    setLoadingStoreRules(true);
+    try {
+      const data = await storeService.getStoreRules();
+      setStoreRules(data);
+    } catch (e) {
+      console.error(e);
+      addTerminalEvent(`[ERROR] No se pudieron cargar las reglas de tiendas: ${e.message}`);
+    } finally {
+      setLoadingStoreRules(false);
+    }
+  };
+
+  const fetchComercios = async () => {
+    setLoadingComercios(true);
+    try {
+      const data = await adminService.getAllComercios();
+      setComercios(data);
+    } catch (e) {
+      console.error(e);
+      addTerminalEvent(`[ERROR] No se pudieron cargar los comercios: ${e.message}`);
+    } finally {
+      setLoadingComercios(false);
+    }
+  };
+
+  const handleRegisterComercio = async (comercioData) => {
+    await adminService.createComercioUser(comercioData);
+    addTerminalEvent(`[SUCCESS] Comercio "${comercioData.nombreTienda}" registrado con éxito.`);
+    fetchComercios();
+    fetchUsers();
+  };
+
+  const handleSaveStoreRule = async (ruleData) => {
+    await storeService.saveStoreRule(ruleData);
+    addTerminalEvent(`[SUCCESS] Regla de tienda "${ruleData.nombre}" guardada.`);
+    fetchStoreRules();
+  };
+
+  const handleDeleteStoreRule = async (ruleId) => {
+    await storeService.deleteStoreRule(ruleId);
+    addTerminalEvent(`[SUCCESS] Regla de tienda ${ruleId} eliminada.`);
+    fetchStoreRules();
+  };
+
   const handleDeliverClaim = async (claimId) => {
     try {
       addTerminalEvent(`Marcando canje ${claimId} como entregado...`);
@@ -374,7 +427,7 @@ export default function Dashboard() {
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
     addTerminalEvent("Iniciando sincronización completa con Firestore...");
-    const promises = [fetchCodes(), fetchRewards(), fetchPanelistas()];
+    const promises = [fetchCodes(), fetchRewards(), fetchPanelistas(), fetchStoreRules(), fetchComercios()];
     if (user?.rol === ROLES.ADMIN) {
       promises.push(fetchUsers(), fetchPayments(), fetchLogs(), fetchClaims());
     }
@@ -394,6 +447,8 @@ export default function Dashboard() {
       fetchCodes();
       fetchRewards();
       fetchPanelistas();
+      fetchStoreRules();
+      fetchComercios();
     }
   }, [user]);
 
@@ -923,31 +978,85 @@ export default function Dashboard() {
   // Default path for routing redirect
   const defaultPath = user?.rol === ROLES.COORDINADOR ? '/dashboard/codigos' : '/dashboard/telemetria';
 
+  const NAV_GROUPS = [
+    {
+      title: 'Usuarios & Accesos',
+      items: [
+        { path: '/dashboard/usuarios', label: 'Usuarios', icon: User, roles: [ROLES.ADMIN] },
+        { path: '/dashboard/panelistas', label: 'Panelistas', icon: Mic, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
+      ]
+    },
+    {
+      title: 'Módulo Tiendas',
+      items: [
+        { path: '/dashboard/comercios', label: 'Comercios', icon: Building, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
+        { path: '/dashboard/reglas-tiendas', label: 'Reglas Tiendas', icon: ShoppingBag, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
+      ]
+    },
+    {
+      title: 'Gamificación & Premios',
+      items: [
+        { path: '/dashboard/codigos', label: 'Códigos QR', icon: Key, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
+        { path: '/dashboard/premios', label: 'Premios', icon: Gift, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
+        { path: '/dashboard/canjes', label: 'Tickets Canje', icon: Award, roles: [ROLES.ADMIN] },
+      ]
+    },
+    {
+      title: 'Sistema & Finanzas',
+      items: [
+        { path: '/dashboard/telemetria', label: 'Telemetría', icon: Cpu, roles: [ROLES.ADMIN] },
+        { path: '/dashboard/pagos', label: 'Pagos Wompi', icon: CreditCard, roles: [ROLES.ADMIN] },
+        { path: '/dashboard/historial', label: 'Historial Puntos', icon: Clock, roles: [ROLES.ADMIN] },
+      ]
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-gray-800 flex flex-col font-sans relative">
+    <div className="min-h-screen bg-[#f8f9fa] text-gray-800 flex flex-col font-sans relative antialiased">
       
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 shadow-sm z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* Top Header */}
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3.5 sticky top-0 shadow-xs z-30">
+        <div className="w-full mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
+            {/* Mobile Hamburger Toggle */}
+            <button
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="md:hidden p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              aria-label="Abrir menú de navegación"
+            >
+              {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+
+            <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-xs">
               <span className="text-white font-heading font-extrabold text-sm">S</span>
             </div>
             <div>
               <span className="font-heading font-bold text-gray-900 text-md tracking-tight block">SAIO-XV Console</span>
-              <span className="text-[10px] text-blue-600 tracking-widest uppercase font-semibold">Admin Database System</span>
+              <span className="text-[10px] text-purple-600 tracking-widest uppercase font-semibold">Panel de Administración</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={handleRefreshAll}
+              className="hidden sm:flex px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-heading font-semibold flex items-center gap-2 cursor-pointer transition-all duration-200 shadow-xs disabled:opacity-50"
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Sincronizar Firestore</span>
+            </button>
+
+            <div className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs">
               <User className="w-3.5 h-3.5 text-gray-500" />
               <span className="text-gray-700 max-w-[150px] truncate font-medium">{user?.email}</span>
+              <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
+                {user?.rol}
+              </span>
             </div>
 
             <button
               onClick={handleLogout}
-              className="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 font-heading text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 hover:text-red-700 font-heading text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-200 disabled:opacity-50"
               disabled={isLoggingOut}
             >
               {isLoggingOut ? (
@@ -955,7 +1064,7 @@ export default function Dashboard() {
               ) : (
                 <>
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Salir</span>
+                  <span className="hidden sm:inline">Salir</span>
                 </>
               )}
             </button>
@@ -963,54 +1072,74 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 flex flex-col gap-6 z-20">
+      {/* Main Body Layout with Grouped Sidebar */}
+      <div className="flex-1 w-full flex flex-col md:flex-row z-20">
         
-        {/* Navigation Tabs and Refresh Button */}
-        <section className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 border-b border-gray-200 pb-4">
-          <div className="flex flex-wrap gap-2">
-            {[
-              { path: '/dashboard/telemetria', label: 'Telemetría', icon: Cpu, roles: [ROLES.ADMIN] },
-              { path: '/dashboard/usuarios', label: 'Usuarios', icon: User, roles: [ROLES.ADMIN] },
-              { path: '/dashboard/panelistas', label: 'Panelistas', icon: Mic, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
-              { path: '/dashboard/codigos', label: 'Códigos QR', icon: Key, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
-              { path: '/dashboard/premios', label: 'Premios', icon: Gift, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
-              { path: '/dashboard/canjes', label: 'Canjes', icon: Award, roles: [ROLES.ADMIN] },
-              { path: '/dashboard/pagos', label: 'Pagos', icon: CreditCard, roles: [ROLES.ADMIN] },
-              { path: '/dashboard/historial', label: 'Historial', icon: Clock, roles: [ROLES.ADMIN] }
-            ].filter(t => t.roles.includes(user?.rol)).map(tab => {
-              const Icon = tab.icon;
+        {/* Mobile Backdrop Overlay */}
+        {isMobileSidebarOpen && (
+          <div 
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 md:hidden animate-fadeIn"
+          />
+        )}
+
+        {/* Sidebar Navigation */}
+        <aside className={`
+          fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 bg-white border-r border-gray-200 p-4 shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 overflow-y-auto
+          ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+        `}>
+          <div className="space-y-6">
+            {NAV_GROUPS.map((group, groupIdx) => {
+              const visibleItems = group.items.filter(item => item.roles.includes(user?.rol));
+              if (visibleItems.length === 0) return null;
+
               return (
-                <NavLink
-                  key={tab.path}
-                  to={tab.path}
-                  className={({ isActive }) => 
-                    `py-2.5 px-5 rounded-xl font-heading text-sm font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer ${
-                      isActive 
-                        ? 'bg-[#e8f0fe] text-[#1a73e8] border border-blue-200 shadow-sm' 
-                        : 'bg-white hover:bg-gray-100 border border-gray-200 text-gray-600 hover:text-gray-800'
-                    }`
-                  }
-                >
-                  <Icon className="w-4.5 h-4.5" />
-                  <span>{tab.label}</span>
-                </NavLink>
+                <div key={groupIdx} className="space-y-2">
+                  <h3 className="px-3 text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-400">
+                    {group.title}
+                  </h3>
+                  <div className="space-y-1">
+                    {visibleItems.map(item => {
+                      const Icon = item.icon;
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setIsMobileSidebarOpen(false)}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-heading font-semibold transition-all duration-200 cursor-pointer ${
+                              isActive
+                                ? 'bg-purple-50 text-purple-700 font-bold border-l-4 border-purple-600 shadow-xs'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                            }`
+                          }
+                        >
+                          <Icon className="w-4 h-4 shrink-0" />
+                          <span>{item.label}</span>
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
+
+            {/* Sync button for mobile inside sidebar */}
+            <div className="pt-4 border-t border-gray-200 sm:hidden">
+              <button
+                onClick={handleRefreshAll}
+                className="w-full px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-heading font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 disabled:opacity-50"
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>Sincronizar Firestore</span>
+              </button>
+            </div>
           </div>
+        </aside>
 
-          <button
-            onClick={handleRefreshAll}
-            className="px-5.5 py-3 rounded-xl bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 shadow-sm disabled:opacity-50"
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Sincronizar Firestore</span>
-          </button>
-        </section>
-
-        {/* Tab contents routed via React Router */}
-        <div className="flex-1 flex flex-col">
+        {/* Content Area */}
+        <div className="flex-1 p-4 sm:p-6 overflow-x-hidden min-w-0">
           <Routes>
             <Route path="" element={<Navigate to={defaultPath} replace />} />
             
@@ -1140,6 +1269,38 @@ export default function Dashboard() {
                     handleOpenCreatePanelista={handleOpenCreatePanelista} 
                     handleOpenEditPanelista={handleOpenEditPanelista} 
                     handleDeletePanelista={handleDeletePanelista} 
+                  />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+            <Route 
+              path="comercios" 
+              element={
+                [ROLES.ADMIN, ROLES.COORDINADOR].includes(user?.rol) ? (
+                  <ComerciosTab 
+                    comercios={comercios}
+                    loadingComercios={loadingComercios}
+                    onRegisterComercio={handleRegisterComercio}
+                    onRefresh={fetchComercios}
+                  />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
+            <Route 
+              path="reglas-tiendas" 
+              element={
+                [ROLES.ADMIN, ROLES.COORDINADOR].includes(user?.rol) ? (
+                  <StoreRulesTab 
+                    rules={storeRules}
+                    loadingRules={loadingStoreRules}
+                    onSaveRule={handleSaveStoreRule}
+                    onDeleteRule={handleDeleteStoreRule}
+                    onRefresh={fetchStoreRules}
                   />
                 ) : (
                   <Navigate to="/dashboard/codigos" replace />

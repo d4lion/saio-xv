@@ -1,5 +1,6 @@
 export const ROLES = {
   ADMIN: 'admin',
   COORDINADOR: 'coordinador',
-  ASISTENTE: 'asistente'
+  ASISTENTE: 'asistente',
+  VENDEDOR: 'vendedor'
 };
