@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Globe, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar/Navbar'
 import Footer from '../components/Footer/Footer'
 import logo from '../assets/logo.png'
 
 /* ─── Data ─────────────────────────────────────────── */
-import { speakers, featured, stats } from '../constants/panelistas/data'
+import { adminService } from '../services/adminService'
+
+/* ─── Data ─────────────────────────────────────────── */
+import {stats } from '../constants/panelistas/data'
 
 /* ─── Brand icons (lucide-react no incluye brand icons) ─── */
 import { IconLinkedin, IconTwitterX } from '../components/utils/BrandIcons'
