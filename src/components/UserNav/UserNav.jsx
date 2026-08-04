@@ -1,8 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { User, QrCode, Ticket, Gift, Trophy } from 'lucide-react';
+import { User, QrCode, Ticket, Gift, Trophy, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { ROLES } from '../../constants/roles';
 
 export default function UserNav() {
+  const { user } = useAuth();
+  const canAccessDashboard = user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR;
+
   const tabs = [
     { label: 'Mi Entrada', to: '/mi-entrada', icon: Ticket },
     { label: 'Mis Puntos', to: '/mis-puntos', icon: QrCode },
@@ -33,6 +38,16 @@ export default function UserNav() {
             </NavLink>
           );
         })}
+
+        {canAccessDashboard && (
+          <NavLink
+            to="/dashboard"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] sm:text-xs font-heading font-bold uppercase tracking-wider transition-all duration-300 border border-purple-400/40 bg-gradient-to-r from-purple-900/60 to-purple-600/60 text-purple-100 hover:text-white hover:from-purple-800/80 hover:to-purple-500/80 cursor-pointer shrink-0 select-none shadow-lg shadow-purple-950/40"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5 shrink-0 text-purple-300" />
+            <span>Ir al Dashboard</span>
+          </NavLink>
+        )}
       </div>
     </nav>
   );
