@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -13,7 +13,6 @@ export default function Login() {
   
   // Feedback states
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
@@ -27,7 +26,6 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setSuccess('');
     
     // Validaciones básicas
     if (!email || !password) {
@@ -41,10 +39,9 @@ export default function Login() {
     try {
       setIsSubmitting(true);
       await login(email, password);
-      setSuccess('Sesión iniciada con éxito. Redirigiendo...');
       setTimeout(() => {
         navigate(from, { replace: true });
-      }, 1200);
+      }, 400);
     } catch (err) {
       console.error(err);
       // Traducir mensajes comunes de Firebase Auth
@@ -116,14 +113,6 @@ export default function Login() {
               <div className="p-3 rounded-lg border border-red-500/20 bg-red-500/10 text-red-200 text-xs flex items-center gap-2 animate-shake">
                 <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
                 <span>{error}</span>
-              </div>
-            )}
-
-            {/* Mensaje de Éxito */}
-            {success && (
-              <div className="p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-200 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{success}</span>
               </div>
             )}
 
