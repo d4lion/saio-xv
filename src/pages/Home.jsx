@@ -8,10 +8,12 @@ import Innovation from '../components/Innovation/Innovation'
 import Tickets from '../components/Tickets/Tickets'
 import CTA from '../components/CTA/CTA'
 import Footer from '../components/Footer/Footer'
+import WhatsAppButton from '../components/WhatsAppButton/WhatsAppButton'
 
 export default function Home() {
   return (
     <main className="relative bg-[#040b0f] snap-container">
+      <WhatsAppButton />
       <Navbar />
       <Hero />
 

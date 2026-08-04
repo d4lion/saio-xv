@@ -11,7 +11,7 @@ import Premios from './pages/Premios'
 import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
 import Dashboard from './pages/Dashboard/Dashboard'
-import WhatsAppButton from './components/WhatsAppButton/WhatsAppButton'
+
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
 
@@ -64,7 +64,6 @@ export default function App() {
     <AuthProvider>
       <ScrollToTop />
       <PendingClaimHandler />
-      <WhatsAppButton />
       <Toaster position="bottom-right" richColors closeButton />
       <Routes>
         <Route path="/" element={<Home />} />
