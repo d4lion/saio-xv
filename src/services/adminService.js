@@ -544,5 +544,139 @@ export const adminService = {
     }
     const claimRef = doc(db, "claims", claimId);
     await updateDoc(claimRef, { estado: 'entregado' });
+  },
+
+  // --- PANELISTAS MANAGEMENT (FIREBASE ONLY) ---
+  async getAllPanelistas() {
+    if (!db || !isConfigValid) {
+      console.warn("Firestore no está configurado para obtener panelistas.");
+      return [];
+    }
+    try {
+      const panelistasRef = collection(db, "panelistas");
+      const snap = await getDocs(panelistasRef);
+      const list = [];
+      snap.forEach((d) => {
+        list.push({ id: d.id, ...d.data() });
+      });
+      return list;
+    } catch (e) {
+      console.error("Error al obtener panelistas de Firestore:", e);
+      return [];
+    }
+  },
+
+  async createPanelista(panelistaData) {
+    if (!db || !isConfigValid) {
+      throw new Error("Firestore no está configurado. Revisa tus credenciales de Firebase en el archivo .env");
+    }
+
+    const id = panelistaData.id || `panelista-${Date.now()}`;
+    const payload = {
+      id,
+      name: panelistaData.name || '',
+      role: panelistaData.role || '',
+      company: panelistaData.company || '',
+      bio: panelistaData.bio || '',
+      topics: Array.isArray(panelistaData.topics) ? panelistaData.topics : [],
+      color: panelistaData.color || '#9c3aed',
+      initials: panelistaData.initials || (panelistaData.name ? panelistaData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'PN'),
+      photo: panelistaData.photo || null,
+      social: panelistaData.social || { linkedin: '', twitter: '' },
+      isFeatured: !!panelistaData.isFeatured
+    };
+
+    if (payload.isFeatured) {
+      // Unmark existing featured panelistas in Firestore
+      try {
+        const snap = await getDocs(collection(db, "panelistas"));
+        snap.forEach(async (d) => {
+          if (d.data().isFeatured) {
+            await updateDoc(doc(db, "panelistas", d.id), { isFeatured: false });
+          }
+        });
+      } catch (err) {
+        console.warn("No se pudo desmarcar ponente destacado en Firestore:", err);
+      }
+    }
+
+    const panelistaRef = doc(db, "panelistas", id);
+    await setDoc(panelistaRef, payload);
+    return payload;
+  },
+
+  async updatePanelista(id, data) {
+    if (!db || !isConfigValid) {
+      throw new Error("Firestore no está configurado. Revisa tus credenciales de Firebase en el archivo .env");
+    }
+
+    if (data.isFeatured) {
+      try {
+        const snap = await getDocs(collection(db, "panelistas"));
+        snap.forEach(async (d) => {
+          if (d.id !== id && d.data().isFeatured) {
+            await updateDoc(doc(db, "panelistas", d.id), { isFeatured: false });
+          }
+        });
+      } catch (err) {
+        console.warn("No se pudo desmarcar ponente destacado en Firestore:", err);
+      }
+    }
+
+    const panelistaRef = doc(db, "panelistas", id);
+    await updateDoc(panelistaRef, data);
+  },
+
+  async deletePanelista(id) {
+    if (!db || !isConfigValid) {
+      throw new Error("Firestore no está configurado. Revisa tus credenciales de Firebase en el archivo .env");
+    }
+    const panelistaRef = doc(db, "panelistas", id);
+    await deleteDoc(panelistaRef);
+  },
+
+  async uploadPanelistaPhoto(file) {
+    if (!file) throw new Error("No se seleccionó ningún archivo.");
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 500; // Optimal size for avatar/card displays
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to compressed WebP / JPEG base64 (usually ~30-50KB)
+          try {
+            const dataUrl = canvas.toDataURL('image/webp', 0.82);
+            resolve(dataUrl);
+          } catch (err) {
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+            resolve(dataUrl);
+          }
+        };
+        img.onerror = () => reject(new Error("No se pudo procesar el formato de la imagen."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Error al leer el archivo."));
+      reader.readAsDataURL(file);
+    });
   }
 };

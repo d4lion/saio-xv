@@ -8,7 +8,7 @@ import { telemetryService } from '../../services/telemetryService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic
 } from 'lucide-react';
 
 // Subcomponents
@@ -19,6 +19,7 @@ import RewardsTab from './RewardsTab';
 import PaymentsTab from './PaymentsTab';
 import LogsTab from './LogsTab';
 import ClaimsTab from './ClaimsTab';
+import PanelistasTab from './PanelistasTab';
 
 // Modals
 import UserModal from './UserModal';
@@ -26,6 +27,7 @@ import CodeModal from './CodeModal';
 import RewardModal from './RewardModal';
 import QrPreviewModal from './QrPreviewModal';
 import PaymentDetailModal from './PaymentDetailModal';
+import PanelistaModal from './PanelistaModal';
 
 const themedSwal = Swal.mixin({
   background: '#ffffff',
@@ -83,6 +85,7 @@ export default function Dashboard() {
   const [payments, setPayments] = useState([]);
   const [logs, setLogs] = useState([]);
   const [claims, setClaims] = useState([]);
+  const [panelistas, setPanelistas] = useState([]);
   
   // Loaders
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -91,6 +94,7 @@ export default function Dashboard() {
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [loadingClaims, setLoadingClaims] = useState(false);
+  const [loadingPanelistas, setLoadingPanelistas] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Realtime Telemetry logs from Firestore
@@ -117,6 +121,25 @@ export default function Dashboard() {
   const [logSearch, setLogSearch] = useState('');
   const [logTypeFilter, setLogTypeFilter] = useState('all');
   const [claimSearch, setClaimSearch] = useState('');
+  const [panelistaSearch, setPanelistaSearch] = useState('');
+
+  // Modals state
+  const [showPanelistaModal, setShowPanelistaModal] = useState(false);
+  const [panelistaModalMode, setPanelistaModalMode] = useState('create');
+  const [selectedPanelistaId, setSelectedPanelistaId] = useState(null);
+  const [panelistaForm, setPanelistaForm] = useState({
+    name: '',
+    role: '',
+    company: '',
+    bio: '',
+    topicsInput: '',
+    color: '#9c3aed',
+    initials: '',
+    photo: '',
+    linkedin: '',
+    twitter: '',
+    isFeatured: false
+  });
 
   // Modals state
   const [showUserModal, setShowUserModal] = useState(false);
@@ -242,6 +265,19 @@ export default function Dashboard() {
     }
   };
 
+  const fetchPanelistas = async () => {
+    setLoadingPanelistas(true);
+    try {
+      const data = await adminService.getAllPanelistas();
+      setPanelistas(data);
+    } catch (e) {
+      console.error(e);
+      addTerminalEvent(`[ERROR] No se pudieron cargar los panelistas: ${e.message}`);
+    } finally {
+      setLoadingPanelistas(false);
+    }
+  };
+
   const handleDeliverClaim = async (claimId) => {
     try {
       addTerminalEvent(`Marcando canje ${claimId} como entregado...`);
@@ -309,7 +345,7 @@ export default function Dashboard() {
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
     addTerminalEvent("Iniciando sincronización completa con Firestore...");
-    const promises = [fetchCodes(), fetchRewards()];
+    const promises = [fetchCodes(), fetchRewards(), fetchPanelistas()];
     if (user?.rol === ROLES.ADMIN) {
       promises.push(fetchUsers(), fetchPayments(), fetchLogs(), fetchClaims());
     }
@@ -328,6 +364,7 @@ export default function Dashboard() {
       }
       fetchCodes();
       fetchRewards();
+      fetchPanelistas();
     }
   }, [user]);
 
@@ -727,6 +764,117 @@ export default function Dashboard() {
     }
   };
 
+  // Panelista Handlers
+  const handleOpenCreatePanelista = () => {
+    setPanelistaForm({
+      name: '',
+      role: '',
+      company: '',
+      bio: '',
+      topicsInput: '',
+      color: '#9c3aed',
+      initials: '',
+      initialsManuallyEdited: false,
+      photo: '',
+      linkedin: '',
+      twitter: '',
+      isFeatured: false
+    });
+    setPanelistaModalMode('create');
+    setShowPanelistaModal(true);
+  };
+
+  const handleOpenEditPanelista = (p) => {
+    const topicsStr = Array.isArray(p.topics) ? p.topics.join(', ') : (p.topics || '');
+    setPanelistaForm({
+      name: p.name || '',
+      role: p.role || '',
+      company: p.company || '',
+      bio: p.bio || '',
+      topicsInput: topicsStr,
+      color: p.color || '#9c3aed',
+      initials: p.initials || '',
+      initialsManuallyEdited: true,
+      photo: p.photo || '',
+      linkedin: p.social?.linkedin || '',
+      twitter: p.social?.twitter || '',
+      isFeatured: !!p.isFeatured
+    });
+    setSelectedPanelistaId(p.id);
+    setPanelistaModalMode('edit');
+    setShowPanelistaModal(true);
+  };
+
+  const handleSavePanelista = async (e) => {
+    e.preventDefault();
+    try {
+      if (!panelistaForm.name.trim()) throw new Error("El nombre del panelista es requerido.");
+      if (!panelistaForm.role.trim()) throw new Error("El rol/cargo es requerido.");
+      if (!panelistaForm.company.trim()) throw new Error("La empresa es requerida.");
+
+      const topicsArray = panelistaForm.topicsInput
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean);
+
+      const payload = {
+        name: panelistaForm.name.trim(),
+        role: panelistaForm.role.trim(),
+        company: panelistaForm.company.trim(),
+        bio: panelistaForm.bio.trim(),
+        topics: topicsArray,
+        color: panelistaForm.color || '#9c3aed',
+        initials: panelistaForm.initials.trim() || panelistaForm.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+        photo: panelistaForm.photo.trim() || null,
+        social: {
+          linkedin: panelistaForm.linkedin.trim() || '#',
+          twitter: panelistaForm.twitter.trim() || '#'
+        },
+        isFeatured: !!panelistaForm.isFeatured
+      };
+
+      if (panelistaModalMode === 'create') {
+        addTerminalEvent(`Registrando panelista: ${payload.name}...`);
+        await adminService.createPanelista(payload);
+        addTerminalEvent(`Panelista registrado con éxito: ${payload.name}`);
+        toast.success(`Panelista Registrado: ${payload.name} ha sido guardado.`);
+      } else {
+        addTerminalEvent(`Actualizando datos del panelista: ${payload.name} (${selectedPanelistaId})...`);
+        await adminService.updatePanelista(selectedPanelistaId, payload);
+        addTerminalEvent(`Panelista actualizado con éxito: ${payload.name}`);
+        toast.success(`Panelista Actualizado: Se guardaron los cambios de ${payload.name}.`);
+      }
+      setShowPanelistaModal(false);
+      fetchPanelistas();
+    } catch (err) {
+      console.error(err);
+      toast.error(`Error al Guardar Panelista: ${err.message || 'Ocurrió un error.'}`);
+    }
+  };
+
+  const handleDeletePanelista = async (p) => {
+    const confirm = await themedSwal.fire({
+      icon: 'warning',
+      title: '¿Eliminar Panelista?',
+      text: `¿Estás seguro de que deseas eliminar permanentemente a "${p.name}"? Esta acción no se puede deshacer.`,
+      showCancelButton: true,
+      confirmButtonText: 'Sí, Eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      addTerminalEvent(`Eliminando panelista ${p.id} (${p.name})...`);
+      await adminService.deletePanelista(p.id);
+      addTerminalEvent(`Panelista eliminado: ${p.name}`);
+      toast.success(`Panelista Eliminado: ${p.name} ha sido removido.`);
+      fetchPanelistas();
+    } catch (err) {
+      console.error(err);
+      toast.error(`Error: ${err.message || 'No se pudo eliminar el panelista.'}`);
+    }
+  };
+
   // Clipboard handler
   const handleCopyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -795,6 +943,7 @@ export default function Dashboard() {
             {[
               { path: '/dashboard/telemetria', label: 'Telemetría', icon: Cpu, roles: [ROLES.ADMIN] },
               { path: '/dashboard/usuarios', label: 'Usuarios', icon: User, roles: [ROLES.ADMIN] },
+              { path: '/dashboard/panelistas', label: 'Panelistas', icon: Mic, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
               { path: '/dashboard/codigos', label: 'Códigos QR', icon: Key, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
               { path: '/dashboard/premios', label: 'Premios', icon: Gift, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
               { path: '/dashboard/canjes', label: 'Canjes', icon: Award, roles: [ROLES.ADMIN] },
@@ -951,6 +1100,25 @@ export default function Dashboard() {
             />
 
             <Route 
+              path="panelistas" 
+              element={
+                [ROLES.ADMIN, ROLES.COORDINADOR].includes(user?.rol) ? (
+                  <PanelistasTab 
+                    panelistas={panelistas} 
+                    loadingPanelistas={loadingPanelistas} 
+                    panelistaSearch={panelistaSearch} 
+                    setPanelistaSearch={setPanelistaSearch} 
+                    handleOpenCreatePanelista={handleOpenCreatePanelista} 
+                    handleOpenEditPanelista={handleOpenEditPanelista} 
+                    handleDeletePanelista={handleDeletePanelista} 
+                  />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
+            <Route 
               path="historial" 
               element={
                 user?.rol === ROLES.ADMIN ? (
@@ -974,6 +1142,15 @@ export default function Dashboard() {
       </div>
 
       {/* Modals */}
+      <PanelistaModal 
+        isOpen={showPanelistaModal} 
+        onClose={() => setShowPanelistaModal(false)} 
+        mode={panelistaModalMode} 
+        form={panelistaForm} 
+        setForm={setPanelistaForm} 
+        onSave={handleSavePanelista} 
+      />
+
       <UserModal 
         isOpen={showUserModal} 
         onClose={() => setShowUserModal(false)} 

@@ -1,12 +1,14 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Globe, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar/Navbar'
 import Footer from '../components/Footer/Footer'
 import logo from '../assets/logo.png'
+import { adminService } from '../services/adminService'
 
 /* ─── Data ─────────────────────────────────────────── */
-import { speakers, featured, stats } from '../constants/panelistas/data'
+import { stats } from '../constants/panelistas/data'
 
 /* ─── Brand icons (lucide-react no incluye brand icons) ─── */
 import { IconLinkedin, IconTwitterX } from '../components/utils/BrandIcons'
@@ -87,7 +89,12 @@ function TopicBadge({ label, color }) {
 }
 
 /* ─── Featured Speaker ──────────────────────────────── */
-function FeaturedSpeaker() {
+function FeaturedSpeaker({ featured }) {
+  if (!featured) return null;
+  const topics = Array.isArray(featured.topics) ? featured.topics : [];
+  const linkedinUrl = featured.social?.linkedin || '#';
+  const twitterUrl = featured.social?.twitter || '#';
+
   return (
     <section className="relative py-20 overflow-hidden">
       {/* Glow */}
@@ -123,29 +130,29 @@ function FeaturedSpeaker() {
         <div
           className="relative rounded-3xl overflow-hidden p-0.5"
           style={{
-            background: `linear-gradient(135deg, ${featured.color}66, rgba(76,41,182,0.4), ${featured.color}22)`,
+            background: `linear-gradient(135deg, ${featured.color || '#9c3aed'}66, rgba(76,41,182,0.4), ${featured.color || '#9c3aed'}22)`,
           }}
         >
           <div
             className="rounded-3xl p-10 md:p-14 flex flex-col md:flex-row gap-10 items-center"
             style={{ background: 'rgba(4,11,15,0.92)' }}
           >
-            {/* Avatar */}
+            {/* Avatar / Photo */}
             <div className="flex-shrink-0 flex flex-col items-center gap-5">
-              <Avatar initials={featured.initials} color={featured.color} size="lg" />
+              <SpeakerPhoto photo={featured.photo} initials={featured.initials} color={featured.color || '#9c3aed'} size="lg" />
               <div className="flex gap-3">
-                <a href="#" aria-label="LinkedIn"
-                  className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
-                  <IconLinkedin size={14} />
-                </a>
-                <a href="#" aria-label="Twitter / X"
-                  className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
-                  <IconTwitterX size={14} />
-                </a>
-                <a href="#" aria-label="Web"
-                  className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
-                  <Globe size={14} />
-                </a>
+                {linkedinUrl && (
+                  <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
+                    className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
+                    <IconLinkedin size={14} />
+                  </a>
+                )}
+                {twitterUrl && (
+                  <a href={twitterUrl} target="_blank" rel="noopener noreferrer" aria-label="Twitter / X"
+                    className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
+                    <IconTwitterX size={14} />
+                  </a>
+                )}
               </div>
             </div>
 
@@ -153,7 +160,7 @@ function FeaturedSpeaker() {
             <div className="flex-1 text-center md:text-left">
               <div
                 className="inline-block text-[10px] tracking-[0.25em] uppercase px-3 py-1 rounded-full mb-4 font-medium"
-                style={{ background: `${featured.color}22`, color: featured.color, border: `1px solid ${featured.color}44` }}
+                style={{ background: `${featured.color || '#9c3aed'}22`, color: featured.color || '#9c3aed', border: `1px solid ${featured.color || '#9c3aed'}44` }}
               >
                 Keynote Speaker
               </div>
@@ -169,7 +176,7 @@ function FeaturedSpeaker() {
                 {featured.bio}
               </p>
               <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {featured.topics.map(t => <TopicBadge key={t} label={t} color={featured.color} />)}
+                {topics.map(t => <TopicBadge key={t} label={t} color={featured.color || '#9c3aed'} />)}
               </div>
             </div>
           </div>
@@ -220,24 +227,15 @@ function SpeakerCard({ speaker }) {
           }}
         />
 
-        {speaker.photo ? (
-          /* Real photo */
-          <img
-            src={speaker.photo}
-            alt={speaker.name}
-            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
-          />
-        ) : (
-          /* Placeholder decorative pattern when no photo */
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              className="text-[5rem] font-black font-heading leading-none select-none opacity-10"
-              style={{ color: speaker.color, fontFamily: "'Space Grotesk', sans-serif" }}
-            >
-              {speaker.initials}
-            </div>
+        {/* Decorative pattern with initials watermark */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="text-[5rem] font-black font-heading leading-none select-none opacity-20 group-hover:scale-110 transition-transform duration-500"
+            style={{ color: speaker.color, fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            {speaker.initials}
           </div>
-        )}
+        </div>
 
         {/* Bottom gradient fade into card */}
         <div
@@ -450,15 +448,38 @@ function PageHero() {
 
 /* ─── Page ──────────────────────────────────────────── */
 export default function Panelistas() {
+  const [panelistasList, setPanelistasList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const data = await adminService.getAllPanelistas();
+        setPanelistasList(data);
+      } catch (err) {
+        console.error("Error cargando panelistas de Firestore:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const featuredSpeaker = panelistasList.find(p => p.isFeatured) || null;
+  const regularSpeakers = panelistasList.filter(p => !p.isFeatured);
+
   return (
     <main className="relative bg-[#040b0f] min-h-screen">
       <Navbar />
 
       <PageHero />
 
-      <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.3), transparent)' }} />
-
-      <FeaturedSpeaker />
+      {featuredSpeaker && (
+        <>
+          <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.3), transparent)' }} />
+          <FeaturedSpeaker featured={featuredSpeaker} />
+        </>
+      )}
 
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(76,41,182,0.3), transparent)' }} />
 
@@ -488,11 +509,21 @@ export default function Panelistas() {
             </h2>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {speakers.map((speaker) => (
-              <SpeakerCard key={speaker.name} speaker={speaker} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-16 text-secondary text-sm animate-pulse">
+              Cargando panelistas desde Firebase...
+            </div>
+          ) : regularSpeakers.length === 0 && !featuredSpeaker ? (
+            <div className="text-center py-16 text-secondary text-sm">
+              Próximamente anunciaremos los ponentes del evento.
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {regularSpeakers.map((speaker) => (
+                <SpeakerCard key={speaker.id || speaker.name} speaker={speaker} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
