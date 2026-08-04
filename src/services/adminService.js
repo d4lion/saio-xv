@@ -1,4 +1,5 @@
 import { db } from '../firebase/config';
+import { ROLES } from '../constants/roles';
 import { 
   collection, 
   getDocs, 
@@ -678,5 +679,112 @@ export const adminService = {
       reader.onerror = () => reject(new Error("Error al leer el archivo."));
       reader.readAsDataURL(file);
     });
+  },
+
+  // --- COMERCIOS MANAGEMENT ---
+  async getAllComercios() {
+    if (!db || !isConfigValid) {
+      return getLocalStorage('mock_comercios', []);
+    }
+    try {
+      const comerciosRef = collection(db, "comercio");
+      const snap = await getDocs(comerciosRef);
+      const list = [];
+      snap.forEach((d) => {
+        list.push({ id: d.id, ...d.data() });
+      });
+      return list.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
+    } catch (e) {
+      console.error("Error al obtener comercios de Firestore:", e);
+      return [];
+    }
+  },
+
+  async createComercioUser(comercioData) {
+    const { email, password, nombreTienda, nit, nombreAdmin, telefono } = comercioData;
+
+    if (!db || !isConfigValid) {
+      const comercios = getLocalStorage('mock_comercios', []);
+      const newUid = 'local-comercio-' + Math.random().toString(36).substr(2, 9);
+      const newComercio = {
+        id: newUid,
+        uid: newUid,
+        nombreTienda,
+        nit,
+        nombreAdmin,
+        telefono,
+        correo: email,
+        activo: true,
+        fechaCreacion: new Date().toISOString()
+      };
+      comercios.push(newComercio);
+      setLocalStorage('mock_comercios', comercios);
+
+      const users = getLocalStorage('mock_users', defaultMockUsers);
+      users.push({
+        uid: newUid,
+        nombre: nombreTienda,
+        correo: email,
+        cedula: nit,
+        telefono,
+        tiendaNombre: nombreTienda,
+        puntos: 0,
+        rol: ROLES.VENDEDOR,
+        activo: true,
+        fechaCreacion: new Date().toISOString()
+      });
+      setLocalStorage('mock_users', users);
+      return newComercio;
+    }
+
+    let tempApp;
+    let tempAuth;
+    let uid;
+    try {
+      const existingApps = getApps();
+      const tempAppName = "TempComercioApp";
+      tempApp = existingApps.find(app => app.name === tempAppName);
+      if (!tempApp) {
+        tempApp = initializeApp(firebaseConfig, tempAppName);
+      }
+      tempAuth = getAuth(tempApp);
+      const userCred = await createUserWithEmailAndPassword(tempAuth, email, password);
+      uid = userCred.user.uid;
+      await tempAuth.signOut();
+    } catch (error) {
+      throw new Error(`Error de autenticación Firebase: ${error.message}`);
+    }
+
+    // Document in 'users' collection (rol: vendedor)
+    const userRef = doc(db, "users", uid);
+    await setDoc(userRef, {
+      uid,
+      nombre: nombreTienda,
+      correo: email,
+      cedula: nit,
+      telefono,
+      tiendaNombre: nombreTienda,
+      puntos: 0,
+      rol: ROLES.VENDEDOR,
+      activo: true,
+      fechaCreacion: new Date().toISOString()
+    });
+
+    // Document in 'comercio' collection
+    const comercioRef = doc(db, "comercio", uid);
+    const newComercioPayload = {
+      id: uid,
+      uid,
+      nombreTienda,
+      nit,
+      nombreAdmin,
+      telefono,
+      correo: email,
+      activo: true,
+      fechaCreacion: new Date().toISOString()
+    };
+    await setDoc(comercioRef, newComercioPayload);
+
+    return newComercioPayload;
   }
 };

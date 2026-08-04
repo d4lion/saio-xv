@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { ROLES } from '../constants/roles';
 
 export default function Login() {
   const { login, isFirebaseConfigured } = useAuth();
@@ -21,7 +22,7 @@ export default function Login() {
   // Obtener ruta previa (con query params) o redirigir a /perfil por defecto
   const from = location.state?.from
     ? (location.state.from.pathname + (location.state.from.search || ''))
-    : '/perfil';
+    : null;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -38,10 +39,25 @@ export default function Login() {
 
     try {
       setIsSubmitting(true);
-      await login(email, password);
+      const userCredential = await login(email, password);
+      
+      // Determinar destino según el rol
+      const userRole = userCredential?.rol;
+      let targetPath = from;
+
+      if (!targetPath) {
+        if (userRole === ROLES.VENDEDOR) {
+          targetPath = '/saio/mi-tienda';
+        } else if (userRole === ROLES.ADMIN || userRole === ROLES.COORDINADOR) {
+          targetPath = '/dashboard';
+        } else {
+          targetPath = '/perfil';
+        }
+      }
+
       setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 400);
+        navigate(targetPath, { replace: true });
+      }, 300);
     } catch (err) {
       console.error(err);
       // Traducir mensajes comunes de Firebase Auth
