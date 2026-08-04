@@ -43,32 +43,61 @@ const themedSwal = Swal.mixin({
   }
 });
 
-// Helper to extract fields from Wompi structures
+// Helper to extract fields from Wompi structures, webhooks, or Firestore camelCase objects
 const extractTxFields = (p) => {
   if (!p) return {};
-  const t = p.data?.transaction || p;
-  const cData = t.customer_data || {};
+  const t = p.data?.transaction || p.data?.transactionUpdate || p.transaction || p.transactionUpdate || p;
+  const cData = t.customerData || t.customer_data || p.customerData || p.customer_data || {};
+  const bInfo = cData.browserInfo || cData.browser_info || t.browserInfo || t.browser_info || p.browserInfo || p.browser_info || {};
+  const pMethod = t.paymentMethod || t.payment_method || p.paymentMethod || p.payment_method || {};
+  const pExtra = pMethod.extra || {};
+
+  const amountInCents = t.amountInCents !== undefined ? t.amountInCents :
+                        t.amount_in_cents !== undefined ? t.amount_in_cents :
+                        p.amountInCents !== undefined ? p.amountInCents :
+                        p.amount_in_cents;
+
+  const asyncUrl = pExtra.asyncPaymentUrl || pExtra.async_payment_url || pMethod.asyncPaymentUrl || pMethod.async_payment_url || null;
+
   return {
-    id: t.id || p.id || 'N/A',
-    created_at: t.created_at || t.fecha || t.timestamp || p.created_at || p.fecha || p.timestamp || null,
-    finalized_at: t.finalized_at || p.finalized_at || null,
-    amount_in_cents: t.amount_in_cents !== undefined ? t.amount_in_cents : p.amount_in_cents,
+    id: t.id || t.userId || p.id || p.userId || 'N/A',
+    userId: t.userId || p.userId || t.uid || p.uid || null,
+    created_at: t.createdAt || t.created_at || t.fecha || t.timestamp || p.createdAt || p.created_at || p.fecha || p.timestamp || null,
+    finalized_at: t.finalizedAt || t.finalized_at || p.finalizedAt || p.finalized_at || null,
+    amount_in_cents: amountInCents,
     currency: t.currency || p.currency || 'COP',
     reference: t.reference || p.reference || 'N/A',
-    customer_email: t.customer_email || cData.customer_email || p.customer_email || 'N/A',
-    payment_method_type: t.payment_method_type || t.payment_method?.type || p.payment_method_type || p.payment_method?.type || 'N/A',
+    customer_email: t.customerEmail || t.customer_email || cData.customerEmail || cData.customer_email || p.customerEmail || p.customer_email || 'N/A',
+    payment_method_type: t.paymentMethodType || t.payment_method_type || pMethod.type || p.paymentMethodType || p.payment_method_type || 'N/A',
     status: t.status || p.status || 'PENDING',
-    status_message: t.status_message || p.status_message || '',
-    payment_link_id: t.payment_link_id || p.payment_link_id || 'N/A',
-    full_name: cData.full_name || t.full_name || p.full_name || 'N/A',
-    legal_id: cData.legal_id || t.legal_id || p.legal_id || 'N/A',
-    legal_id_type: cData.legal_id_type || t.legal_id_type || p.legal_id_type || 'CC',
-    phone_number: cData.phone_number || t.phone_number || p.phone_number || 'N/A',
-    customer_references: cData.customer_references || t.customer_references || p.customer_references || [],
-    device_id: cData.device_id || t.device_id || p.device_id || 'N/A',
-    device_data_token: cData.device_data_token || t.device_data_token || p.device_data_token || '',
-    browser_info: cData.browser_info || t.browser_info || p.browser_info || {},
-    payment_method: t.payment_method || p.payment_method || {}
+    status_message: t.statusMessage || t.status_message || p.statusMessage || p.status_message || '',
+    payment_link_id: t.paymentLinkId || t.payment_link_id || p.paymentLinkId || p.payment_link_id || 'N/A',
+    full_name: cData.fullName || cData.full_name || t.fullName || t.full_name || p.fullName || p.full_name || 'N/A',
+    legal_id: cData.legalId || cData.legal_id || t.legalId || t.legal_id || p.legalId || p.legal_id || 'N/A',
+    legal_id_type: cData.legalIdType || cData.legal_id_type || t.legalIdType || t.legal_id_type || p.legalIdType || p.legal_id_type || 'CC',
+    phone_number: cData.phoneNumber || cData.phone_number || t.phoneNumber || t.phone_number || p.phoneNumber || p.phone_number || pMethod.phoneNumber || pMethod.phone_number || 'N/A',
+    customer_references: cData.customerReferences || cData.customer_references || t.customerReferences || t.customer_references || p.customerReferences || p.customer_references || [],
+    device_id: cData.deviceId || cData.device_id || t.deviceId || t.device_id || p.deviceId || p.device_id || 'N/A',
+    device_data_token: cData.deviceDataToken || cData.device_data_token || t.deviceDataToken || t.device_data_token || p.deviceDataToken || p.device_data_token || '',
+    browser_info: {
+      browser_language: bInfo.browserLanguage || bInfo.browser_language || 'N/A',
+      browser_tz: bInfo.browserTz || bInfo.browser_tz || 'N/A',
+      browser_screen_width: bInfo.browserScreenWidth || bInfo.browser_screen_width || null,
+      browser_screen_height: bInfo.browserScreenHeight || bInfo.browser_screen_height || null,
+      browser_color_depth: bInfo.browserColorDepth || bInfo.browser_color_depth || 'N/A',
+      browser_user_agent: bInfo.browserUserAgent || bInfo.browser_user_agent || ''
+    },
+    payment_method: {
+      type: pMethod.type || t.paymentMethodType || t.payment_method_type || 'N/A',
+      phone_number: pMethod.phoneNumber || pMethod.phone_number || 'N/A',
+      transaction_id: pExtra.transactionId || pExtra.transaction_id || pMethod.transactionId || pMethod.transaction_id || t.id || p.id || 'N/A',
+      external_identifier: pExtra.externalIdentifier || pExtra.external_identifier || pMethod.externalIdentifier || pMethod.external_identifier || 'N/A',
+      extra: {
+        async_payment_url: asyncUrl,
+        transaction_id: pExtra.transactionId || pExtra.transaction_id || 'N/A',
+        external_identifier: pExtra.externalIdentifier || pExtra.external_identifier || 'N/A'
+      }
+    }
   };
 };
 
