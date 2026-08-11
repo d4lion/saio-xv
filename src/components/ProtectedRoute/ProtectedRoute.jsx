@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Lock } from 'lucide-react';
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading, logout } = useAuth();
@@ -8,24 +8,50 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#040b0f] flex flex-col items-center justify-center text-white select-none p-6">
-        {/* Spinner orbital premium con estilo espacial */}
-        <div className="relative w-28 h-28 mb-8 flex items-center justify-center">
-          {/* Anillo exterior */}
-          <div className="absolute inset-0 rounded-full border border-primary/20"></div>
-          <div className="absolute inset-0 rounded-full border-2 border-t-accent border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.2s' }}></div>
+      <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center text-gray-900 select-none p-6 font-sans">
+        {/* Panel Blanco Enterprise / Minimalista tipo Google */}
+        <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-200 shadow-sm p-8 flex flex-col items-center text-center space-y-6">
           
-          {/* Anillo intermedio invertido */}
-          <div className="absolute inset-4 rounded-full border border-primary-light/10"></div>
-          <div className="absolute inset-4 rounded-full border-2 border-b-primary-light border-t-transparent border-r-transparent border-l-transparent animate-[spin_2.5s_linear_infinite_reverse]"></div>
-          
-          {/* Icono central de seguridad */}
-          <ShieldCheck className="w-8 h-8 text-accent animate-pulse" />
+          {/* Spinner minimalista con escudo perfectamente centrado */}
+          <div className="relative w-14 h-14 flex items-center justify-center">
+            {/* Outer spinner arc */}
+            <div 
+              className="absolute inset-0 rounded-full border-[3px] border-blue-100 border-t-blue-600 border-r-blue-600 animate-spin" 
+              style={{ animationDuration: '0.8s' }}
+            ></div>
+            
+            {/* Inner circle with centered shield */}
+            <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shadow-xs">
+              <ShieldCheck className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+
+          {/* Encabezado */}
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-gray-900 tracking-tight">
+              Adamind Security Check
+            </h3>
+            <p className="text-xs text-gray-500 font-normal">
+              Verificando autenticación y permisos...
+            </p>
+          </div>
+
+          {/* Barra de carga real fluida tipo Google */}
+          <div className="w-full space-y-2">
+            <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden relative">
+              <div className="bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600 h-full w-full animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Badge de seguridad tipo Google Enterprise */}
+          <div className="pt-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-[11px] text-gray-600 font-mono">
+              <Lock className="w-3 h-3 text-gray-500" />
+              <span>Conexión cifrada TLS / 256-bit</span>
+            </div>
+          </div>
+
         </div>
-        
-        <p className="text-secondary font-heading text-xs tracking-[0.2em] uppercase animate-pulse-glow">
-          Adamind Security Checks...
-        </p>
       </div>
     );
   }
@@ -63,9 +89,15 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     );
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.rol)) {
-    // Redirigir al inicio si el usuario no cuenta con el rol requerido
-    return <Navigate to="/" replace />;
+  if (allowedRoles) {
+    const userRole = user?.rol ? String(user.rol).toLowerCase() : '';
+    const isAllowed = allowedRoles.some(
+      (role) => String(role).toLowerCase() === userRole
+    );
+    if (!isAllowed) {
+      // Redirigir al inicio si el usuario no cuenta con el rol requerido
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;
