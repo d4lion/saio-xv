@@ -6,7 +6,8 @@ import { ROLES } from '../../constants/roles';
 
 export default function UserNav() {
   const { user } = useAuth();
-  const canAccessDashboard = user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR;
+  const userRole = user?.rol ? String(user.rol).toLowerCase() : '';
+  const canAccessDashboard = userRole === ROLES.ADMIN || userRole === ROLES.COORDINADOR;
 
   const tabs = [
     { label: 'Mi Entrada', to: '/mi-entrada', icon: Ticket },

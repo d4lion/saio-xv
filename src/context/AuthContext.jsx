@@ -126,7 +126,8 @@ export function AuthProvider({ children }) {
     uid: currentUser.uid,
     email: currentUser.email,
     emailVerified: currentUser.emailVerified,
-    ...userData
+    ...userData,
+    rol: userData?.rol ? String(userData.rol).toLowerCase() : ROLES.ASISTENTE
   } : null;
 
   const value = {

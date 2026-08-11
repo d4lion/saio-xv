@@ -976,7 +976,8 @@ export default function Dashboard() {
   };
 
   // Default path for routing redirect
-  const defaultPath = user?.rol === ROLES.COORDINADOR ? '/dashboard/codigos' : '/dashboard/telemetria';
+  const userRole = user?.rol ? String(user.rol).toLowerCase() : '';
+  const defaultPath = userRole === ROLES.COORDINADOR ? '/dashboard/codigos' : '/dashboard/telemetria';
 
   const NAV_GROUPS = [
     {
@@ -1090,7 +1091,7 @@ export default function Dashboard() {
         `}>
           <div className="space-y-6">
             {NAV_GROUPS.map((group, groupIdx) => {
-              const visibleItems = group.items.filter(item => item.roles.includes(user?.rol));
+              const visibleItems = group.items.filter(item => item.roles.map(r => String(r).toLowerCase()).includes(userRole));
               if (visibleItems.length === 0) return null;
 
               return (

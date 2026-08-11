@@ -5,7 +5,7 @@ import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { ROLES } from '../constants/roles';
 
 export default function Login() {
-  const { login, isFirebaseConfigured } = useAuth();
+  const { user, login, isFirebaseConfigured } = useAuth();
   
   // Form states
   const [email, setEmail] = useState('');
@@ -42,7 +42,7 @@ export default function Login() {
       const userCredential = await login(email, password);
       
       // Determinar destino según el rol
-      const userRole = userCredential?.rol;
+      const userRole = (user?.rol || '').toLowerCase();
       let targetPath = from;
 
       if (!targetPath) {
