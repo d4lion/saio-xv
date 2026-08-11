@@ -431,7 +431,9 @@ export const pointsService = {
       const leaderboard = [];
       querySnapshot.forEach((doc) => {
         const u = { uid: doc.id, ...doc.data() };
-        if (!u.rol || u.rol === ROLES.ASISTENTE || u.role === ROLES.ASISTENTE) {
+        const uRol = u.rol ? String(u.rol).toLowerCase() : '';
+        const uRole = u.role ? String(u.role).toLowerCase() : '';
+        if (!uRol || uRol === ROLES.ASISTENTE || uRole === ROLES.ASISTENTE) {
           leaderboard.push(u);
         }
       });
@@ -445,7 +447,9 @@ export const pointsService = {
         allUsersSnapshot.forEach((doc) => {
           const u = { uid: doc.id, ...doc.data() };
           // Solo incluimos a los usuarios con rol de asistente (excluyendo admins y coordinadores)
-          const isAsistente = !u.rol || u.rol === ROLES.ASISTENTE || u.role === ROLES.ASISTENTE;
+          const uRol = u.rol ? String(u.rol).toLowerCase() : '';
+          const uRole = u.role ? String(u.role).toLowerCase() : '';
+          const isAsistente = !uRol || uRol === ROLES.ASISTENTE || uRole === ROLES.ASISTENTE;
           if (isAsistente) {
             allUsers.push(u);
           }
