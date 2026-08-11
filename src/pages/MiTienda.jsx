@@ -175,7 +175,7 @@ export default function MiTienda() {
           </div>
 
           <div className="flex items-center gap-3">
-            {(user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR) && (
+            {((user?.rol ? String(user.rol).toLowerCase() : '') === ROLES.ADMIN || (user?.rol ? String(user.rol).toLowerCase() : '') === ROLES.COORDINADOR) && (
               <Link
                 to="/dashboard"
                 className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-heading font-semibold border border-gray-200 transition-colors"
