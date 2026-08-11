@@ -33,7 +33,7 @@ export default function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? 'glass border-b border-purple-500/20 py-3' : 'bg-transparent py-5'
+          scrolled ? 'bg-[#040b0f] border-b border-purple-500/20 py-3 shadow-lg' : 'bg-transparent py-5'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -107,7 +107,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed top-16 left-4 right-4 z-40 glass rounded-2xl p-6 border border-purple-500/20"
+            className="fixed top-16 left-4 right-4 z-40 bg-[#0e0a34] rounded-2xl p-6 border border-purple-500/30 shadow-2xl"
           >
             <ul className="flex flex-col gap-5">
               {currentNavLinks.map((link) => (
