@@ -14,6 +14,9 @@ import Dashboard from './pages/Dashboard/Dashboard'
 
 import MiTienda from './pages/MiTienda'
 
+import NotFound from './pages/NotFound'
+import PaymentStatus from './pages/PaymentStatus'
+
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
 
@@ -71,6 +74,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/panelistas" element={<Panelistas />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/payment/status" element={<PaymentStatus />} />
         
         {/* Rutas Protegidas del Asistente */}
         <Route 
@@ -140,6 +144,9 @@ export default function App() {
             </ProtectedRoute>
           } 
         />
+
+        {/* Ruta 404 para cualquier pestaña no definida */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AuthProvider>
   )
