@@ -1,5 +1,6 @@
 import { GitBranch, AtSign, Share2, Radio } from 'lucide-react'
 import logo from '../../assets/logo.png'
+import { footer_paths, links } from './constants'
 
 const socials = [
   { icon: AtSign, href: '#', label: 'Twitter / X' },
@@ -8,10 +9,7 @@ const socials = [
   { icon: Radio, href: '#', label: 'Instagram' },
 ]
 
-const links = [
-  { section: 'Evento', items: ['Talleres', 'Ponentes', 'Agenda', 'Boletas'] },
-  { section: 'ANIAP', items: ['Sobre nosotros', 'Ediciones anteriores', 'Voluntarios', 'Contacto'] },
-]
+
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -36,7 +34,7 @@ export default function Footer() {
               />
             </div>
             <p className="text-secondary text-sm leading-relaxed max-w-xs">
-              Evento estudiantil organizado por ANIAP donde aprender, conectar y crecer con la industria tecnológica.
+              Evento estudiantil organizado por ANEIAP donde aprender, conectar y crecer con la industria tecnológica.
             </p>
             {/* Socials */}
             <div className="flex gap-3 mt-6">
@@ -59,9 +57,9 @@ export default function Footer() {
               <h4 className="text-white font-semibold text-sm mb-4 tracking-wide">{col.section}</h4>
               <ul className="flex flex-col gap-3">
                 {col.items.map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-secondary text-sm hover:text-secondary-light transition-colors duration-300">
-                      {item}
+                  <li key={item.name}>
+                    <a href={item.path} className="text-secondary text-sm hover:text-secondary-light transition-colors duration-300">
+                      {item.name}
                     </a>
                   </li>
                 ))}
@@ -76,9 +74,9 @@ export default function Footer() {
             © {year} Hecho con ❤️ por <a href="https://www.adamind.cloud" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-secondary-light transition-colors duration-300">Adamind Technologies</a> para Saio XV · Todos los derechos reservados.
           </p>
           <div className="flex gap-6">
-            {['Privacidad', 'Términos', 'Cookies'].map((item) => (
-              <a key={item} href="#" className="text-muted text-xs hover:text-secondary transition-colors duration-300">
-                {item}
+            {footer_paths.map((item) => (
+              <a key={item.name} href={item.path} className="text-muted text-xs hover:text-secondary transition-colors duration-300">
+                {item.name}
               </a>
             ))}
           </div>
