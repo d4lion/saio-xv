@@ -1,0 +1,155 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- FUNCIONES AUXILIARES ---
+    
+    // Verifica si el cliente está autenticado en Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Obtiene el documento del usuario actual en la colección "users"
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Obtiene el rol del usuario actual
+    function getRole() {
+      return getUserDoc().data.rol;
+    }
+
+    // Verifica si el usuario actual es Administrador
+    function isAdmin() {
+      return isAuthenticated() && getRole() == 'admin';
+    }
+    
+    function isStore() {
+      return isAuthenticated() && getRole() == 'vendedor';
+    }
+
+    // Verifica si el usuario actual es Coordinador
+    function isCoordinador() {
+      return isAuthenticated() && getRole() == 'coordinador';
+    }
+
+    // Verifica si el usuario es Administrador o Coordinador
+    function isAdminOrCoordinador() {
+      return isAdmin() || isCoordinador();
+    }
+
+
+    // --- REGLAS POR COLECCIÓN ---
+
+    // Colección: users (Perfiles de usuarios)
+    match /users/{userId} {
+      // Cualquier usuario autenticado puede leer perfiles (necesario para la tabla de posiciones/ranking)
+      allow read: if isAuthenticated();
+      
+      // Permitir creación si es administrador, o si el usuario se está auto-registrando
+      allow create: if isAdmin() || (
+        isAuthenticated() && 
+        request.auth.uid == userId && 
+        request.resource.data.rol == 'asistente' && 
+        request.resource.data.puntos == 0
+      );
+      
+      // Un usuario solo puede actualizar su propio perfil
+      allow update: if isAdmin() || isStore() || (
+        isAuthenticated() && 
+        request.auth.uid == userId && 
+        request.resource.data.rol == resource.data.rol
+      );
+      
+      // Solo administradores globales pueden eliminar cuentas de usuario
+      allow delete: if isAdmin();
+    }
+
+    // Colección: codes (Configuración de Códigos QR restrictivos y puntos)
+    match /codes/{codeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdminOrCoordinador();
+    }
+
+    // Colección: rewards (Catálogo de premios del evento)
+    match /rewards/{rewardId} {
+      allow read: if isAuthenticated();
+      allow create, delete: if isAdminOrCoordinador();
+      
+      allow update: if isAdminOrCoordinador() || (
+        isAuthenticated() && 
+        request.resource.data.stock == resource.data.stock - 1 &&
+        request.resource.data.title == resource.data.title &&
+        request.resource.data.cost == resource.data.cost &&
+        request.resource.data.activo == resource.data.activo
+      );
+    }
+
+    // Colección: points_transactions (Historial de reclamaciones y canjes de puntos)
+    match /points_transactions/{txId} {
+      allow read: if isAdmin() || isStore() || (isAuthenticated() && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin() || isStore() || (isAuthenticated() && request.resource.data.uid == request.auth.uid);
+      allow update, delete: if false;
+    }
+
+    // Colección: transactions (Auditoría de pasarela Wompi)
+    match /transactions/{txId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Colección: claims
+    match /claims/{claimId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin() || (
+        isAuthenticated() && 
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.estado == 'pendiente'
+      );
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Colección: tickets (Boletas y planes de entradas oficiales)
+    match /tickets/{ticketId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Colección: telemetry_logs (Trazabilidad y registro de eventos/clics)
+    match /telemetry_logs/{logId} {
+      allow create: if true;
+      allow read: if isAdmin() || isAuthenticated();
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // Colección: tickets_telemetry_logs (Trazabilidad exclusiva de clics en boletas)
+    match /tickets_telemetry_logs/{logId} {
+      allow create: if true;
+      allow read: if isAdmin() || isAuthenticated();
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+    
+    match /panelistas/{panelistaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /comercio/{comercioId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /store_sales/{saleId} {
+      allow read: if true;
+      allow write: if isStore();
+    }
+    
+    match /store_rules/{saleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

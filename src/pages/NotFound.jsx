@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom'
 import { Home, Users, LogIn, ArrowLeft, Compass } from 'lucide-react'
 import Navbar from '../components/Navbar/Navbar'
 import Footer from '../components/Footer/Footer'
+import SEO from '../components/SEO/SEO'
 
 export default function NotFound() {
   return (
     <main className="relative bg-[#040b0f] min-h-screen flex flex-col justify-between overflow-hidden">
+      <SEO 
+        title="404 - Página no encontrada | SAIO XV Entropix"
+        description="La página que buscas no existe o ha sido movida dentro de la plataforma SAIO XV Entropix."
+      />
       <Navbar />
 
       {/* Hero / Error content container */}

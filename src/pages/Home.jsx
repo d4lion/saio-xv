@@ -9,10 +9,16 @@ import Tickets from '../components/Tickets/Tickets'
 import CTA from '../components/CTA/CTA'
 import Footer from '../components/Footer/Footer'
 import WhatsAppButton from '../components/WhatsAppButton/WhatsAppButton'
+import SEO from '../components/SEO/SEO'
 
 export default function Home() {
   return (
     <main className="relative bg-[#040b0f] snap-container">
+      <SEO 
+        title="SAIO XV - ENTROPIX 2026 | El Evento de Inteligencia Artificial & Datos"
+        description="Transformando datos en infinitas posibilidades. Asiste a SAIO XV Entropix en Medellín: talleres prácticos, ponentes internacionales, networking VIP y conferencias sobre Inteligencia Artificial y Ciencia de Datos."
+        path="/"
+      />
       <WhatsAppButton />
       <Navbar />
       <Hero />

@@ -1,77 +1,13 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Check, Zap, Star, Crown, ArrowRight, Flame, Clock } from 'lucide-react'
-
-const plans = [
-  {
-    id: 'general',
-    name: 'General',
-    icon: Zap,
-    price: '$50.000',
-    currency: 'COP',
-    period: 'por persona',
-    color: '#4c29b6',
-    borderColor: 'rgba(76,41,182,0.5)',
-    glowColor: 'rgba(76,41,182,0.25)',
-    features: [
-      'Acceso a todos los talleres',
-      'Asistencia a paneles',
-      'Material digital del evento',
-      'Networking con asistentes',
-      'Coffee break incluido',
-    ],
-    cta: 'Comprar boleta',
-    available: 200,
-    popular: false,
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    icon: Star,
-    price: '$90.000',
-    currency: 'COP',
-    period: 'por persona',
-    color: '#9c3aed',
-    borderColor: 'rgba(156,58,237,0.7)',
-    glowColor: 'rgba(156,58,237,0.3)',
-    features: [
-      'Todo lo de General',
-      'Sesión privada con ponentes',
-      'Kit de bienvenida exclusivo',
-      'Acceso a zona VIP de networking',
-      'Certificado de participación',
-      'Grabaciones del evento',
-    ],
-    cta: 'Quiero mi boleta',
-    available: 50,
-    popular: true,
-  },
-  {
-    id: 'squad',
-    name: 'Squad',
-    icon: Crown,
-    price: '$200.000',
-    currency: 'COP',
-    period: 'por 3 personas',
-    color: '#c3abdc',
-    borderColor: 'rgba(195,171,220,0.5)',
-    glowColor: 'rgba(195,171,220,0.15)',
-    features: [
-      'Acceso para 3 personas',
-      'Todo lo de Premium x3',
-      'Mesa reservada en networking',
-      'Mención especial en el evento',
-      'Foto grupal con panelistas',
-    ],
-    cta: 'Ir con mi squad',
-    available: 20,
-    popular: false,
-  },
-]
+import { Check, Flame, ShieldCheck, ExternalLink, Zap, Crown, Sparkles } from 'lucide-react'
+import { TICKETS_DATA } from '../../constants/tickets'
+import { ticketService } from '../../services/ticketService'
+import { useAuth } from '../../context/AuthContext'
 
 const urgencyItems = [
-  { icon: Flame, text: 'Las boletas Premium están casi agotadas', color: '#ff6b35' },
-  { icon: Clock, text: 'Precio especial disponible por tiempo limitado', color: '#9c3aed' },
+  { icon: Flame, text: 'Las boletas VIP están casi agotadas', color: '#ff6b35' },
+  { icon: ShieldCheck, text: 'Pago 100% seguro garantizado por Wompi', color: '#9c3aed' },
 ]
 
 const stagger = {
@@ -90,7 +26,7 @@ function AvailabilityBar({ total, remaining, color }) {
   return (
     <div className="mt-4">
       <div className="flex justify-between items-center mb-1.5">
-        <span className="text-[10px] text-secondary tracking-wide">Disponibilidad</span>
+        <span className="text-[10px] text-secondary tracking-wide uppercase">Disponibilidad</span>
         <span className="text-[10px] font-bold" style={{ color }}>
           {remaining} lugares restantes
         </span>
@@ -111,6 +47,30 @@ function AvailabilityBar({ total, remaining, color }) {
 export default function Tickets() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
+  const { user } = useAuth()
+  const [tickets, setTickets] = useState(TICKETS_DATA)
+
+  useEffect(() => {
+    ticketService.getActiveTickets().then((data) => {
+      if (data && data.length > 0) setTickets(data)
+    })
+  }, [])
+
+  const handleBuyTicket = async (ticket) => {
+    // 1. Trazabilidad de clic e intención con metadata de dispositivo
+    await ticketService.trackTicketCheckoutClick(ticket, user)
+
+    // 2. Redirección al checkout Wompi
+    if (ticket.checkoutUrl) {
+      window.open(ticket.checkoutUrl, '_blank', 'noopener,noreferrer')
+    }
+  }
+
+  const getIcon = (iconName) => {
+    if (iconName === 'Crown') return Crown
+    if (iconName === 'Sparkles') return Sparkles
+    return Zap
+  }
 
   return (
     <section id="tickets" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden">
@@ -125,7 +85,7 @@ export default function Tickets() {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -143,7 +103,7 @@ export default function Tickets() {
             Asegura tu <span className="gradient-text">lugar</span>
           </h2>
           <p className="text-secondary mt-4 max-w-xl mx-auto text-[clamp(0.9rem,1.4vw,1.05rem)] leading-relaxed">
-            Los cupos son limitados. Elige tu experiencia y forma parte de la edición más grande de SAIO.
+            Los cupos son limitados. Selecciona tu entrada y paga de forma inmediata y segura con Wompi Colombia.
           </p>
         </motion.div>
 
@@ -173,20 +133,22 @@ export default function Tickets() {
           })}
         </motion.div>
 
-        {/* Pricing cards */}
+        {/* 2-Ticket Grid */}
         <motion.div
           variants={stagger}
           initial="hidden"
           animate={inView ? 'visible' : 'hidden'}
-          className="grid md:grid-cols-3 gap-6 items-start"
+          className="grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto text-left"
         >
-          {plans.map((plan) => {
-            const Icon = plan.icon
+          {tickets.map((plan) => {
+            const Icon = typeof plan.icon === 'function' || typeof plan.icon === 'object'
+              ? plan.icon
+              : getIcon(plan.iconName)
             return (
               <motion.div
                 key={plan.id}
                 variants={cardVariant}
-                className="relative rounded-2xl overflow-hidden"
+                className="relative rounded-3xl overflow-hidden flex flex-col group"
                 style={{
                   padding: '1px',
                   background: plan.popular
@@ -203,102 +165,95 @@ export default function Tickets() {
                       color: '#fff',
                     }}
                   >
-                    Más popular
+                    Experiencia Recomendada
                   </div>
                 )}
 
                 <div
-                  className="relative rounded-2xl p-7 h-full flex flex-col"
+                  className="relative rounded-3xl p-8 h-full flex flex-col justify-between"
                   style={{ background: 'rgba(4,11,15,0.95)', backdropFilter: 'blur(20px)' }}
                 >
                   {/* Glow */}
                   <div
-                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                    className="absolute inset-0 rounded-3xl pointer-events-none"
                     style={{ boxShadow: `inset 0 0 60px ${plan.glowColor}` }}
                   />
 
-                  {/* Icon + name */}
-                  <div className="flex items-center gap-3 mb-6 relative z-10">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: `${plan.color}22`, border: `1px solid ${plan.color}44` }}
-                    >
-                      <Icon size={18} style={{ color: plan.color }} />
-                    </div>
-                    <h3 className="text-white font-bold text-lg font-heading">{plan.name}</h3>
-                  </div>
-
-                  {/* Price */}
-                  <div className="relative z-10 mb-6">
-                    <div className="flex items-end gap-2">
-                      <span
-                        className="text-[clamp(2.5rem,5vw,3.5rem)] font-black font-heading leading-none"
-                        style={{ color: plan.color, fontFamily: "'Space Grotesk', sans-serif" }}
+                  <div>
+                    {/* Icon + name */}
+                    <div className="flex items-center gap-3 mb-6 relative z-10">
+                      <div
+                        className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${plan.color}22`, border: `1px solid ${plan.color}44` }}
                       >
-                        {plan.price}
-                      </span>
-                      <div className="mb-1.5">
-                        <div className="text-secondary-light text-xs font-medium">{plan.currency}</div>
-                        <div className="text-muted text-[10px]">{plan.period}</div>
+                        <Icon size={20} style={{ color: plan.color }} />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-bold text-xl font-heading">{plan.name}</h3>
+                        <p className="text-secondary-light text-xs mt-0.5">{plan.subtitle}</p>
                       </div>
                     </div>
 
-                    {/* Availability bar */}
-                    <AvailabilityBar
-                      total={plan.id === 'general' ? 300 : plan.id === 'premium' ? 80 : 30}
-                      remaining={plan.available}
-                      color={plan.color}
-                    />
+                    {/* Price */}
+                    <div className="relative z-10 mb-6 pb-6 border-b border-purple-500/15">
+                      <div className="flex items-end gap-2">
+                        <span
+                          className="text-[clamp(2.5rem,5vw,3.5rem)] font-black font-heading leading-none"
+                          style={{ color: plan.color, fontFamily: "'Space Grotesk', sans-serif" }}
+                        >
+                          {plan.price}
+                        </span>
+                        <div className="mb-1.5">
+                          <div className="text-secondary-light text-xs font-medium">{plan.currency}</div>
+                          <div className="text-muted text-[10px]">{plan.period}</div>
+                        </div>
+                      </div>
+
+                      {/* Availability bar */}
+                      <AvailabilityBar
+                        total={plan.totalAvailable}
+                        remaining={plan.remainingAvailable}
+                        color={plan.color}
+                      />
+                    </div>
+
+                    {/* Features */}
+                    <ul className="space-y-3 mb-8 relative z-10">
+                      {(plan.features || []).map((f) => (
+                        <li key={f} className="flex items-start gap-2.5">
+                          <div
+                            className="w-4 h-4 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+                            style={{ background: `${plan.color}22`, border: `1px solid ${plan.color}55` }}
+                          >
+                            <Check size={9} style={{ color: plan.color }} />
+                          </div>
+                          <span className="text-secondary text-sm leading-snug">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  {/* Features */}
-                  <ul className="space-y-3 mb-8 flex-1 relative z-10">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5">
-                        <div
-                          className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                          style={{ background: `${plan.color}22`, border: `1px solid ${plan.color}55` }}
-                        >
-                          <Check size={9} style={{ color: plan.color }} />
-                        </div>
-                        <span className="text-secondary text-sm leading-snug">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
                   {/* CTA */}
-                  <a
-                    href="#"
-                    className="relative z-10 group flex items-center justify-center gap-2.5 w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-300"
+                  <button
+                    onClick={() => handleBuyTicket(plan)}
+                    className="relative z-10 group/btn flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer shadow-lg hover:scale-[1.02]"
                     style={
                       plan.popular
                         ? {
                             background: `linear-gradient(135deg, ${plan.color}, #4c29b6)`,
                             color: '#fff',
-                            boxShadow: `0 0 0 0 ${plan.color}`,
+                            boxShadow: `0 0 30px ${plan.color}44`,
                           }
                         : {
-                            background: `${plan.color}18`,
-                            border: `1px solid ${plan.color}55`,
-                            color: plan.color,
+                            background: `${plan.color}20`,
+                            border: `1px solid ${plan.color}66`,
+                            color: '#ffffff',
                           }
                     }
-                    onMouseEnter={(e) => {
-                      if (plan.popular) {
-                        e.currentTarget.style.boxShadow = `0 0 30px ${plan.color}55`
-                        e.currentTarget.style.transform = 'scale(1.02)'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (plan.popular) {
-                        e.currentTarget.style.boxShadow = `0 0 0 0 ${plan.color}`
-                        e.currentTarget.style.transform = 'scale(1)'
-                      }
-                    }}
                   >
-                    {plan.cta}
-                    <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-300" />
-                  </a>
+                    <span>{plan.cta}</span>
+                    <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 transition-transform duration-300" />
+                  </button>
                 </div>
               </motion.div>
             )
@@ -313,7 +268,7 @@ export default function Tickets() {
           className="text-center mt-12 flex flex-wrap justify-center gap-x-8 gap-y-2"
         >
           {[
-            'Pago 100% seguro',
+            'Pago 100% seguro con Wompi',
             'Boleta por correo inmediata',
             'Transferible a otra persona',
             'Cupo estrictamente limitado',

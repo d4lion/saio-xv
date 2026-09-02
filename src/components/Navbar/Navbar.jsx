@@ -10,7 +10,7 @@ const navLinks = [
   { label: 'Agenda', href: '/#timeline' },
   { label: 'Talleres', href: '/#capabilities' },
   { label: 'Ponentes', href: '/panelistas', isRoute: true },
-  { label: 'Boletas', href: '/#tickets' },
+  { label: 'Boletas', href: '/boletas', isRoute: true },
 ]
 
 export default function Navbar() {
@@ -81,7 +81,7 @@ export default function Navbar() {
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-purple-400 to-accent group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
-              to="/#tickets"
+              to="/boletas"
               className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary-light to-accent text-white text-sm font-semibold hover:shadow-[0_0_20px_rgba(156,58,237,0.5)] hover:scale-105 transition-all duration-300"
             >
               Comprar boleta
@@ -141,13 +141,13 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="/#tickets"
+                <Link
+                  to="/boletas"
                   onClick={() => setMobileOpen(false)}
                   className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary-light to-accent text-sm text-white font-semibold"
                 >
                   Comprar boleta
-                </a>
+                </Link>
               </li>
             </ul>
           </motion.div>
