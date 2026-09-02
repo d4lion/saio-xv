@@ -49,6 +49,64 @@ const defaultMockRewards = [
   { id: 'digital_nft', title: 'NFT Conmemorativo', cost: 3000, desc: 'Coleccionable digital verificado de asistencia certificado en blockchain.', stock: 99, activo: true }
 ];
 
+const defaultMockTickets = [
+  {
+    id: 'general',
+    name: 'Boleta General',
+    subtitle: 'Acceso completo a la experiencia SAIO XV',
+    iconName: 'Zap',
+    price: '$50.000',
+    rawPrice: 50000,
+    currency: 'COP',
+    period: 'por persona',
+    color: '#4c29b6',
+    borderColor: 'rgba(76,41,182,0.6)',
+    glowColor: 'rgba(76,41,182,0.3)',
+    features: [
+      'Acceso completo a talleres y conferencias',
+      'Asistencia a los paneles de ponentes',
+      'Material digital exclusivo del evento',
+      'Networking con asistentes y profesionales',
+      'Coffee break incluido',
+      'Certificado digital de asistencia'
+    ],
+    cta: 'Comprar boleta General',
+    totalAvailable: 200,
+    remainingAvailable: 142,
+    popular: false,
+    activo: true,
+    checkoutUrl: import.meta.env.VITE_WOMPI_LINK_GENERAL || 'https://checkout.wompi.co/l/test_TCCgi9'
+  },
+  {
+    id: 'vip',
+    name: 'Boleta VIP',
+    subtitle: 'Experiencia exclusiva y acceso preferencial',
+    iconName: 'Crown',
+    price: '$90.000',
+    rawPrice: 90000,
+    currency: 'COP',
+    period: 'por persona',
+    color: '#9c3aed',
+    borderColor: 'rgba(156,58,237,0.8)',
+    glowColor: 'rgba(156,58,237,0.4)',
+    features: [
+      'Todo lo incluido en la Boleta General',
+      'Ubicación preferencial en conferencias',
+      'Acceso a sesión privada Meet & Greet con ponentes',
+      'Kit de bienvenida físico exclusivo SAIO XV',
+      'Acceso prioritario a zona VIP de networking',
+      'Grabaciones completas en HD del evento',
+      'Certificado VIP oficial de participación'
+    ],
+    cta: 'Comprar boleta VIP',
+    totalAvailable: 50,
+    remainingAvailable: 16,
+    popular: true,
+    activo: true,
+    checkoutUrl: import.meta.env.VITE_WOMPI_LINK_VIP || 'https://checkout.wompi.co/l/test_TCCgi9'
+  }
+];
+
 const defaultMockGeneralTransactions = [
   {
     event: "transaction.updated",
@@ -786,5 +844,94 @@ export const adminService = {
     await setDoc(comercioRef, newComercioPayload);
 
     return newComercioPayload;
+  },
+
+  // --- TICKETS MANAGEMENT ---
+  async getAllTickets() {
+    if (!db || !isConfigValid) {
+      return getLocalStorage('mock_tickets', defaultMockTickets);
+    }
+    try {
+      const ticketsRef = collection(db, "tickets");
+      const snap = await getDocs(ticketsRef);
+      if (snap.empty) {
+        // Auto seed default tickets if collection is empty
+        await this.seedTicketsIfEmpty();
+        return defaultMockTickets;
+      }
+      const tickets = [];
+      snap.forEach((d) => {
+        tickets.push({ id: d.id, ...d.data() });
+      });
+      return tickets;
+    } catch (e) {
+      console.warn("Firestore error reading tickets, falling back to mock tickets:", e);
+      return getLocalStorage('mock_tickets', defaultMockTickets);
+    }
+  },
+
+  async seedTicketsIfEmpty() {
+    if (!db || !isConfigValid) {
+      setLocalStorage('mock_tickets', defaultMockTickets);
+      return defaultMockTickets;
+    }
+    try {
+      for (const t of defaultMockTickets) {
+        const ticketRef = doc(db, "tickets", t.id);
+        const snap = await getDoc(ticketRef);
+        if (!snap.exists()) {
+          await setDoc(ticketRef, t);
+        }
+      }
+      return defaultMockTickets;
+    } catch (e) {
+      console.error("Error seeding initial tickets:", e);
+      throw e;
+    }
+  },
+
+  async createTicket(ticketId, data) {
+    const cleanId = ticketId.trim().toLowerCase();
+    if (!db || !isConfigValid) {
+      const tickets = getLocalStorage('mock_tickets', defaultMockTickets);
+      const exists = tickets.some(t => t.id === cleanId);
+      if (exists) throw new Error("La entrada/boleta ya existe.");
+      
+      const newTicket = { id: cleanId, ...data };
+      tickets.push(newTicket);
+      setLocalStorage('mock_tickets', tickets);
+      return newTicket;
+    }
+
+    const ticketRef = doc(db, "tickets", cleanId);
+    const snap = await getDoc(ticketRef);
+    if (snap.exists()) {
+      throw new Error("El ticket ya existe en Firestore.");
+    }
+    await setDoc(ticketRef, { id: cleanId, ...data });
+  },
+
+  async updateTicket(ticketId, data) {
+    if (!db || !isConfigValid) {
+      const tickets = getLocalStorage('mock_tickets', defaultMockTickets);
+      const idx = tickets.findIndex(t => t.id === ticketId);
+      if (idx === -1) throw new Error("Ticket no encontrado.");
+      tickets[idx] = { ...tickets[idx], ...data };
+      setLocalStorage('mock_tickets', tickets);
+      return;
+    }
+    const ticketRef = doc(db, "tickets", ticketId);
+    await updateDoc(ticketRef, data);
+  },
+
+  async deleteTicket(ticketId) {
+    if (!db || !isConfigValid) {
+      const tickets = getLocalStorage('mock_tickets', defaultMockTickets);
+      const filtered = tickets.filter(t => t.id !== ticketId);
+      setLocalStorage('mock_tickets', filtered);
+      return;
+    }
+    const ticketRef = doc(db, "tickets", ticketId);
+    await deleteDoc(ticketRef);
   }
 };

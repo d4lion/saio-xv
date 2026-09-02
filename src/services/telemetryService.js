@@ -70,7 +70,7 @@ export const telemetryService = {
   /**
    * Registra un evento de telemetría en Firestore (o localStorage si falla/desconectado)
    */
-  async logEvent({ type = 'INFO', category = 'SYSTEM', message, userEmail = null, uid = null, metadata = null }) {
+  async logEvent({ type = 'INFO', category = 'SYSTEM', message, userEmail = null, uid = null, metadata = null, collectionName = 'telemetry_logs' }) {
     const logItem = {
       fecha: new Date().toISOString(),
       type: type.toUpperCase(),
@@ -89,12 +89,12 @@ export const telemetryService = {
     }
 
     try {
-      const logsRef = collection(db, "telemetry_logs");
+      const logsRef = collection(db, collectionName);
       const docRef = await addDoc(logsRef, logItem);
-      console.log("[Telemetry] Evento guardado con éxito en Firestore (ID:", docRef.id, ")");
+      console.log(`[Telemetry] Evento guardado con éxito en Firestore (${collectionName} ID:`, docRef.id, ")");
       return { id: docRef.id, ...logItem, success: true };
     } catch (error) {
-      console.error("[Telemetry ERROR] Falló al guardar en colección 'telemetry_logs' de Firestore:", error);
+      console.error(`[Telemetry ERROR] Falló al guardar en colección '${collectionName}' de Firestore:`, error);
       const localId = 'local-log-' + Math.random().toString(36).substring(2, 9);
       saveLocalStorageLog({ id: localId, ...logItem });
       return { id: localId, ...logItem, error: error.message, success: false };
@@ -120,13 +120,13 @@ export const telemetryService = {
   /**
    * Obtiene logs de Firestore con fallback en memoria y localStorage
    */
-  async getTelemetryLogs(limitCount = 100) {
+  async getTelemetryLogs(limitCount = 100, collectionName = 'telemetry_logs') {
     if (!db) {
       return getLocalStorageLogs().slice(0, limitCount);
     }
 
     try {
-      const logsRef = collection(db, "telemetry_logs");
+      const logsRef = collection(db, collectionName);
       let snap;
       try {
         const q = query(logsRef, orderBy("fecha", "desc"), limit(limitCount));
@@ -144,7 +144,7 @@ export const telemetryService = {
       logs.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
       return logs.slice(0, limitCount);
     } catch (e) {
-      console.error("[Telemetry ERROR] Falló al consultar colección 'telemetry_logs':", e);
+      console.error(`[Telemetry ERROR] Falló al consultar colección '${collectionName}':`, e);
       return getLocalStorageLogs().slice(0, limitCount);
     }
   },
@@ -152,13 +152,13 @@ export const telemetryService = {
   /**
    * Se suscribe a actualizaciones en tiempo real de Firestore.
    */
-  subscribeToTelemetryLogs(callback, limitCount = 100) {
+  subscribeToTelemetryLogs(callback, limitCount = 100, collectionName = 'telemetry_logs') {
     if (!db) {
       callback(getLocalStorageLogs().slice(0, limitCount));
       return () => {};
     }
 
-    const logsRef = collection(db, "telemetry_logs");
+    const logsRef = collection(db, collectionName);
     let q;
 
     try {
@@ -200,7 +200,7 @@ export const telemetryService = {
   /**
    * Probar manualmente el guardado en Firestore y retornar el resultado exacto
    */
-  async testFirestoreConnection() {
+  async testFirestoreConnection(collectionName = 'telemetry_logs') {
     if (!db) {
       return { success: false, message: "Firestore 'db' no está inicializado. Revisa las variables de entorno en el archivo .env" };
     }
@@ -209,10 +209,10 @@ export const telemetryService = {
         fecha: new Date().toISOString(),
         type: 'SUCCESS',
         category: 'SYSTEM',
-        message: 'Prueba manual de escritura en Firestore (telemetry_logs)',
+        message: `Prueba manual de escritura en Firestore (${collectionName})`,
         userEmail: 'admin-test'
       };
-      const logsRef = collection(db, "telemetry_logs");
+      const logsRef = collection(db, collectionName);
       const res = await addDoc(logsRef, testDoc);
       return { success: true, id: res.id, message: `Documento creado exitosamente en Firestore (ID: ${res.id})` };
     } catch (error) {
@@ -223,17 +223,17 @@ export const telemetryService = {
   /**
    * Limpia el registro de telemetría de Firestore y localStorage
    */
-  async clearTelemetryLogs() {
+  async clearTelemetryLogs(collectionName = 'telemetry_logs') {
     localStorage.removeItem(STORAGE_KEY);
 
     if (!db) return;
 
     try {
-      const logsRef = collection(db, "telemetry_logs");
+      const logsRef = collection(db, collectionName);
       const snap = await getDocs(logsRef);
       const deletePromises = [];
       snap.forEach((d) => {
-        deletePromises.push(deleteDoc(doc(db, "telemetry_logs", d.id)));
+        deletePromises.push(deleteDoc(doc(db, collectionName, d.id)));
       });
       await Promise.all(deletePromises);
     } catch (e) {
