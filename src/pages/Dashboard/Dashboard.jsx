@@ -1214,7 +1214,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-gray-800 flex flex-col font-sans relative antialiased">
+    <div className="h-screen overflow-hidden bg-[#f8f9fa] text-gray-800 flex flex-col font-sans relative antialiased">
       
       {/* Top Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3.5 sticky top-0 shadow-xs z-30">
@@ -1275,7 +1275,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Body Layout with Grouped Sidebar */}
-      <div className="flex-1 w-full flex flex-col md:flex-row z-20">
+      <div className="flex-1 w-full flex flex-col md:flex-row z-20 overflow-hidden">
         
         {/* Mobile Backdrop Overlay */}
         {isMobileSidebarOpen && (
@@ -1341,7 +1341,7 @@ export default function Dashboard() {
         </aside>
 
         {/* Content Area */}
-        <div className="flex-1 p-4 sm:p-6 overflow-x-hidden min-w-0">
+        <div className="flex-1 p-4 sm:p-6 overflow-x-hidden overflow-y-auto min-w-0">
           <Routes>
             <Route path="" element={<Navigate to={defaultPath} replace />} />
             
