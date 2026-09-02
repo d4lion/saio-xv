@@ -9,7 +9,7 @@ import { storeService } from '../../services/storeService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon
 } from 'lucide-react';
 
 // Subcomponents
@@ -23,6 +23,7 @@ import ClaimsTab from './ClaimsTab';
 import PanelistasTab from './PanelistasTab';
 import StoreRulesTab from './StoreRulesTab';
 import ComerciosTab from './ComerciosTab';
+import TicketsTab from './TicketsTab';
 
 // Modals
 import UserModal from './UserModal';
@@ -31,6 +32,7 @@ import RewardModal from './RewardModal';
 import QrPreviewModal from './QrPreviewModal';
 import PaymentDetailModal from './PaymentDetailModal';
 import PanelistaModal from './PanelistaModal';
+import TicketModal from './TicketModal';
 
 const themedSwal = Swal.mixin({
   background: '#ffffff',
@@ -121,6 +123,7 @@ export default function Dashboard() {
   const [panelistas, setPanelistas] = useState([]);
   const [storeRules, setStoreRules] = useState([]);
   const [comercios, setComercios] = useState([]);
+  const [tickets, setTickets] = useState([]);
   
   // Loaders
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -132,10 +135,12 @@ export default function Dashboard() {
   const [loadingPanelistas, setLoadingPanelistas] = useState(false);
   const [loadingStoreRules, setLoadingStoreRules] = useState(false);
   const [loadingComercios, setLoadingComercios] = useState(false);
+  const [loadingTickets, setLoadingTickets] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Realtime Telemetry logs from Firestore
   const [telemetryLogs, setTelemetryLogs] = useState([]);
+  const [ticketTelemetryLogs, setTicketTelemetryLogs] = useState([]);
   const [loadingTelemetry, setLoadingTelemetry] = useState(true);
 
   useEffect(() => {
@@ -145,8 +150,13 @@ export default function Dashboard() {
       setLoadingTelemetry(false);
     });
 
+    const unsubscribeTickets = telemetryService.subscribeToTelemetryLogs((logs) => {
+      setTicketTelemetryLogs(logs);
+    }, 100, 'tickets_telemetry_logs');
+
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe();
+      if (typeof unsubscribeTickets === 'function') unsubscribeTickets();
     };
   }, []);
 
@@ -222,6 +232,31 @@ export default function Dashboard() {
 
   const [showPaymentDetailModal, setShowPaymentDetailModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+
+  // Ticket Modal state
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketModalMode, setTicketModalMode] = useState('create');
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [ticketForm, setTicketForm] = useState({
+    id: '',
+    name: '',
+    subtitle: '',
+    iconName: 'Zap',
+    price: '$50.000',
+    rawPrice: 50000,
+    currency: 'COP',
+    period: 'por persona',
+    color: '#4c29b6',
+    borderColor: 'rgba(76,41,182,0.6)',
+    glowColor: 'rgba(76,41,182,0.3)',
+    featuresInput: '',
+    cta: 'Comprar boleta',
+    totalAvailable: 100,
+    remainingAvailable: 100,
+    popular: false,
+    activo: true,
+    checkoutUrl: ''
+  });
 
   // Fetch functions
   const fetchUsers = async () => {
@@ -341,6 +376,19 @@ export default function Dashboard() {
     }
   };
 
+  const fetchTickets = async () => {
+    setLoadingTickets(true);
+    try {
+      const data = await adminService.getAllTickets();
+      setTickets(data);
+    } catch (e) {
+      console.error(e);
+      addTerminalEvent(`[ERROR] No se pudieron cargar las boletas: ${e.message}`);
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
   const handleRegisterComercio = async (comercioData) => {
     await adminService.createComercioUser(comercioData);
     addTerminalEvent(`[SUCCESS] Comercio "${comercioData.nombreTienda}" registrado con éxito.`);
@@ -427,7 +475,7 @@ export default function Dashboard() {
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
     addTerminalEvent("Iniciando sincronización completa con Firestore...");
-    const promises = [fetchCodes(), fetchRewards(), fetchPanelistas(), fetchStoreRules(), fetchComercios()];
+    const promises = [fetchCodes(), fetchRewards(), fetchPanelistas(), fetchStoreRules(), fetchComercios(), fetchTickets()];
     if (user?.rol === ROLES.ADMIN) {
       promises.push(fetchUsers(), fetchPayments(), fetchLogs(), fetchClaims());
     }
@@ -449,6 +497,7 @@ export default function Dashboard() {
       fetchPanelistas();
       fetchStoreRules();
       fetchComercios();
+      fetchTickets();
     }
   }, [user]);
 
@@ -848,6 +897,152 @@ export default function Dashboard() {
     }
   };
 
+  // Ticket Handlers
+  const handleOpenCreateTicket = () => {
+    setTicketForm({
+      id: '',
+      name: '',
+      subtitle: '',
+      iconName: 'Zap',
+      price: '$50.000',
+      rawPrice: 50000,
+      currency: 'COP',
+      period: 'por persona',
+      color: '#4c29b6',
+      borderColor: 'rgba(76,41,182,0.6)',
+      glowColor: 'rgba(76,41,182,0.3)',
+      featuresInput: '',
+      cta: 'Comprar boleta',
+      totalAvailable: 200,
+      remainingAvailable: 150,
+      popular: false,
+      activo: true,
+      checkoutUrl: ''
+    });
+    setTicketModalMode('create');
+    setShowTicketModal(true);
+  };
+
+  const handleOpenEditTicket = (t) => {
+    const featStr = Array.isArray(t.features) ? t.features.join('\n') : (t.features || '');
+    setTicketForm({
+      id: t.id,
+      name: t.name || '',
+      subtitle: t.subtitle || '',
+      iconName: t.iconName || 'Zap',
+      price: t.price || '',
+      rawPrice: t.rawPrice || 0,
+      currency: t.currency || 'COP',
+      period: t.period || 'por persona',
+      color: t.color || '#4c29b6',
+      borderColor: t.borderColor || 'rgba(76,41,182,0.6)',
+      glowColor: t.glowColor || 'rgba(76,41,182,0.3)',
+      featuresInput: featStr,
+      cta: t.cta || `Comprar ${t.name}`,
+      totalAvailable: t.totalAvailable || 100,
+      remainingAvailable: t.remainingAvailable || 100,
+      popular: !!t.popular,
+      activo: t.activo !== false,
+      checkoutUrl: t.checkoutUrl || ''
+    });
+    setSelectedTicketId(t.id);
+    setTicketModalMode('edit');
+    setShowTicketModal(true);
+  };
+
+  const handleSaveTicket = async (e) => {
+    e.preventDefault();
+    try {
+      if (!ticketForm.name.trim()) throw new Error("El nombre de la boleta es requerido.");
+      if (!ticketForm.checkoutUrl.trim()) throw new Error("El enlace de checkout Wompi es requerido.");
+
+      const featuresArr = ticketForm.featuresInput
+        .split(/[\n,]+/)
+        .map(f => f.trim())
+        .filter(Boolean);
+
+      const payload = {
+        name: ticketForm.name.trim(),
+        subtitle: ticketForm.subtitle.trim(),
+        iconName: ticketForm.iconName || 'Zap',
+        price: ticketForm.price.trim(),
+        rawPrice: Number(ticketForm.rawPrice) || 0,
+        currency: ticketForm.currency || 'COP',
+        period: ticketForm.period || 'por persona',
+        color: ticketForm.color || '#4c29b6',
+        borderColor: ticketForm.borderColor || `${ticketForm.color}aa`,
+        glowColor: ticketForm.glowColor || `${ticketForm.color}33`,
+        features: featuresArr,
+        cta: ticketForm.cta.trim() || `Comprar ${ticketForm.name}`,
+        totalAvailable: Number(ticketForm.totalAvailable) || 0,
+        remainingAvailable: Number(ticketForm.remainingAvailable) || 0,
+        popular: !!ticketForm.popular,
+        activo: ticketForm.activo !== false,
+        checkoutUrl: ticketForm.checkoutUrl.trim()
+      };
+
+      if (ticketModalMode === 'create') {
+        if (!ticketForm.id.trim()) throw new Error("Debes especificar un ID único para la boleta.");
+        const cleanId = ticketForm.id.trim().toLowerCase();
+        addTerminalEvent(`Registrando nueva entrada: ${cleanId}...`);
+        await adminService.createTicket(cleanId, payload);
+        addTerminalEvent(`Entrada creada con éxito en Firestore: ${cleanId}`);
+        toast.success(`Boleta Creada: ${ticketForm.name} agregada.`);
+      } else {
+        addTerminalEvent(`Actualizando datos de la boleta: ${selectedTicketId}...`);
+        await adminService.updateTicket(selectedTicketId, payload);
+        addTerminalEvent(`Boleta actualizada con éxito: ${selectedTicketId}`);
+        toast.success(`Boleta Modificada: Se guardaron los datos de ${ticketForm.name}.`);
+      }
+      setShowTicketModal(false);
+      fetchTickets();
+    } catch (err) {
+      console.error(err);
+      toast.error(`Error al Guardar Boleta: ${err.message || 'Ocurrió un error.'}`);
+    }
+  };
+
+  const handleToggleTicketStatus = async (t) => {
+    const newStatus = t.activo === false ? true : false;
+    try {
+      addTerminalEvent(`Modificando visibilidad de boleta ${t.id} a ${newStatus ? 'ACTIVA' : 'INACTIVA'}...`);
+      await adminService.updateTicket(t.id, { activo: newStatus });
+      addTerminalEvent(`Estado de boleta ${t.id} cambiado a ${newStatus ? 'ACTIVA' : 'INACTIVA'}.`);
+      fetchTickets();
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al cambiar estado de la boleta.');
+    }
+  };
+
+  const handleDeleteTicket = async (t) => {
+    const confirm = await themedSwal.fire({
+      icon: 'warning',
+      title: '¿Eliminar Boleta?',
+      text: `¿Estás seguro de que deseas eliminar permanentemente la entrada "${t.name}"? Esta acción afectará la venta pública.`,
+      showCancelButton: true,
+      confirmButtonText: 'Sí, Eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      addTerminalEvent(`Eliminando boleta ${t.id} de Firestore...`);
+      await adminService.deleteTicket(t.id);
+      addTerminalEvent(`Boleta eliminada: ${t.id}`);
+      toast.success('Boleta Eliminada: La entrada ha sido removida.');
+      fetchTickets();
+    } catch (err) {
+      console.error(err);
+      toast.error(`Error: ${err.message || 'No se pudo eliminar la boleta.'}`);
+    }
+  };
+
+  const handleSeedTickets = async () => {
+    await adminService.seedTicketsIfEmpty();
+    fetchTickets();
+  };
+
   // Panelista Handlers
   const handleOpenCreatePanelista = () => {
     setPanelistaForm({
@@ -977,9 +1172,16 @@ export default function Dashboard() {
 
   // Default path for routing redirect
   const userRole = user?.rol ? String(user.rol).toLowerCase() : '';
-  const defaultPath = userRole === ROLES.COORDINADOR ? '/dashboard/codigos' : '/dashboard/telemetria';
+  const defaultPath = userRole === ROLES.COORDINADOR ? '/dashboard/codigos' : '/dashboard/boletas';
 
   const NAV_GROUPS = [
+    {
+      title: 'Ventas & Boletas',
+      items: [
+        { path: '/dashboard/boletas', label: 'Gestión de Boletas', icon: TicketIcon, roles: [ROLES.ADMIN] },
+        { path: '/dashboard/pagos', label: 'Pagos Wompi', icon: CreditCard, roles: [ROLES.ADMIN] },
+      ]
+    },
     {
       title: 'Usuarios & Accesos',
       items: [
@@ -1003,10 +1205,9 @@ export default function Dashboard() {
       ]
     },
     {
-      title: 'Sistema & Finanzas',
+      title: 'Sistema & Auditoría',
       items: [
         { path: '/dashboard/telemetria', label: 'Telemetría', icon: Cpu, roles: [ROLES.ADMIN] },
-        { path: '/dashboard/pagos', label: 'Pagos Wompi', icon: CreditCard, roles: [ROLES.ADMIN] },
         { path: '/dashboard/historial', label: 'Historial Puntos', icon: Clock, roles: [ROLES.ADMIN] },
       ]
     }
@@ -1326,6 +1527,27 @@ export default function Dashboard() {
                 )
               } 
             />
+
+            <Route 
+              path="boletas" 
+              element={
+                user?.rol === ROLES.ADMIN ? (
+                  <TicketsTab 
+                    tickets={tickets}
+                    loadingTickets={loadingTickets}
+                    telemetryLogs={ticketTelemetryLogs}
+                    payments={payments}
+                    handleOpenCreateTicket={handleOpenCreateTicket}
+                    handleOpenEditTicket={handleOpenEditTicket}
+                    handleToggleTicketStatus={handleToggleTicketStatus}
+                    handleDeleteTicket={handleDeleteTicket}
+                    onSeedTickets={handleSeedTickets}
+                  />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
             
             <Route path="*" element={<Navigate to={defaultPath} replace />} />
           </Routes>
@@ -1387,6 +1609,15 @@ export default function Dashboard() {
         extractTxFields={extractTxFields} 
         formatCentsToCop={formatCentsToCop} 
         onCopyToClipboard={handleCopyToClipboard} 
+      />
+
+      <TicketModal 
+        isOpen={showTicketModal} 
+        onClose={() => setShowTicketModal(false)} 
+        mode={ticketModalMode} 
+        form={ticketForm} 
+        setForm={setTicketForm} 
+        onSave={handleSaveTicket} 
       />
 
       <footer className="py-4 px-6 text-center text-xs text-gray-500 mt-auto border-t border-gray-200 bg-white shadow-inner">
