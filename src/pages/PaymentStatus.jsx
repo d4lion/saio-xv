@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { getTransactionStatus } from '../services/wompiService'
 import logo from '../assets/logo.png'
+import SEO from '../components/SEO/SEO'
 
 export default function PaymentStatus() {
   const [searchParams] = useSearchParams()
@@ -97,6 +98,11 @@ export default function PaymentStatus() {
 
   return (
     <main className="min-h-screen bg-[#161426] text-purple-100 font-sans flex flex-col justify-between items-center px-4 py-6 md:py-10 select-none overflow-x-hidden relative">
+      <SEO 
+        title="Estado de la Transacción | SAIO XV Entropix"
+        description="Consulta la confirmación y el estado de tu pago en la plataforma oficial de SAIO XV Entropix."
+        path="/payment/status"
+      />
       
       {/* Subtle Purple-Slate Ambient Glow */}
       <div

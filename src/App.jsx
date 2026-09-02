@@ -16,6 +16,7 @@ import MiTienda from './pages/MiTienda'
 
 import NotFound from './pages/NotFound'
 import PaymentStatus from './pages/PaymentStatus'
+import Boletas from './pages/Boletas'
 
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
@@ -74,6 +75,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/panelistas" element={<Panelistas />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/boletas" element={<Boletas />} />
+        <Route path="/tickets" element={<Boletas />} />
         <Route path="/payment/status" element={<PaymentStatus />} />
         
         {/* Rutas Protegidas del Asistente */}

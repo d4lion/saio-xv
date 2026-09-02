@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar/Navbar'
 import Footer from '../components/Footer/Footer'
 import logo from '../assets/logo.png'
+import SEO from '../components/SEO/SEO'
 
 /* ─── Data ─────────────────────────────────────────── */
 import { adminService } from '../services/adminService'
@@ -14,7 +15,6 @@ import {stats } from '../constants/panelistas/data'
 
 /* ─── Brand icons (lucide-react no incluye brand icons) ─── */
 import { IconLinkedin, IconTwitterX } from '../components/utils/BrandIcons'
-
 
 /* ─── Helpers ───────────────────────────────────────── */
 const fadeUp = {
@@ -472,6 +472,11 @@ export default function Panelistas() {
 
   return (
     <main className="relative bg-[#040b0f] min-h-screen">
+      <SEO 
+        title="Ponentes & Panelistas Destacados | SAIO XV Entropix"
+        description="Conoce a los líderes e innovadores en Inteligencia Artificial, Ciencia de Datos y Tecnología que estarán compartiendo conferencias y talleres en SAIO XV Entropix."
+        path="/panelistas"
+      />
       <Navbar />
 
       <PageHero />
