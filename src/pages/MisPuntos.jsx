@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { pointsService } from '../services/pointsService';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import { Camera, Keyboard, MapPin, AlertTriangle, CheckCircle, RefreshCw, History, ShieldAlert, QrCode } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
+import { Camera, Keyboard, MapPin, AlertTriangle, CheckCircle, RefreshCw, History, ShieldAlert, QrCode, FlipHorizontal } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
@@ -21,6 +21,20 @@ const themedSwal = Swal.mixin({
   }
 });
 
+/** Extracts the raw code from either a plain code string or a full QR URL */
+function extractCode(raw) {
+  try {
+    const url = new URL(raw);
+    // Accepts both /mis-puntos and /pasaporte/mis-puntos for backward compat
+    if (url.pathname.includes('mis-puntos')) {
+      return url.searchParams.get('code') || raw;
+    }
+  } catch (_) {
+    // Not a URL — raw code
+  }
+  return raw.trim();
+}
+
 export default function MisPuntos() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('manual'); // 'manual' o 'camera'
@@ -37,6 +51,13 @@ export default function MisPuntos() {
   const [success, setSuccess] = useState('');
   const [history, setHistory] = useState([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  // Camera States
+  const [cameras, setCameras] = useState([]); // [{id, label}]
+  const [activeCameraIndex, setActiveCameraIndex] = useState(0);
+  const [scannerReady, setScannerReady] = useState(false);
+  const scannerRef = useRef(null); // Html5Qrcode instance
+  const isScanningRef = useRef(false);
 
   // Solicitar Ubicación
   const requestLocation = () => {
@@ -109,37 +130,92 @@ export default function MisPuntos() {
     }
   }, [user, geoStatus]);
 
-  // Inicializar Escáner QR
-  useEffect(() => {
-    if (activeTab === 'camera') {
-      const scanner = new Html5QrcodeScanner(
-        "qr-reader-container",
-        { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        },
-        /* verbose= */ false
-      );
-
-      const onScanSuccess = async (decodedText) => {
-        // Detener cámara temporalmente para evitar scans repetidos
-        scanner.clear();
-        setActiveTab('manual');
-        await handleClaimCode(decodedText);
-      };
-
-      const onScanFailure = (error) => {
-        // Omitir spam de errores de búsqueda del QR en el stream
-      };
-
-      scanner.render(onScanSuccess, onScanFailure);
-
-      return () => {
-        scanner.clear().catch(err => console.error("Error deteniendo escáner:", err));
-      };
+  // ── QR Scanner (Html5Qrcode low-level API) ──────────────────────────
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current && isScanningRef.current) {
+      try {
+        await scannerRef.current.stop();
+      } catch (_) {}
+      isScanningRef.current = false;
     }
+  }, []);
+
+  const startScanner = useCallback(async (cameraId) => {
+    if (!scannerRef.current) return;
+    await stopScanner();
+    try {
+      await scannerRef.current.start(
+        cameraId,
+        { fps: 12, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 },
+        async (decodedText) => {
+          await stopScanner();
+          setActiveTab('manual');
+          const rawCode = extractCode(decodedText);
+          await handleClaimCode(rawCode);
+        },
+        () => { /* frame scan failure — silence */ }
+      );
+      isScanningRef.current = true;
+      setScannerReady(true);
+    } catch (err) {
+      console.error('Error iniciando cámara:', err);
+      toast.error('No se pudo acceder a la cámara. Verifica los permisos del navegador.');
+    }
+  }, [stopScanner]);
+
+  useEffect(() => {
+    if (activeTab !== 'camera') {
+      stopScanner();
+      setScannerReady(false);
+      return;
+    }
+
+    // Create instance when the container is rendered
+    const el = document.getElementById('qr-reader-container');
+    if (!el) return;
+
+    const html5Qrcode = new Html5Qrcode('qr-reader-container', { verbose: false });
+    scannerRef.current = html5Qrcode;
+
+    // Enumerate cameras — prefer rear
+    Html5Qrcode.getCameras()
+      .then((devices) => {
+        if (!devices || devices.length === 0) {
+          toast.error('No se encontró ninguna cámara en este dispositivo.');
+          return;
+        }
+        setCameras(devices);
+        // Pick rear camera by default (label usually contains 'back' or 'trasera' or 'rear' or 'environment')
+        const rearIdx = devices.findIndex(d =>
+          /back|rear|trasera|environment/i.test(d.label)
+        );
+        const defaultIdx = rearIdx >= 0 ? rearIdx : 0;
+        setActiveCameraIndex(defaultIdx);
+        startScanner(devices[defaultIdx].id);
+      })
+      .catch((err) => {
+        console.error('Error enumerando cámaras:', err);
+        toast.error('No se pudo acceder a las cámaras del dispositivo.');
+      });
+
+    return () => {
+      stopScanner().then(() => {
+        if (scannerRef.current) {
+          scannerRef.current = null;
+        }
+      });
+    };
   }, [activeTab]);
+
+  // Switch camera
+  const handleSwitchCamera = async () => {
+    if (cameras.length < 2) return;
+    const nextIdx = (activeCameraIndex + 1) % cameras.length;
+    setActiveCameraIndex(nextIdx);
+    setScannerReady(false);
+    await startScanner(cameras[nextIdx].id);
+  };
+
 
   // Canjear Código
   const handleClaimCode = async (code) => {
@@ -316,17 +392,61 @@ export default function MisPuntos() {
 
             {/* Vista Cámara QR */}
             {activeTab === 'camera' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <p className="text-sm text-secondary text-center max-w-sm mx-auto leading-relaxed">
-                  Apunta tu cámara hacia el código QR de la actividad o stand del evento.
+                  Apunta la cámara trasera al código QR del stand o actividad.
                 </p>
-                <div 
-                  id="qr-reader-container" 
-                  className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 max-w-sm mx-auto shadow-2xl"
-                  style={{ minHeight: '300px' }}
-                ></div>
+
+                {/* Camera viewport */}
+                <div className="relative max-w-sm mx-auto">
+                  {/* Loading overlay */}
+                  {!scannerReady && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-3xl bg-black/70 border border-white/10">
+                      <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-secondary font-mono uppercase tracking-widest">Iniciando cámara...</span>
+                    </div>
+                  )}
+
+                  {/* Scanner container — html5-qrcode renders video here */}
+                  <div
+                    id="qr-reader-container"
+                    className="overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl"
+                    style={{ minHeight: '280px' }}
+                  />
+                </div>
+
+                {/* Camera controls */}
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  {cameras.length > 0 && (
+                    <span className="text-[11px] text-secondary/70 font-mono truncate max-w-[200px]">
+                      {cameras[activeCameraIndex]?.label || `Cámara ${activeCameraIndex + 1}`}
+                    </span>
+                  )}
+                  {cameras.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={handleSwitchCamera}
+                      disabled={!scannerReady}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold font-heading uppercase tracking-wider transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <FlipHorizontal className="w-3.5 h-3.5" />
+                      Cambiar cámara
+                    </button>
+                  )}
+                </div>
+
+                {/* Suppress html5-qrcode built-in UI elements */}
+                <style>{`
+                  #qr-reader-container img[alt="Info icon"],
+                  #qr-reader-container select,
+                  #qr-reader-container button:not(.qr-custom-btn),
+                  #qr-reader-container #qr-reader__dashboard_section_csr,
+                  #qr-reader-container #qr-reader__status_span { display: none !important; }
+                  #qr-reader-container video { width: 100% !important; border-radius: 1.5rem; }
+                `}</style>
               </div>
             )}
+
           </div>
         </div>
 
