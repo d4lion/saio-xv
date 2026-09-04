@@ -40,11 +40,16 @@ function AvailabilityBar({ total, remaining, color }) {
 
 export default function Boletas() {
   const { user } = useAuth()
-  const [tickets, setTickets] = useState(TICKETS_DATA)
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     ticketService.getActiveTickets().then((data) => {
-      if (data && data.length > 0) setTickets(data)
+      if (data) setTickets(data)
+      setLoading(false)
+    }).catch(() => {
+      // En caso de error de conexión, se queda cargando
+      setLoading(true)
     })
   }, [])
 
@@ -131,10 +136,17 @@ export default function Boletas() {
 
 
 
-          {/* 2-Ticket Grid */}
+          {/* Tickets Loading or Grid */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-12 h-12 border-4 border-[#9c3aed] border-t-transparent rounded-full animate-spin" style={{ boxShadow: '0 0 15px rgba(156,58,237,0.5)' }}></div>
+              <span className="text-gray-400 text-sm animate-pulse">Cargando boletas...</span>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto text-left">
             {tickets.map((ticket, idx) => {
               const Icon = typeof ticket.icon === 'function' || typeof ticket.icon === 'object' 
+
                 ? ticket.icon 
                 : getIcon(ticket.iconName)
               return (
@@ -292,6 +304,7 @@ export default function Boletas() {
               )
             })}
           </div>
+          )}
 
           {/* Bottom Trust Details */}
           <motion.div

@@ -50,11 +50,16 @@ export default function Tickets() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const { user } = useAuth()
-  const [tickets, setTickets] = useState(TICKETS_DATA)
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     ticketService.getActiveTickets().then((data) => {
-      if (data && data.length > 0) setTickets(data)
+      if (data) setTickets(data)
+      setLoading(false)
+    }).catch(() => {
+      // En caso de error de conexión, se queda cargando
+      setLoading(true)
     })
   }, [])
 
@@ -150,7 +155,13 @@ export default function Tickets() {
 
 
 
-        {/* 2-Ticket Grid */}
+        {/* Tickets Loading or Grid */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-12 h-12 border-4 border-[#9c3aed] border-t-transparent rounded-full animate-spin" style={{ boxShadow: '0 0 15px rgba(156,58,237,0.5)' }}></div>
+            <span className="text-gray-400 text-sm animate-pulse">Cargando boletas...</span>
+          </div>
+        ) : (
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -314,6 +325,7 @@ export default function Tickets() {
             )
           })}
         </motion.div>
+        )}
 
         {/* Bottom trust line */}
         <motion.div
