@@ -799,7 +799,8 @@ export default function Dashboard() {
       cost: 1000,
       desc: '',
       stock: 10,
-      activo: true
+      activo: true,
+      imageUrl: ''
     });
     setRewardModalMode('create');
     setShowRewardModal(true);
@@ -812,7 +813,8 @@ export default function Dashboard() {
       cost: r.cost || 0,
       desc: r.desc || '',
       stock: r.stock || 0,
-      activo: r.activo !== undefined ? r.activo : true
+      activo: r.activo !== undefined ? r.activo : true,
+      imageUrl: r.imageUrl || r.imagen || ''
     });
     setSelectedRewardId(r.id);
     setRewardModalMode('edit');
@@ -837,7 +839,8 @@ export default function Dashboard() {
         cost: Number(rewardForm.cost),
         desc: rewardForm.desc.trim(),
         stock: Number(rewardForm.stock),
-        activo: rewardForm.activo
+        activo: rewardForm.activo,
+        imageUrl: rewardForm.imageUrl || ''
       };
 
       if (rewardModalMode === 'create') {

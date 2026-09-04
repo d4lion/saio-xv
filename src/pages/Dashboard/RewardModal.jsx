@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gift, X } from 'lucide-react';
+import { Gift, X, Image as ImageIcon } from 'lucide-react';
 
 export default function RewardModal({
   isOpen,
@@ -10,6 +10,21 @@ export default function RewardModal({
   onSave
 }) {
   if (!isOpen) return null;
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+         alert('La imagen es demasiado grande. Máximo 2MB.');
+         return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm(prev => ({ ...prev, imageUrl: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
@@ -90,6 +105,37 @@ export default function RewardModal({
               rows="3"
               className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300 resize-none font-sans"
             />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Imagen del Premio</label>
+            <div className="flex items-center gap-4">
+              {form.imageUrl ? (
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 shrink-0">
+                  <img src={form.imageUrl} alt="Vista previa" className="w-full h-full object-contain p-1" />
+                  <button 
+                    type="button" 
+                    onClick={() => setForm(prev => ({...prev, imageUrl: ''}))} 
+                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-red-50 text-red-500 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-xl border border-dashed border-gray-300 flex items-center justify-center bg-gray-50 text-gray-400 shrink-0">
+                  <ImageIcon className="w-8 h-8 opacity-50" />
+                </div>
+              )}
+              <div className="flex-1">
+                <input 
+                  type="file" 
+                  accept="image/png, image/jpeg, image/webp" 
+                  onChange={handleImageUpload} 
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Recomendado: Formato horizontal, máx 2MB. Se guardará en Base64.</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl">

@@ -514,7 +514,8 @@ export const adminService = {
         cost: Number(data.cost) || 0,
         desc: data.desc || '',
         stock: Number(data.stock) || 0,
-        activo: data.activo !== undefined ? data.activo : true
+        activo: data.activo !== undefined ? data.activo : true,
+        imageUrl: data.imageUrl || ''
       };
       rewards.push(newReward);
       setLocalStorage('mock_rewards', rewards);
@@ -531,7 +532,8 @@ export const adminService = {
       cost: Number(data.cost) || 0,
       desc: data.desc || '',
       stock: Number(data.stock) || 0,
-      activo: data.activo !== undefined ? data.activo : true
+      activo: data.activo !== undefined ? data.activo : true,
+      imageUrl: data.imageUrl || ''
     });
   },
 
@@ -546,7 +548,8 @@ export const adminService = {
         cost: Number(data.cost) || 0,
         desc: data.desc || '',
         stock: Number(data.stock) || 0,
-        activo: data.activo !== undefined ? data.activo : true
+        activo: data.activo !== undefined ? data.activo : true,
+        imageUrl: data.imageUrl || ''
       };
       setLocalStorage('mock_rewards', rewards);
       return;
@@ -557,7 +560,8 @@ export const adminService = {
       cost: Number(data.cost) || 0,
       desc: data.desc || '',
       stock: Number(data.stock) || 0,
-      activo: data.activo !== undefined ? data.activo : true
+      activo: data.activo !== undefined ? data.activo : true,
+      imageUrl: data.imageUrl || ''
     });
   },
 
