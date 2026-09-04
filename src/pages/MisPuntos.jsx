@@ -90,6 +90,36 @@ export default function MisPuntos() {
     );
   };
 
+  /**
+   * Returns coords from state if already available,
+   * otherwise fires a fresh getCurrentPosition and awaits it.
+   * This avoids the race where the user claims a code before
+   * the initial geolocation request has resolved.
+   */
+  const getCoords = () => {
+    if (coords) return Promise.resolve(coords);
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocalización no disponible en este navegador.'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const c = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+          setCoords(c);
+          setGeoStatus('SUCCESS');
+          resolve(c);
+        },
+        (err) => {
+          setGeoStatus('ERROR');
+          reject(new Error('No se pudo obtener la ubicación. Verifica que el GPS esté habilitado.'));
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+      );
+    });
+  };
+
+
   // Cargar Historial
   const loadHistory = async () => {
     if (!user?.uid) return;
@@ -243,7 +273,8 @@ export default function MisPuntos() {
     setSuccess('');
 
     try {
-      const res = await pointsService.claimCode(user.uid, targetCode, coords);
+      const currentCoords = await getCoords();
+      const res = await pointsService.claimCode(user.uid, targetCode, currentCoords);
       
       const successText = !(res.distancia !== undefined && import.meta.env.VITE_PRODUCTION_MODE === 'true')
         ? `Se cargaron ${res.puntosReclamados} puntos estelares a tu cuenta.`
@@ -338,8 +369,6 @@ export default function MisPuntos() {
             <button
               onClick={() => { setActiveTab('camera'); setError(''); setSuccess(''); }}
               className={`flex-1 pb-4 text-center font-heading text-sm font-bold uppercase tracking-widest relative cursor-pointer transition-colors ${activeTab === 'camera' ? 'text-white' : 'text-secondary hover:text-white'}`}
-              disabled={geoStatus !== 'SUCCESS'}
-              title={geoStatus !== 'SUCCESS' ? 'Fija tu ubicación antes de abrir la cámara' : ''}
             >
               <Camera className="w-4 h-4 inline-block mr-2 -mt-1" />
               Cámara QR
@@ -375,14 +404,14 @@ export default function MisPuntos() {
                     onChange={(e) => setManualCode(e.target.value)}
                     placeholder="Ej: SAIO100"
                     className="w-full px-5 py-4 bg-white/5 border border-white/10 hover:border-purple-500/50 focus:border-purple-500 rounded-xl text-lg text-white placeholder-secondary/40 outline-none transition-all duration-300 font-mono tracking-widest uppercase focus:ring-1 focus:ring-purple-500/30"
-                    disabled={isSubmitting || geoStatus !== 'SUCCESS'}
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="pt-2">
                   <button
                     onClick={() => handleClaimCode()}
                     className="w-full sm:w-auto py-4 px-8 rounded-full bg-white text-black hover:scale-[1.02] active:scale-[0.98] text-xs font-bold font-heading uppercase tracking-[0.2em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
-                    disabled={isSubmitting || geoStatus !== 'SUCCESS'}
+                    disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Registrando...' : 'Reclamar Puntos'}
                   </button>
