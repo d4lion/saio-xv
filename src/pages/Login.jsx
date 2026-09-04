@@ -65,7 +65,7 @@ export default function Login() {
         } else if (userRole === ROLES.ADMIN || userRole === ROLES.COORDINADOR) {
           targetPath = '/dashboard';
         } else {
-          targetPath = '/perfil';
+          targetPath = '/pasaporte/perfil';
         }
       }
 

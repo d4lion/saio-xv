@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
-import { User, Shield, Mail, Calendar, Award, LogOut, CheckCircle, AlertCircle, Phone, LayoutDashboard } from 'lucide-react';
-import UserNav from '../components/UserNav/UserNav';
-import { ROLES } from '../constants/roles';
-import Swal from 'sweetalert2';
+import { User, Shield, Mail, Calendar, Award, CheckCircle, AlertCircle, Phone } from 'lucide-react';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
 // Configuración de SweetAlert2 con temática espacial
 const themedSwal = Swal.mixin({
@@ -25,8 +22,7 @@ const themedSwal = Swal.mixin({
 });
 
 export default function Perfil() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Local form states
   const [nombre, setNombre] = useState('');
@@ -35,7 +31,6 @@ export default function Perfil() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Sync state when user context changes
   useEffect(() => {
@@ -45,28 +40,6 @@ export default function Perfil() {
       setTelefono(user.telefono || '');
     }
   }, [user]);
-
-  async function handleLogout() {
-    const confirmResult = await themedSwal.fire({
-      title: '¿Cerrar Sesión?',
-      text: 'Saldrás del portal seguro del asistente.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, Salir',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (!confirmResult.isConfirmed) return;
-
-    try {
-      setIsLoggingOut(true);
-      await logout();
-      navigate('/login');
-    } catch (err) {
-      console.error(err);
-      setIsLoggingOut(false);
-    }
-  }
 
   async function handleUpdateProfile(e) {
     e.preventDefault();
@@ -116,13 +89,13 @@ export default function Perfil() {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, updates);
         
-        toast.success('¡Perfil Actualizado! Tus datos se guardaron con éxito en Firestore.');
+        toast.success('¡Perfil Actualizado! Tus datos se guardaron con éxito.');
       } else {
         throw new Error("Base de datos no disponible.");
       }
     } catch (err) {
       console.error(err);
-      toast.error('Error: Ocurrió un error al intentar guardar los datos en Firestore.');
+      toast.error('Error: Ocurrió un error al intentar guardar los datos.');
     } finally {
       setIsUpdating(false);
     }
@@ -144,217 +117,183 @@ export default function Perfil() {
   const bothFieldsUpdated = user?.nombreActualizado && user?.telefonoActualizado;
 
   return (
-    <div className="min-h-screen bg-[#040b0f] text-white flex flex-col font-sans relative overflow-hidden select-none">
-      {/* Nebulosas y efectos */}
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[140px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-accent/5 rounded-full blur-[160px] pointer-events-none"></div>
+    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+      
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+          <User className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-heading font-black text-white">Tu Perfil</h1>
+          <p className="text-secondary text-sm">Gestiona tu información personal y credencial.</p>
+        </div>
+      </div>
 
-      {/* Header */}
-      <header className="glass-light border-b border-muted/20 px-6 py-4 sticky top-0 backdrop-blur-md z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-accent flex items-center justify-center glow-purple">
-              <span className="text-white font-heading font-extrabold text-sm">S</span>
-            </div>
-            <div>
-              <span className="font-heading font-bold text-white text-md tracking-tight block">Tu Perfil</span>
-              <span className="text-[10px] text-accent tracking-widest uppercase">SAIO-XV Asistente</span>
-            </div>
+      {/* Banner con Puntos */}
+      <section className="glass rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row justify-between items-center gap-6 border border-white/10 shadow-[0_0_30px_rgba(156,58,237,0.1)] relative overflow-hidden bg-gradient-to-br from-purple-900/10 to-transparent">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none" />
+        <div className="space-y-1 text-center md:text-left relative z-10">
+          <h2 className="text-3xl md:text-4xl font-heading font-black text-white tracking-tight">
+            {user?.nombre || 'Explorador Espacial'}
+          </h2>
+          <p className="text-secondary text-sm tracking-wide">
+            Rol del Evento: <span className="text-accent font-bold uppercase tracking-widest bg-accent/10 px-3 py-1 rounded-full border border-accent/20 ml-2 inline-block mt-2 md:mt-0">{user?.rol || 'Asistente'}</span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-4 bg-black/40 border border-white/10 py-4 px-6 rounded-2xl glow-purple relative z-10 backdrop-blur-md">
+          <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+            <Award className="w-6 h-6 text-accent" />
           </div>
-
-          <div className="flex items-center gap-3">
-            {(user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR) && (
-              <Link
-                to="/dashboard"
-                className="px-3.5 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 border border-purple-400/30 text-purple-200 hover:text-white font-heading text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all duration-300 shadow-sm"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-purple-400" />
-                <span>Ir al Dashboard</span>
-              </Link>
-            )}
-
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 text-red-200 hover:text-white font-heading text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 disabled:opacity-50"
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? (
-                <div className="w-3.5 h-3.5 border-2 border-red-200 border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Salir</span>
-                </>
-              )}
-            </button>
+          <div>
+            <p className="text-[10px] text-secondary tracking-[0.2em] uppercase font-bold mb-1">Puntos Acumulados</p>
+            <p className="text-3xl font-heading font-black text-white leading-none">{(user?.puntos || 0).toLocaleString()} <span className="text-base text-accent">PTS</span></p>
           </div>
         </div>
-      </header>
+      </section>
 
-      <UserNav />
-
-      {/* Contenido Principal */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 space-y-6 z-20">
-        {/* Banner con Puntos */}
-        <section className="glass rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-center gap-6" style={{ boxShadow: '0 0 30px rgba(156,58,237,0.1)' }}>
-          <div className="space-y-1 text-center sm:text-left">
-            <h2 className="text-2xl font-heading font-extrabold text-white">
-              {user?.nombre || 'Explorador Espacial'}
-            </h2>
-            <p className="text-secondary text-sm">
-              Rol del Evento: <span className="text-accent font-semibold uppercase">{user?.rol || 'Asistente'}</span>
-            </p>
+      {/* Panel de Datos y Formulario */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Ficha Informativa (Col 1) */}
+        <div className="glass rounded-3xl p-6 md:p-8 border border-white/10 space-y-8 bg-black/20">
+          <div className="border-b border-white/5 pb-4">
+            <h3 className="font-heading font-black text-sm uppercase text-secondary tracking-widest flex items-center gap-2">
+              <Shield className="w-4 h-4 text-purple-400" />
+              Credencial Estelar
+            </h3>
           </div>
-
-          <div className="flex items-center gap-3 bg-primary/20 border border-muted/10 py-3 px-5 rounded-2xl glow-purple">
-            <Award className="w-6 h-6 text-accent" />
-            <div>
-              <p className="text-[10px] text-secondary tracking-wider uppercase font-semibold">Puntos Acumulados</p>
-              <p className="text-2xl font-heading font-extrabold text-white">{(user?.puntos || 0).toLocaleString()} PTS</p>
+          
+          <div className="space-y-6">
+            <div className="group">
+              <p className="text-[10px] text-secondary uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-accent" /> Correo de Registro
+              </p>
+              <p className="text-white font-mono break-all bg-white/5 px-4 py-3 rounded-xl border border-white/5 group-hover:border-accent/30 transition-colors">
+                {user?.correo || user?.email}
+              </p>
             </div>
-          </div>
-        </section>
 
-        {/* Panel de Datos y Formulario */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Ficha Informativa (Col 1) */}
-          <div className="glass rounded-2xl p-6 border border-muted/15 space-y-6">
-            <div className="border-b border-muted/10 pb-3">
-              <h3 className="font-heading font-bold text-sm uppercase text-secondary tracking-wider">Credencial Estelar</h3>
+            <div className="group">
+              <p className="text-[10px] text-secondary uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-accent" /> Miembro Desde
+              </p>
+              <p className="text-white font-sans bg-white/5 px-4 py-3 rounded-xl border border-white/5 group-hover:border-accent/30 transition-colors">
+                {formattedDate}
+              </p>
             </div>
-            
-            <div className="space-y-4 text-xs">
-              <div className="flex items-center gap-3 text-secondary-light">
-                <Mail className="w-4 h-4 text-accent shrink-0" />
-                <div>
-                  <p className="text-[10px] text-secondary uppercase font-semibold">Correo de Registro</p>
-                  <p className="text-white font-mono break-all">{user?.correo || user?.email}</p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-3 text-secondary-light">
-                <Calendar className="w-4 h-4 text-accent shrink-0" />
-                <div>
-                  <p className="text-[10px] text-secondary uppercase font-semibold">Miembro Desde</p>
-                  <p className="text-white">{formattedDate}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 text-secondary-light">
-                <Shield className="w-4 h-4 text-accent shrink-0" />
-                <div>
-                  <p className="text-[10px] text-secondary uppercase font-semibold">UID de Identidad</p>
-                  <p className="text-white font-mono">{user?.uid}</p>
-                </div>
-              </div>
+            <div className="group">
+              <p className="text-[10px] text-secondary uppercase font-bold tracking-widest mb-2 flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-accent" /> UID de Identidad
+              </p>
+              <p className="text-white font-mono text-xs break-all bg-white/5 px-4 py-3 rounded-xl border border-white/5 group-hover:border-accent/30 transition-colors opacity-70">
+                {user?.uid}
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* Formulario de Edición (Col 2 y 3) */}
-          <div className="glass rounded-2xl p-6 border border-muted/15 md:col-span-2 space-y-4">
-            <div className="border-b border-muted/10 pb-3">
-              <h3 className="font-heading font-bold text-sm uppercase text-secondary tracking-wider">Actualizar Datos</h3>
-            </div>
+        {/* Formulario de Edición (Col 2 y 3) */}
+        <div className="glass rounded-3xl p-6 md:p-8 border border-white/10 lg:col-span-2 bg-black/20 flex flex-col">
+          <div className="border-b border-white/5 pb-4 mb-8">
+            <h3 className="font-heading font-black text-sm uppercase text-secondary tracking-widest flex items-center gap-2">
+              <User className="w-4 h-4 text-purple-400" />
+              Actualizar Datos
+            </h3>
+            <p className="text-xs text-secondary mt-2">Puedes actualizar tu nombre y teléfono una única vez para el evento.</p>
+          </div>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-5">
-              {error && (
-                <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
+          <form onSubmit={handleUpdateProfile} className="space-y-6 flex-1 flex flex-col">
+            {error && (
+              <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-200 text-sm flex items-center gap-3 backdrop-blur-md">
+                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-              {success && (
-                <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-200 text-xs flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{success}</span>
-                </div>
-              )}
+            {success && (
+              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 text-sm flex items-center gap-3 backdrop-blur-md">
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>{success}</span>
+              </div>
+            )}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Nombre Completo */}
               <div className="space-y-2">
-                <label className="text-xs font-heading font-semibold text-secondary uppercase tracking-wider block">
+                <label className="text-xs font-heading font-bold text-secondary uppercase tracking-widest block">
                   Nombre Completo
                 </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/60" />
+                <div className="relative group/input">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/60 group-focus-within/input:text-purple-400 transition-colors" />
                   <input
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 bg-primary-light/5 border border-muted/20 hover:border-primary-light/50 focus:border-accent rounded-xl text-sm text-white placeholder-secondary/40 outline-none transition-all duration-300 focus:ring-1 focus:ring-accent/30 font-sans ${user?.nombreActualizado ? 'cursor-not-allowed text-secondary/50 bg-black/20' : ''}`}
+                    className={`w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 hover:border-purple-500/50 focus:border-purple-500 rounded-xl text-sm text-white placeholder-secondary/40 outline-none transition-all duration-300 focus:ring-1 focus:ring-purple-500/30 font-sans ${user?.nombreActualizado ? 'cursor-not-allowed text-secondary/50 bg-black/40' : ''}`}
                     disabled={isUpdating || user?.nombreActualizado}
                   />
                 </div>
                 {user?.nombreActualizado && (
-                  <p className="text-[10px] text-amber-400/80 mt-1">
-                    * El nombre ya ha sido actualizado anteriormente y no puede modificarse de nuevo.
+                  <p className="text-[10px] text-amber-500/90 mt-2 font-medium">
+                    * El nombre ya ha sido actualizado.
                   </p>
                 )}
               </div>
 
               {/* Teléfono */}
               <div className="space-y-2">
-                <label className="text-xs font-heading font-semibold text-secondary uppercase tracking-wider block">
+                <label className="text-xs font-heading font-bold text-secondary uppercase tracking-widest block">
                   Teléfono / Móvil
                 </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/60" />
+                <div className="relative group/input">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/60 group-focus-within/input:text-purple-400 transition-colors" />
                   <input
                     type="tel"
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
                     placeholder="Ej: +57 300 123 4567"
-                    className={`w-full pl-10 pr-4 py-2.5 bg-primary-light/5 border border-muted/20 hover:border-primary-light/50 focus:border-accent rounded-xl text-sm text-white placeholder-secondary/40 outline-none transition-all duration-300 focus:ring-1 focus:ring-accent/30 font-sans ${user?.telefonoActualizado ? 'cursor-not-allowed text-secondary/50 bg-black/20' : ''}`}
+                    className={`w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 hover:border-purple-500/50 focus:border-purple-500 rounded-xl text-sm text-white placeholder-secondary/40 outline-none transition-all duration-300 focus:ring-1 focus:ring-purple-500/30 font-sans ${user?.telefonoActualizado ? 'cursor-not-allowed text-secondary/50 bg-black/40' : ''}`}
                     disabled={isUpdating || user?.telefonoActualizado}
                   />
                 </div>
                 {user?.telefonoActualizado && (
-                  <p className="text-[10px] text-amber-400/80 mt-1">
-                    * El teléfono ya ha sido actualizado anteriormente y no puede modificarse de nuevo.
+                  <p className="text-[10px] text-amber-500/90 mt-2 font-medium">
+                    * El teléfono ya ha sido actualizado.
                   </p>
                 )}
               </div>
+            </div>
 
-              {/* Cédula */}
-              <div className="space-y-2">
-                <label className="text-xs font-heading font-semibold text-secondary uppercase tracking-wider block">
-                  Cédula / Identificación (No Modificable)
-                </label>
-                <div className="relative">
-                  <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/60" />
-                  <input
-                    type="text"
-                    value={cedula}
-                    disabled={true}
-                    className="w-full pl-10 pr-4 py-2.5 bg-black/35 border border-muted/15 rounded-xl text-sm text-secondary/50 font-sans outline-none cursor-not-allowed"
-                  />
-                </div>
+            {/* Cédula */}
+            <div className="space-y-2 max-w-md">
+              <label className="text-xs font-heading font-bold text-secondary uppercase tracking-widest block">
+                Identificación (Cédula)
+              </label>
+              <div className="relative">
+                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/40" />
+                <input
+                  type="text"
+                  value={cedula}
+                  disabled={true}
+                  className="w-full pl-12 pr-4 py-3.5 bg-black/40 border border-white/5 rounded-xl text-sm text-secondary/40 font-sans outline-none cursor-not-allowed"
+                />
               </div>
+            </div>
 
+            <div className="pt-6 mt-auto">
               <button
                 type="submit"
-                className="py-2.5 px-6 rounded-xl bg-gradient-to-r from-primary-light to-accent hover:opacity-95 text-white text-xs font-semibold font-heading tracking-wider uppercase cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
+                className="w-full md:w-auto py-3.5 px-8 rounded-full bg-white text-black hover:scale-[1.02] active:scale-[0.98] text-xs font-bold font-heading tracking-[0.2em] uppercase cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
                 disabled={isUpdating || bothFieldsUpdated}
               >
-                {isUpdating ? 'Actualizando...' : 'Guardar Cambios'}
+                {isUpdating ? 'Guardando...' : 'Guardar Cambios'}
               </button>
-            </form>
-          </div>
-        </section>
-      </main>
-
-      <footer className="py-4 px-6 text-center text-xs text-secondary mt-auto border-t border-muted/10 bg-black/20">
-        © 2026 SAIO-XV. Creado por{' '}
-        <a 
-          href="https://www.adamind.cloud" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="text-secondary hover:text-white underline transition-colors duration-200"
-        >
-          Adamind Technologies
-        </a>
-      </footer>
+            </div>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }

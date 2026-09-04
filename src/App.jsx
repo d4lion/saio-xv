@@ -10,6 +10,7 @@ import MiEntrada from './pages/MiEntrada'
 import Premios from './pages/Premios'
 import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
+import PasaporteLayout from './layouts/PasaporteLayout/PasaporteLayout'
 import Dashboard from './pages/Dashboard/Dashboard'
 
 import MiTienda from './pages/MiTienda'
@@ -56,8 +57,8 @@ function PendingClaimHandler() {
     // 2. Si el usuario inicia sesión y tenemos un código pendiente,
     // y no estamos en la página de reclamar puntos, redirigimos allí.
     if (user && sessionStorage.getItem('pendingClaimCode')) {
-      if (location.pathname !== '/mis-puntos') {
-        navigate('/mis-puntos');
+      if (location.pathname !== '/pasaporte/puntos') {
+        navigate('/pasaporte/puntos');
       }
     }
   }, [user, location.pathname, navigate]);
@@ -79,47 +80,22 @@ export default function App() {
         <Route path="/tickets" element={<Boletas />} />
         <Route path="/payment/status" element={<PaymentStatus />} />
         
-        {/* Rutas Protegidas del Asistente */}
+        {/* Rutas Protegidas del Asistente (Experiencia Pasaporte) */}
         <Route 
-          path="/perfil" 
+          path="/pasaporte" 
           element={
             <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <Perfil />
+              <PasaporteLayout />
             </ProtectedRoute>
           } 
-        />
-        <Route 
-          path="/mis-puntos" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <MisPuntos />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/mi-entrada" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <MiEntrada />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/premios" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <Premios />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/ranking" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <Ranking />
-            </ProtectedRoute>
-          } 
-        />
+        >
+          <Route index element={<MiEntrada />} />
+          <Route path="entrada" element={<MiEntrada />} />
+          <Route path="puntos" element={<MisPuntos />} />
+          <Route path="premios" element={<Premios />} />
+          <Route path="ranking" element={<Ranking />} />
+          <Route path="perfil" element={<Perfil />} />
+        </Route>
 
         {/* Ruta Protegida de Tiendas/Vendedores */}
         <Route 

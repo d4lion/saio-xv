@@ -91,7 +91,7 @@ export default function Navbar() {
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-6">
               <Link
-                to={user ? "/perfil" : "/login"}
+                to={user ? "/pasaporte/perfil" : "/login"}
                 className={`text-sm font-semibold tracking-wide transition-colors duration-300 relative group outline-none ${menuOpen ? 'text-white' : 'text-secondary hover:text-white'}`}
               >
                 {user ? "MI PERFIL" : "ACCESO PORTAL"}
@@ -190,7 +190,7 @@ export default function Navbar() {
                 >
                   <div className="md:hidden flex flex-col gap-4 mb-4">
                      <Link
-                        to={user ? "/perfil" : "/login"}
+                        to={user ? "/pasaporte/perfil" : "/login"}
                         onClick={() => setMenuOpen(false)}
                         className="text-white text-sm tracking-[0.2em] uppercase border border-white/20 px-6 py-3 rounded-full text-center hover:bg-white hover:text-black transition-colors"
                       >

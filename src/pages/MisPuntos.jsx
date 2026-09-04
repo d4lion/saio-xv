@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { pointsService } from '../services/pointsService';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { Camera, Keyboard, MapPin, AlertTriangle, CheckCircle, RefreshCw, History, ShieldAlert } from 'lucide-react';
-import UserNav from '../components/UserNav/UserNav';
+import { Camera, Keyboard, MapPin, AlertTriangle, CheckCircle, RefreshCw, History, ShieldAlert, QrCode } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
@@ -187,113 +186,111 @@ export default function MisPuntos() {
   };
 
   return (
-    <div className="min-h-screen bg-[#040b0f] text-white flex flex-col font-sans relative overflow-hidden select-none">
-      {/* Nebulosas */}
-      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[140px] pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-[450px] h-[450px] bg-primary/10 rounded-full blur-[140px] pointer-events-none"></div>
-
-      {/* Header */}
-      <header className="glass-light border-b border-muted/20 px-6 py-4 sticky top-0 backdrop-blur-md z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-accent flex items-center justify-center glow-purple">
-              <span className="text-white font-heading font-extrabold text-sm">S</span>
-            </div>
-            <div>
-              <span className="font-heading font-bold text-white text-md tracking-tight block">Recolección de Puntos</span>
-              <span className="text-[10px] text-accent tracking-widest uppercase">Canjear Códigos</span>
-            </div>
+    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+      
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <QrCode className="w-5 h-5 text-white" />
           </div>
-          <div className="px-3 py-1.5 rounded-xl bg-primary/20 border border-muted/10 text-xs font-semibold">
-            Saldo: <span className="text-accent">{(user?.puntos || 0).toLocaleString()} PTS</span>
+          <div>
+            <h1 className="text-2xl font-heading font-black text-white">Mis Puntos</h1>
+            <p className="text-secondary text-sm">Escanea códigos QR de stands y conferencias para acumular.</p>
           </div>
         </div>
-      </header>
+        <div className="px-4 py-2 rounded-xl bg-purple-900/20 border border-purple-500/20 text-sm font-bold text-white shadow-lg shadow-purple-900/20">
+          Saldo: <span className="text-accent font-black">{(user?.puntos || 0).toLocaleString()} PTS</span>
+        </div>
+      </div>
 
-      <UserNav />
-
-      {/* Contenido */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 space-y-6 z-20">
-        {/* Geolocalización Status Card */}
-        <section className="glass rounded-2xl p-5 border border-muted/15">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${geoStatus === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-400' : geoStatus === 'PENDING' ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'}`}>
-                <MapPin className="w-5 h-5 shrink-0" />
-              </div>
-              <div>
-                <h3 className="font-heading font-bold text-xs uppercase text-secondary tracking-wider">Estado de Localización</h3>
-                <p className="text-sm font-medium mt-0.5">
-                  {geoStatus === 'SUCCESS' && 'Ubicación Establecida Satisfactoriamente'}
-                  {geoStatus === 'PENDING' && 'Localizando dispositivo...'}
-                  {geoStatus === 'ERROR' && 'Acceso a ubicación bloqueado'}
-                </p>
-              </div>
+      {/* Geolocalización Status Card */}
+      <section className="glass rounded-[1.5rem] p-6 border border-white/10 bg-black/20 shadow-lg relative overflow-hidden">
+        {/* Glow effect */}
+        {geoStatus === 'SUCCESS' && <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />}
+        {geoStatus === 'ERROR' && <div className="absolute inset-0 bg-red-500/5 pointer-events-none" />}
+        {geoStatus === 'PENDING' && <div className="absolute inset-0 bg-amber-500/5 pointer-events-none" />}
+        
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-xl border ${geoStatus === 'SUCCESS' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : geoStatus === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+              <MapPin className="w-5 h-5 shrink-0" />
             </div>
-            {geoStatus === 'ERROR' && (
-              <button 
-                onClick={requestLocation}
-                className="py-1.5 px-3 rounded-lg bg-red-500/20 hover:bg-red-500/40 text-red-200 border border-red-500/30 text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-1.5"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Reintentar Permisos</span>
-              </button>
-            )}
+            <div>
+              <h3 className="font-heading font-bold text-xs uppercase text-secondary tracking-widest">Estado de Localización</h3>
+              <p className="text-sm font-bold mt-1 text-white">
+                {geoStatus === 'SUCCESS' && 'Ubicación Establecida Satisfactoriamente'}
+                {geoStatus === 'PENDING' && 'Localizando dispositivo...'}
+                {geoStatus === 'ERROR' && 'Acceso a ubicación bloqueado'}
+              </p>
+            </div>
+          </div>
+          {geoStatus === 'ERROR' && (
+            <button 
+              onClick={requestLocation}
+              className="py-2 px-4 rounded-xl bg-red-500/20 hover:bg-red-500/40 text-red-200 border border-red-500/30 text-xs font-bold font-heading uppercase tracking-widest transition-all duration-200 cursor-pointer flex items-center gap-2"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Reintentar Permisos</span>
+            </button>
+          )}
+        </div>
+
+        {geoStatus === 'ERROR' && (
+          <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm leading-relaxed flex items-start gap-3 backdrop-blur-md relative z-10">
+            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <span>{geoError} La ubicación es mandatoria para mitigar fraudes por distancia en el registro de puntos.</span>
+          </div>
+        )}
+      </section>
+
+      {/* Sección de Canjeo */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Lector/Formulario (Col 1 y 2) */}
+        <div className="glass rounded-[1.5rem] p-6 sm:p-8 border border-white/10 lg:col-span-2 bg-black/20 space-y-8 relative overflow-hidden">
+          
+          {/* Tabs */}
+          <div className="flex border-b border-white/10 relative z-10">
+            <button
+              onClick={() => { setActiveTab('manual'); setError(''); setSuccess(''); }}
+              className={`flex-1 pb-4 text-center font-heading text-sm font-bold uppercase tracking-widest relative cursor-pointer transition-colors ${activeTab === 'manual' ? 'text-white' : 'text-secondary hover:text-white'}`}
+            >
+              <Keyboard className="w-4 h-4 inline-block mr-2 -mt-1" />
+              Ingreso Manual
+              {activeTab === 'manual' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent glow-purple"></div>}
+            </button>
+            <button
+              onClick={() => { setActiveTab('camera'); setError(''); setSuccess(''); }}
+              className={`flex-1 pb-4 text-center font-heading text-sm font-bold uppercase tracking-widest relative cursor-pointer transition-colors ${activeTab === 'camera' ? 'text-white' : 'text-secondary hover:text-white'}`}
+              disabled={geoStatus !== 'SUCCESS'}
+              title={geoStatus !== 'SUCCESS' ? 'Fija tu ubicación antes de abrir la cámara' : ''}
+            >
+              <Camera className="w-4 h-4 inline-block mr-2 -mt-1" />
+              Cámara QR
+              {activeTab === 'camera' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent glow-purple"></div>}
+            </button>
           </div>
 
-          {geoStatus === 'ERROR' && (
-            <div className="mt-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-300 text-xs leading-relaxed flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-              <span>{geoError} La ubicación es mandatoria para mitigar fraudes por distancia en el registro de puntos.</span>
-            </div>
-          )}
-        </section>
-
-        {/* Sección de Canjeo */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Lector/Formulario (Col 1 y 2) */}
-          <div className="glass rounded-2xl p-6 border border-muted/15 md:col-span-2 space-y-6">
-            {/* Tabs */}
-            <div className="flex border-b border-muted/10">
-              <button
-                onClick={() => { setActiveTab('manual'); setError(''); setSuccess(''); }}
-                className={`flex-1 pb-3 text-center font-heading text-sm font-semibold relative cursor-pointer ${activeTab === 'manual' ? 'text-white' : 'text-secondary hover:text-white'}`}
-              >
-                <Keyboard className="w-4 h-4 inline-block mr-2" />
-                Ingreso Manual
-                {activeTab === 'manual' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent glow-purple"></div>}
-              </button>
-              <button
-                onClick={() => { setActiveTab('camera'); setError(''); setSuccess(''); }}
-                className={`flex-1 pb-3 text-center font-heading text-sm font-semibold relative cursor-pointer ${activeTab === 'camera' ? 'text-white' : 'text-secondary hover:text-white'}`}
-                disabled={geoStatus !== 'SUCCESS'}
-                title={geoStatus !== 'SUCCESS' ? 'Fija tu ubicación antes de abrir la cámara' : ''}
-              >
-                <Camera className="w-4 h-4 inline-block mr-2" />
-                Cámara QR
-                {activeTab === 'camera' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent glow-purple"></div>}
-              </button>
-            </div>
-
+          <div className="relative z-10">
             {/* Mensajes */}
             {error && (
-              <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-200 text-xs flex items-center gap-2">
-                <ShieldAlert className="w-4.5 h-4.5 text-red-400 shrink-0" />
+              <div className="mb-6 p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-200 text-sm flex items-center gap-3 backdrop-blur-md">
+                <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
             {success && (
-              <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-200 text-xs flex items-center gap-2">
-                <CheckCircle className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+              <div className="mb-6 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 text-sm flex items-center gap-3 backdrop-blur-md">
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
                 <span>{success}</span>
               </div>
             )}
 
             {/* Vista Formulario Manual */}
             {activeTab === 'manual' && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-heading font-semibold text-secondary uppercase tracking-wider block">
+                  <label className="text-xs font-heading font-bold text-secondary uppercase tracking-widest block mb-3">
                     Ingresar Código de Puntos
                   </label>
                   <input
@@ -301,88 +298,82 @@ export default function MisPuntos() {
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
                     placeholder="Ej: SAIO100"
-                    className="w-full px-4 py-3 bg-primary-light/5 border border-muted/20 hover:border-primary-light/50 focus:border-accent rounded-xl text-sm text-white placeholder-secondary/40 outline-none transition-all duration-300 font-mono tracking-widest uppercase focus:ring-1 focus:ring-accent/30"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/10 hover:border-purple-500/50 focus:border-purple-500 rounded-xl text-lg text-white placeholder-secondary/40 outline-none transition-all duration-300 font-mono tracking-widest uppercase focus:ring-1 focus:ring-purple-500/30"
                     disabled={isSubmitting || geoStatus !== 'SUCCESS'}
                   />
                 </div>
-                <button
-                  onClick={() => handleClaimCode()}
-                  className="py-2.5 px-6 rounded-xl bg-gradient-to-r from-primary-light to-accent hover:opacity-95 text-white text-xs font-semibold font-heading uppercase tracking-wider cursor-pointer disabled:opacity-50 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-accent/15"
-                  disabled={isSubmitting || geoStatus !== 'SUCCESS'}
-                >
-                  {isSubmitting ? 'Registrando...' : 'Reclamar Puntos'}
-                </button>
+                <div className="pt-2">
+                  <button
+                    onClick={() => handleClaimCode()}
+                    className="w-full sm:w-auto py-4 px-8 rounded-full bg-white text-black hover:scale-[1.02] active:scale-[0.98] text-xs font-bold font-heading uppercase tracking-[0.2em] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+                    disabled={isSubmitting || geoStatus !== 'SUCCESS'}
+                  >
+                    {isSubmitting ? 'Registrando...' : 'Reclamar Puntos'}
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Vista Cámara QR */}
             {activeTab === 'camera' && (
-              <div className="space-y-4">
-                <p className="text-xs text-secondary text-center">
+              <div className="space-y-6">
+                <p className="text-sm text-secondary text-center max-w-sm mx-auto leading-relaxed">
                   Apunta tu cámara hacia el código QR de la actividad o stand del evento.
                 </p>
                 <div 
                   id="qr-reader-container" 
-                  className="overflow-hidden rounded-2xl border border-muted/20 bg-black/40 max-w-sm mx-auto shadow-inner"
+                  className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 max-w-sm mx-auto shadow-2xl"
                   style={{ minHeight: '300px' }}
                 ></div>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Historial (Col 3) */}
-          <div className="glass rounded-2xl p-6 border border-muted/15 space-y-4">
-            <div className="flex items-center justify-between border-b border-muted/10 pb-3">
-              <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-accent" />
-                <h3 className="font-heading font-bold text-sm uppercase tracking-wider text-secondary">Tus Reclamaciones</h3>
-              </div>
-              <button 
-                onClick={loadHistory} 
-                className="p-1 hover:bg-white/5 rounded hover:text-white cursor-pointer"
-                disabled={isHistoryLoading}
-              >
-                <RefreshCw className={`w-3.5 h-3.5 text-secondary ${isHistoryLoading ? 'animate-spin' : ''}`} />
-              </button>
+        {/* Historial (Col 3) */}
+        <div className="glass rounded-[1.5rem] p-6 border border-white/10 bg-black/20 space-y-6">
+          <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-purple-400" />
+              <h3 className="font-heading font-black text-sm uppercase tracking-widest text-secondary">Historial</h3>
             </div>
-
-            <div className="space-y-3 overflow-y-auto max-h-[300px]">
-              {isHistoryLoading ? (
-                <div className="py-8 text-center text-xs text-secondary">Cargando historial...</div>
-              ) : history.length === 0 ? (
-                <div className="py-8 text-center text-xs text-secondary leading-relaxed">
-                  No has reclamado ningún código espacial aún.
-                </div>
-              ) : (
-                history.map((t) => (
-                  <div key={t.id} className="p-3 rounded-xl bg-primary-light/5 border border-muted/5 space-y-1">
-                    <div className="flex justify-between items-center text-xs font-semibold">
-                      <span className="font-mono text-white tracking-wider">{t.code}</span>
-                      <span className="text-emerald-400">+{t.puntos} PTS</span>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-secondary">
-                      <span>{t.coordenadas ? '📍 Geolocalizado' : '⚠️ Sin GPS'}</span>
-                      <span>{new Date(t.fecha).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <button 
+              onClick={loadHistory} 
+              className="p-1.5 hover:bg-white/10 rounded-lg text-secondary hover:text-white transition-colors cursor-pointer"
+              disabled={isHistoryLoading}
+            >
+              <RefreshCw className={`w-4 h-4 ${isHistoryLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-        </section>
-      </main>
 
-      <footer className="py-4 px-6 text-center text-xs text-secondary mt-auto border-t border-muted/10 bg-black/20">
-        © 2026 SAIO-XV. Creado por{' '}
-        <a 
-          href="https://www.adamind.cloud" 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="text-secondary hover:text-white underline transition-colors duration-200"
-        >
-          Adamind Technologies
-        </a>
-      </footer>
+          <div className="space-y-3 overflow-y-auto max-h-[400px] pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            {isHistoryLoading ? (
+              <div className="py-8 text-center text-xs font-mono uppercase tracking-widest text-secondary/50">Cargando...</div>
+            ) : history.length === 0 ? (
+              <div className="py-8 text-center text-xs font-mono text-secondary/50 leading-relaxed px-4">
+                No has reclamado ningún código espacial aún.
+              </div>
+            ) : (
+              history.map((t) => (
+                <div key={t.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors space-y-2">
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className="font-mono text-white tracking-widest">{t.code}</span>
+                    <span className="text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded text-xs">+{t.puntos} PTS</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-secondary font-mono tracking-wider">
+                    <span className="flex items-center gap-1 opacity-70">
+                      {t.coordenadas ? <MapPin className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                      {t.coordenadas ? 'Validado' : 'Sin GPS'}
+                    </span>
+                    <span>{new Date(t.fecha).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

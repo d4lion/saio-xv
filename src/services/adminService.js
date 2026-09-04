@@ -7,7 +7,8 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc,
-  getDoc
+  getDoc,
+  runTransaction
 } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -348,12 +349,57 @@ export const adminService = {
       const users = getLocalStorage('mock_users', defaultMockUsers);
       const idx = users.findIndex(u => u.uid === uid);
       if (idx === -1) throw new Error("Usuario no encontrado.");
+      
+      const oldPoints = users[idx].puntos || 0;
       users[idx] = { ...users[idx], ...data };
       setLocalStorage('mock_users', users);
+
+      if (data.puntos !== undefined && data.puntos !== oldPoints) {
+        const txs = getLocalStorage('mock_pts_txs', defaultMockTxs);
+        txs.push({
+          id: `local-tx-${Date.now()}`,
+          uid,
+          code: 'AJUSTE_ADMIN',
+          puntos: data.puntos - oldPoints,
+          fecha: new Date().toISOString(),
+          coordenadas: null
+        });
+        setLocalStorage('mock_pts_txs', txs);
+      }
       return;
     }
+
     const userRef = doc(db, "users", uid);
-    await updateDoc(userRef, data);
+    
+    if (data.puntos !== undefined) {
+      const transactionsRef = collection(db, "points_transactions");
+      
+      await runTransaction(db, async (transaction) => {
+        const userSnap = await transaction.get(userRef);
+        if (!userSnap.exists()) throw new Error("Usuario no encontrado.");
+        
+        const oldData = userSnap.data();
+        const oldPoints = oldData.puntos || 0;
+        const newPoints = Number(data.puntos) || 0;
+        const diff = newPoints - oldPoints;
+        
+        transaction.update(userRef, data);
+        
+        if (diff !== 0) {
+          const newTxRef = doc(transactionsRef);
+          transaction.set(newTxRef, {
+            uid,
+            code: 'AJUSTE_ADMIN',
+            puntos: diff,
+            fecha: new Date().toISOString(),
+            coordenadas: null,
+            adminId: 'sistema'
+          });
+        }
+      });
+    } else {
+      await updateDoc(userRef, data);
+    }
   },
 
   async deleteUser(uid) {
@@ -514,7 +560,8 @@ export const adminService = {
         cost: Number(data.cost) || 0,
         desc: data.desc || '',
         stock: Number(data.stock) || 0,
-        activo: data.activo !== undefined ? data.activo : true
+        activo: data.activo !== undefined ? data.activo : true,
+        imageUrl: data.imageUrl || ''
       };
       rewards.push(newReward);
       setLocalStorage('mock_rewards', rewards);
@@ -531,7 +578,8 @@ export const adminService = {
       cost: Number(data.cost) || 0,
       desc: data.desc || '',
       stock: Number(data.stock) || 0,
-      activo: data.activo !== undefined ? data.activo : true
+      activo: data.activo !== undefined ? data.activo : true,
+      imageUrl: data.imageUrl || ''
     });
   },
 
@@ -546,7 +594,8 @@ export const adminService = {
         cost: Number(data.cost) || 0,
         desc: data.desc || '',
         stock: Number(data.stock) || 0,
-        activo: data.activo !== undefined ? data.activo : true
+        activo: data.activo !== undefined ? data.activo : true,
+        imageUrl: data.imageUrl || ''
       };
       setLocalStorage('mock_rewards', rewards);
       return;
@@ -557,7 +606,8 @@ export const adminService = {
       cost: Number(data.cost) || 0,
       desc: data.desc || '',
       stock: Number(data.stock) || 0,
-      activo: data.activo !== undefined ? data.activo : true
+      activo: data.activo !== undefined ? data.activo : true,
+      imageUrl: data.imageUrl || ''
     });
   },
 
@@ -646,16 +696,19 @@ export const adminService = {
     };
 
     if (payload.isFeatured) {
-      // Unmark existing featured panelistas in Firestore
       try {
         const snap = await getDocs(collection(db, "panelistas"));
-        snap.forEach(async (d) => {
-          if (d.data().isFeatured) {
-            await updateDoc(doc(db, "panelistas", d.id), { isFeatured: false });
-          }
+        let featuredCount = 0;
+        snap.forEach((d) => {
+          if (d.data().isFeatured) featuredCount++;
         });
+        
+        if (featuredCount >= 3) {
+          throw new Error("Límite superado: Solo puedes tener hasta 3 ponentes destacados simultáneamente. Por favor, quítale el destacado a otro ponente primero.");
+        }
       } catch (err) {
-        console.warn("No se pudo desmarcar ponente destacado en Firestore:", err);
+        if (err.message.includes("Límite superado")) throw err;
+        console.warn("No se pudo validar la cantidad de ponentes destacados:", err);
       }
     }
 
@@ -672,13 +725,19 @@ export const adminService = {
     if (data.isFeatured) {
       try {
         const snap = await getDocs(collection(db, "panelistas"));
-        snap.forEach(async (d) => {
+        let featuredCount = 0;
+        snap.forEach((d) => {
           if (d.id !== id && d.data().isFeatured) {
-            await updateDoc(doc(db, "panelistas", d.id), { isFeatured: false });
+            featuredCount++;
           }
         });
+
+        if (featuredCount >= 3) {
+          throw new Error("Límite superado: Solo puedes tener hasta 3 ponentes destacados simultáneamente. Por favor, quítale el destacado a otro ponente primero.");
+        }
       } catch (err) {
-        console.warn("No se pudo desmarcar ponente destacado en Firestore:", err);
+        if (err.message.includes("Límite superado")) throw err;
+        console.warn("No se pudo validar la cantidad de ponentes destacados:", err);
       }
     }
 
