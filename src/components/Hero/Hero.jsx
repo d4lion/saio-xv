@@ -85,10 +85,10 @@ export default function Hero() {
 
       {/* ── Left vertical Socials (desktop only) ── */}
       <div className="hidden xl:flex absolute left-24 bottom-24 z-[15] flex-col gap-6 items-center">
-        <a href="#" target="_blank" rel="noreferrer" className="text-white/30 hover:text-white hover:scale-110 transition-all duration-300">
+        <a href="https://www.instagram.com/saio.med/" target="_blank" rel="noreferrer" className="text-white/30 hover:text-white hover:scale-110 transition-all duration-300">
           <FaInstagram size={20} />
         </a>
-        <a href="#" target="_blank" rel="noreferrer" className="text-white/30 hover:text-white hover:scale-110 transition-all duration-300">
+        <a href="https://www.linkedin.com/company/aneiap" target="_blank" rel="noreferrer" className="text-white/30 hover:text-white hover:scale-110 transition-all duration-300">
           <FaLinkedinIn size={20} />
         </a>
         <div className="w-px h-16 bg-gradient-to-t from-transparent to-white/20 mt-2" />
