@@ -1,12 +1,10 @@
-import { GitBranch, AtSign, Share2, Radio } from 'lucide-react'
+import { FaLinkedinIn, FaInstagram } from 'react-icons/fa'
 import logo from '../../assets/logo.png'
 import { footer_paths, links } from './constants'
 
 const socials = [
-  { icon: AtSign, href: '#', label: 'Twitter / X' },
-  { icon: Share2, href: '#', label: 'LinkedIn' },
-  { icon: GitBranch, href: '#', label: 'GitHub' },
-  { icon: Radio, href: '#', label: 'Instagram' },
+  { icon: FaLinkedinIn, href: '#', label: 'LinkedIn' },
+  { icon: FaInstagram, href: '#', label: 'Instagram' },
 ]
 
 

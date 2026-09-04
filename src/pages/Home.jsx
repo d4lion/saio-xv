@@ -1,10 +1,10 @@
 import Navbar from '../components/Navbar/Navbar'
 import Hero from '../components/Hero/Hero'
-import NewData from '../components/NewData/NewData'
+import SponsorsMarquee from '../components/SponsorsCarousel/SponsorsMarquee'
 import Features from '../components/Features/Features'
+import Metrics from '../components/Metrics/Metrics.jsx'
+
 import Timeline from '../components/Timeline/Timeline'
-import Metrics from '../components/Metrics/Metrics'
-import Innovation from '../components/Innovation/Innovation'
 import Tickets from '../components/Tickets/Tickets'
 import CTA from '../components/CTA/CTA'
 import Footer from '../components/Footer/Footer'
@@ -13,7 +13,7 @@ import SEO from '../components/SEO/SEO'
 
 export default function Home() {
   return (
-    <main className="relative bg-[#040b0f] snap-container">
+    <main className="relative bg-[#050507] snap-container">
       <SEO 
         title="SAIO XV - ENTROPIX 2026 | El Evento de Inteligencia Artificial & Datos"
         description="Transformando datos en infinitas posibilidades. Asiste a SAIO XV Entropix en Medellín: talleres prácticos, ponentes internacionales, networking VIP y conferencias sobre Inteligencia Artificial y Ciencia de Datos."
@@ -23,26 +23,25 @@ export default function Home() {
       <Navbar />
       <Hero />
 
+      {/* Sponsors marquee — below the fold */}
+      <SponsorsMarquee />
+
       {/* Section separators */}
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(76,41,182,0.3), transparent)' }} />
 
-      <NewData />
-
-      <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(76,41,182,0.3), transparent)' }} />
-
+      {/* 1. APRENDE CON LOS MEJORES */}
       <Features />
 
-      <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(48,34,127,0.4), transparent)' }} />
-
-      <Timeline />
-
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(76,41,182,0.3), transparent)' }} />
 
+      {/* 2. SAIO EN NÚMEROS */}
       <Metrics />
 
-      <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(48,34,127,0.4), transparent)' }} />
 
-      <Innovation />
+      <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.4), transparent)' }} />
+
+      {/* 4. CRONOGRAMA */}
+      <Timeline />
 
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.4), transparent)' }} />
 
