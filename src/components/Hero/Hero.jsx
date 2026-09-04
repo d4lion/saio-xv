@@ -1,140 +1,251 @@
-import { useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
-import SpaceScene from '../SpaceScene/SpaceScene'
-import SponsorsCarousel from '../SponsorsCarousel/SponsorsCarousel'
+import EntropixCanvas from './EntropixCanvas'
+import EntropixObject from './EntropixObject'
 import Countdown from '../Countdown/Countdown'
-import logo from '../../assets/logo.png'
-import bgVideo from '../../assets/bg.mp4'
-import hero_poster from '../../assets/hero_poster.webp'
+import { FaLinkedinIn, FaInstagram } from 'react-icons/fa'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: (i = 0) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.9, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }
-  }),
+// ─── Animations ──────────────────────────────────────────────────
+const stagger = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.08, delayChildren: 0.3 }
+  }
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1, y: 0,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
+  }
+}
+
+const fadeLine = {
+  hidden: { scaleX: 0 },
+  visible: {
+    scaleX: 1,
+    transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }
+  }
+}
+
+// ─── Component ───────────────────────────────────────────────────
 export default function Hero() {
-  const scrollRef = useRef(null)
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <section
       id="hero"
-      ref={scrollRef}
-      className="relative min-h-screen flex flex-col overflow-hidden"
+      className="relative min-h-screen min-h-dvh flex flex-col overflow-hidden select-none"
+      style={{ background: '#050507' }}
     >
-      {/* === VIDEO LAYER === */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        src={bgVideo}
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster={hero_poster}
-        aria-hidden="true"
+      {/* ── Noise texture overlay ── */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '128px 128px',
+        }}
       />
 
-      {/* === DARK OVERLAY === */}
-      <div className="absolute inset-0 z-[1] bg-[#040b0f]/85" />
-
-      {/* === PURPLE NEBULA === */}
+      {/* ── Deep-space neo-purple atmosphere ── */}
       <div
-        className="absolute inset-0 z-[3] pointer-events-none"
+        className="absolute inset-0 z-[2] pointer-events-none"
         style={{
           background: `
-            radial-gradient(ellipse 80% 60% at 50% 10%, rgba(76,41,182,0.35) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 50% at 80% 50%, rgba(156,58,237,0.18) 0%, transparent 55%),
-            radial-gradient(ellipse 40% 40% at 10% 70%, rgba(48,34,127,0.25) 0%, transparent 55%)
+            radial-gradient(ellipse 80% 60% at 65% 30%, rgba(156,58,237,0.18) 0%, transparent 65%),
+            radial-gradient(ellipse 60% 70% at 25% 65%, rgba(76,41,182,0.14) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 40% at 80% 75%, rgba(45,16,74,0.2) 0%, transparent 55%),
+            radial-gradient(ellipse 90% 50% at 50% 0%, rgba(48,34,127,0.12) 0%, transparent 50%),
+            radial-gradient(ellipse 40% 40% at 10% 20%, rgba(109,40,217,0.08) 0%, transparent 50%),
+            linear-gradient(180deg, #050507 0%, #0a0618 25%, #0d0824 50%, #080514 75%, #050507 100%)
           `
         }}
       />
 
-      {/* === SPACE SCENE (planets) === */}
-      <div className="absolute inset-0 z-[4]">
-        <SpaceScene />
+      {/* ── Canvas particle system ── */}
+      <div className="absolute inset-0 z-[3]">
+        {mounted && <EntropixCanvas />}
       </div>
 
-      {/* === HERO CONTENT === */}
-      <div className="relative z-[4] flex flex-col flex-1 justify-center items-center text-center px-6 pt-28 pb-8">
-
-        {/* Countdown Pill Bar (Above Logo) */}
-        <motion.div variants={fadeUp} custom={0} initial="hidden" animate="visible">
-          <Countdown targetDate="2026-10-15T08:00:00" />
-        </motion.div>
-
-        {/* Logo image replacing text title, with added glow */}
-        <motion.div
-          variants={fadeUp} custom={1} initial="hidden" animate="visible"
-          className="flex justify-center mb-1 relative"
+      {/* ── Left vertical micro-label (desktop only) ── */}
+      <div className="hidden xl:flex absolute left-6 top-1/2 -translate-y-1/2 z-[15]">
+        <span
+          className="text-[10px] tracking-[0.35em] text-white/15 uppercase -rotate-90 whitespace-nowrap"
+          style={{ fontFamily: "'Space Mono', monospace" }}
         >
-          {/* Backlight glow for logo */}
-          <div className="absolute inset-0 bg-purple-500/20 blur-[60px] rounded-full pointer-events-none" />
-          <img
-            src={logo}
-            alt="SAIO XV Entropix"
-            className="w-auto object-contain relative z-10"
-            style={{ 
-              maxHeight: 'clamp(200px, 20vw, 300px)',
-              filter: 'drop-shadow(0 0 15px rgba(156,58,237,0.5))'
+          001 — ENTROPIX
+        </span>
+      </div>
+
+      {/* ── Left vertical Socials (desktop only) ── */}
+      <div className="hidden xl:flex absolute left-24 bottom-24 z-[15] flex-col gap-6 items-center">
+        <a href="#" target="_blank" rel="noreferrer" className="text-white/30 hover:text-white hover:scale-110 transition-all duration-300">
+          <FaInstagram size={20} />
+        </a>
+        <a href="#" target="_blank" rel="noreferrer" className="text-white/30 hover:text-white hover:scale-110 transition-all duration-300">
+          <FaLinkedinIn size={20} />
+        </a>
+        <div className="w-px h-16 bg-gradient-to-t from-transparent to-white/20 mt-2" />
+      </div>
+
+      {/* ── Right vertical micro-label (desktop only) ── */}
+      <div className="hidden xl:flex absolute right-6 top-1/2 -translate-y-1/2 z-[15]">
+        <span
+          className="text-[10px] tracking-[0.35em] text-white/15 uppercase rotate-90 whitespace-nowrap"
+          style={{ fontFamily: "'Space Mono', monospace" }}
+        >
+          COMPLEX SYSTEMS
+        </span>
+      </div>
+
+      {/* ── 3D Object — right side (desktop only) ── */}
+      <div className="hidden lg:block absolute z-[5]" style={{ top: '2%', right: '5%', width: '55%', height: '70%' }}>
+        {mounted && <EntropixObject />}
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════════
+           MAIN CONTENT
+         ════════════════════════════════════════════════════════════════ */}
+      <div className="relative z-[10] flex-1 flex flex-col justify-center max-w-[1400px] mx-auto px-5 sm:px-10 lg:px-14 pt-12 sm:pt-24 lg:pt-24 pb-16 sm:pb-12 lg:pb-10 w-full">
+
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col gap-5 sm:gap-6 lg:gap-8"
+        >
+          {/* ── Eyebrow ── */}
+          <motion.div variants={fadeUp} className="flex items-center justify-start gap-3 sm:gap-4">
+            <div className="w-5 sm:w-8 h-px bg-white/20" />
+            <span
+              className="text-[10px] sm:text-[11px] lg:text-[11px] tracking-[0.25em] sm:tracking-[0.3em] text-white/50 uppercase"
+              style={{ fontFamily: "'Space Mono', monospace" }}
+            >
+              SAIO XV · ENTROPIX 2026
+            </span>
+            <div className="w-5 sm:w-0 h-px bg-white/20 lg:hidden" />
+          </motion.div>
+
+          {/* ── Headline ── */}
+          <motion.h1
+            variants={fadeUp}
+            className="text-white font-heading leading-[0.85] sm:leading-[0.92] tracking-tighter sm:tracking-[-0.03em] max-w-5xl text-left w-full"
+            style={{
+              fontSize: 'clamp(2.5rem, 14vw, 6.5rem)',
+              fontWeight: 800,
+            }}
+          >
+            DECISIONES
+            <br />
+            INTELIGENTES
+            <br />
+            EN ENTORNOS
+            <br />
+            <span
+              className="inline-block"
+              style={{
+                background: 'linear-gradient(135deg, #e2e0ff 0%, #9c3aed 50%, #6d28d9 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              COMPLEJOS
+            </span>
+          </motion.h1>
+
+          {/* ── Supporting copy + CTAs ── */}
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 sm:gap-6 lg:gap-12">
+            
+            {/* Left: copy */}
+            <motion.div variants={fadeUp} className="max-w-md w-full">
+              <p className="text-white/60 text-[15px] sm:text-base lg:text-[14px] leading-relaxed font-sans text-left">
+                Un encuentro donde estudiantes, empresas y líderes se conectan
+                para entender, cuestionar y transformar la forma en que tomamos
+                decisiones.
+              </p>
+            </motion.div>
+
+            {/* Right: CTAs */}
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-5 lg:gap-6 w-full sm:w-auto mt-2 sm:mt-0">
+              <a
+                href="#tickets"
+                className="group inline-flex items-center justify-center gap-2.5 px-6 sm:px-6 py-3.5 sm:py-3 bg-white text-[#050507] text-[14px] sm:text-[13px] font-bold tracking-wide uppercase rounded-none hover:bg-purple-200 transition-colors duration-300 w-full sm:w-auto text-center"
+              >
+                <span>COMPRAR BOLETA</span>
+                <span className="group-hover:translate-x-0.5 transition-transform duration-200">↗</span>
+              </a>
+              
+              <a
+                href="#features"
+                className="text-white/60 text-[14px] sm:text-[13px] tracking-wide uppercase hover:text-white transition-colors duration-300 relative group py-3 sm:py-0"
+              >
+                <span>EXPLORAR EL EVENTO</span>
+                <span className="absolute -bottom-1 left-1/2 sm:left-0 -translate-x-1/2 sm:translate-x-0 w-0 h-px bg-white/60 group-hover:w-full transition-all duration-300" />
+              </a>
+            </motion.div>
+          </div>
+
+          {/* ── Thin editorial line ── */}
+          <motion.div
+            variants={fadeLine}
+            className="w-full h-px origin-left"
+            style={{
+              background: 'linear-gradient(90deg, rgba(255,255,255,0.12), rgba(156,58,237,0.15), transparent 80%)',
             }}
           />
-        </motion.div>
 
-        {/* Divider line (Base for logo) */}
-        <motion.div
-          variants={fadeUp} custom={3} initial="hidden" animate="visible"
-          className="w-64 sm:w-80 h-[2px] bg-gradient-to-r from-transparent via-purple-300 to-transparent mt-0 mb-8"
-          style={{ boxShadow: '0 0 20px rgba(156,58,237,1)' }}
-        />
-
-        {/* Tagline with glow-text added */}
-        <motion.p
-          variants={fadeUp} custom={4} initial="hidden" animate="visible"
-          className="text-white text-[clamp(1.2rem,3vw,1.6rem)] font-medium tracking-wide max-w-xl mb-3 glow-text"
-        >
-          Aprende, conecta y crece con la industria.
-        </motion.p>
-
-        {/* Supporting text */}
-        <motion.p
-          variants={fadeUp} custom={5} initial="hidden" animate="visible"
-          className="text-secondary text-[clamp(0.85rem,1.5vw,1rem)] max-w-2xl leading-relaxed mb-10"
-        >
-          Un evento estudiantil propuesto por ANIAP donde se presentan talleres, panelistas y sponsors,
-          todos en busca de aprender y conectar con la industria.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          variants={fadeUp} custom={6} initial="hidden" animate="visible"
-          className="flex flex-col sm:flex-row gap-4 items-center"
-        >
-          <a
-            href="#tickets"
-            className="group flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-primary-light to-accent text-white font-semibold text-sm tracking-wide hover:shadow-[0_0_30px_rgba(156,58,237,0.5)] transition-all duration-300 hover:scale-105"
+          {/* ── Bottom strip: Countdown + Event info ── */}
+          <motion.div
+            variants={fadeUp}
+            className="flex flex-col items-center sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6"
           >
-            Comprar boleta
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </a>
-          <a
-            href="#capabilities"
-            className="flex items-center gap-2 px-8 py-3.5 rounded-full glass border border-purple-400/30 text-secondary-light font-medium text-sm tracking-wide hover:border-purple-400/60 hover:text-white transition-all duration-300"
-          >
-            Ver talleres
-          </a>
-        </motion.div>
+            {/* Countdown */}
+            <div>
+              <Countdown targetDate="2026-10-15T08:00:00" />
+            </div>
 
-        {/* Sponsors Carousel — inside the hero */}
-        <motion.div
-          variants={fadeUp} custom={8} initial="hidden" animate="visible"
-          className="w-full max-w-6xl mt-16"
-        >
-          <SponsorsCarousel />
+            {/* Event meta */}
+            <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1">
+              <span
+                className="text-[10px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] text-white/40 uppercase"
+                style={{ fontFamily: "'Space Mono', monospace" }}
+              >
+                MEDELLÍN · COLOMBIA
+              </span>
+              <span className="text-white/20 sm:hidden">·</span>
+              <span
+                className="text-[10px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.25em] text-white/30 uppercase"
+                style={{ fontFamily: "'Space Mono', monospace" }}
+              >
+                15—16 OCTUBRE 2026
+              </span>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
+
+      {/* ── Scroll indicator ── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="hidden sm:flex absolute bottom-4 left-1/2 -translate-x-1/2 z-[15] flex-col items-center gap-2"
+      >
+        <span
+          className="text-[9px] tracking-[0.4em] text-white/20 uppercase"
+          style={{ fontFamily: "'Space Mono', monospace" }}
+        >
+          SCROLL
+        </span>
+        <div className="w-px h-6 bg-gradient-to-b from-white/20 to-transparent" />
+      </motion.div>
     </section>
   )
 }
