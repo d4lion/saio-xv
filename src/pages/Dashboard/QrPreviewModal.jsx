@@ -13,7 +13,7 @@ export default function QrPreviewModal({
 
   useEffect(() => {
     if (isOpen && previewCode) {
-      const url = `${window.location.origin}/mis-puntos?code=${previewCode.id}`;
+      const url = `${window.location.origin}/pasaporte/mis-puntos?code=${previewCode.id}`;
       QRCode.toDataURL(url, { width: 350, margin: 1 })
         .then(dataUrl => setQrSrc(dataUrl))
         .catch(err => console.error("Error generating QR code:", err));
@@ -65,7 +65,7 @@ export default function QrPreviewModal({
             </p>
             <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 text-center select-all">
               <code className="text-xs text-gray-600 font-mono break-all font-medium">
-                {window.location.origin}/mis-puntos?code={previewCode.id}
+                {window.location.origin}/pasaporte/mis-puntos?code={previewCode.id}
               </code>
             </div>
           </div>
