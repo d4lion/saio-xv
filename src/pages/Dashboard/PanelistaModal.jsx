@@ -327,12 +327,12 @@ export default function PanelistaModal({
           </div>
 
           {/* Checkbox Keynote / Ponente Destacado */}
-          <div className="pt-2">
+          <div className="pt-2 space-y-3">
             <label className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl border border-purple-200 cursor-pointer hover:bg-purple-100/70 transition-colors">
               <input
                 type="checkbox"
                 checked={!!form.isFeatured}
-                onChange={(e) => setForm(prev => ({ ...prev, isFeatured: e.target.checked }))}
+                onChange={(e) => setForm(prev => ({ ...prev, isFeatured: e.target.checked, bentoPosition: e.target.checked ? (prev.bentoPosition || 1) : undefined }))}
                 className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
               />
               <div>
@@ -345,7 +345,75 @@ export default function PanelistaModal({
                 </p>
               </div>
             </label>
+
+            {/* Bento Position Selector — only visible when featured */}
+            {!!form.isFeatured && (
+              <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-200/70">
+                <p className="text-[10px] font-heading font-bold uppercase tracking-wider text-purple-700 mb-2.5">
+                  Posición en el Bento Grid
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { pos: 1, label: 'Posición 1', desc: 'Principal (izq. grande)', icon: '⬛' },
+                    { pos: 2, label: 'Posición 2', desc: 'Secundario (der. arriba)', icon: '🟪' },
+                    { pos: 3, label: 'Posición 3', desc: 'Terciario (der. abajo)', icon: '🟪' },
+                  ].map(({ pos, label, desc, icon }) => {
+                    const isSelected = (form.bentoPosition || 1) === pos;
+                    return (
+                      <button
+                        key={pos}
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, bentoPosition: pos }))}
+                        className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg border-2 text-center transition-all duration-200 cursor-pointer"
+                        style={{
+                          borderColor: isSelected ? '#9c3aed' : '#d8b4fe40',
+                          background: isSelected ? '#9c3aed15' : 'white',
+                        }}
+                      >
+                        {/* Mini bento visual */}
+                        <div className="flex gap-0.5 w-full">
+                          <div
+                            className="rounded-sm transition-all duration-200"
+                            style={{
+                              height: '28px',
+                              flex: pos === 1 ? '7' : '7',
+                              background: pos === 1 && isSelected ? '#9c3aed' : pos === 1 ? '#d8b4fe' : '#e9d5ff',
+                              opacity: pos === 1 ? 1 : 0.5,
+                            }}
+                          />
+                          <div className="flex flex-col gap-0.5" style={{ flex: '5' }}>
+                            <div
+                              className="rounded-sm transition-all duration-200"
+                              style={{
+                                height: '12px',
+                                background: pos === 2 && isSelected ? '#9c3aed' : pos === 2 ? '#d8b4fe' : '#e9d5ff',
+                                opacity: pos === 2 ? 1 : 0.5,
+                              }}
+                            />
+                            <div
+                              className="rounded-sm transition-all duration-200"
+                              style={{
+                                height: '12px',
+                                background: pos === 3 && isSelected ? '#9c3aed' : pos === 3 ? '#d8b4fe' : '#e9d5ff',
+                                opacity: pos === 3 ? 1 : 0.5,
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-bold ${isSelected ? 'text-purple-700' : 'text-gray-500'}`}>
+                          {label}
+                        </span>
+                        <span className={`text-[9px] leading-tight ${isSelected ? 'text-purple-600' : 'text-gray-400'}`}>
+                          {desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
+
 
           <div className="border-t border-gray-150 pt-4 mt-6 flex justify-end gap-2 bg-gray-50 -mx-5 -mb-5 p-5 flex-shrink-0">
             <button

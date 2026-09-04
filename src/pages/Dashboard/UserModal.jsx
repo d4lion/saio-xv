@@ -97,16 +97,28 @@ export default function UserModal({
                 />
               </div>
             ) : (
-              <div className="col-span-2 space-y-1">
-                <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Puntos de Saldo (Mínimo 0)</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={form.puntos}
-                  onChange={(e) => setForm(prev => ({ ...prev, puntos: Number(e.target.value) }))}
-                  className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300 font-mono"
-                />
+              <div className="col-span-2 space-y-2">
+                <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Puntos Totales (Ajuste Rápido)</label>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    readOnly
+                    value={form.puntos}
+                    className="w-full sm:w-1/3 px-3 py-2 bg-gray-100 border border-gray-300 rounded-xl text-md font-bold text-gray-900 outline-none font-mono text-center cursor-not-allowed"
+                  />
+                  <div className="flex items-center justify-between sm:justify-start gap-1 w-full flex-wrap">
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: Math.max(0, prev.puntos - 100) }))} className="px-2 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[10px] font-bold hover:bg-red-100 cursor-pointer transition-colors">-100</button>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: Math.max(0, prev.puntos - 10) }))} className="px-2 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[10px] font-bold hover:bg-red-100 cursor-pointer transition-colors">-10</button>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: Math.max(0, prev.puntos - 1) }))} className="px-2 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[10px] font-bold hover:bg-red-100 cursor-pointer transition-colors">-1</button>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 1 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+1</button>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 10 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+10</button>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 50 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+50</button>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 100 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+100</button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-400 font-medium">Usa los botones para calcular rápidamente y generar una transacción automática al guardar.</p>
               </div>
             )}
           </div>

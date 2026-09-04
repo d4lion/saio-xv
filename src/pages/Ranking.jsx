@@ -82,7 +82,7 @@ export default function Ranking() {
           </button>
           <div className="px-4 py-2.5 rounded-xl bg-purple-900/20 border border-purple-500/20 text-sm font-bold text-white shadow-lg shadow-purple-900/20 flex items-center gap-2">
             <Coins className="w-4 h-4 text-accent" />
-            <span className="text-accent font-black">{(user?.puntos || 0).toLocaleString()} PTS</span>
+            <span className="text-accent font-black">{Number(user?.puntos || 0).toLocaleString()} PTS</span>
           </div>
         </div>
       </div>
@@ -152,7 +152,7 @@ export default function Ranking() {
                         </p>
                         <p className={`text-[10px] font-black font-mono mt-1 tracking-widest
                           ${isGold ? 'text-yellow-400' : isSilver ? 'text-slate-300' : 'text-amber-500'}`}>
-                          {(pUser.puntos || 0).toLocaleString()}
+                          {Number(pUser.puntos || 0).toLocaleString()}
                         </p>
                       </div>
 
@@ -225,7 +225,7 @@ export default function Ranking() {
                         {/* Puntos */}
                         <div className="text-right">
                           <span className={`font-mono text-base font-black ${isSelf ? 'text-white' : 'text-secondary group-hover:text-white transition-colors'}`}>
-                            {(item.puntos || 0).toLocaleString()}
+                            {Number(item.puntos || 0).toLocaleString()}
                           </span>
                           <span className="text-[10px] text-secondary uppercase font-bold tracking-widest block">PTS</span>
                         </div>

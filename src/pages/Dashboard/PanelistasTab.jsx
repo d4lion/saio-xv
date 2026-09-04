@@ -136,10 +136,17 @@ export default function PanelistasTab({
 
                       <td className="px-6 py-4.5">
                         {p.isFeatured ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-700">
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Keynote</span>
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-700">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                              <span>Keynote</span>
+                            </span>
+                            {p.bentoPosition && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-purple-50 border border-purple-200 text-purple-700">
+                                Pos. {p.bentoPosition}
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-xs text-gray-400 font-medium">Estándar</span>
                         )}

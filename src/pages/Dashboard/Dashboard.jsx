@@ -1060,7 +1060,8 @@ export default function Dashboard() {
       photo: '',
       linkedin: '',
       twitter: '',
-      isFeatured: false
+      isFeatured: false,
+      bentoPosition: 1
     });
     setPanelistaModalMode('create');
     setShowPanelistaModal(true);
@@ -1080,7 +1081,8 @@ export default function Dashboard() {
       photo: p.photo || '',
       linkedin: p.social?.linkedin || '',
       twitter: p.social?.twitter || '',
-      isFeatured: !!p.isFeatured
+      isFeatured: !!p.isFeatured,
+      bentoPosition: p.bentoPosition || 1
     });
     setSelectedPanelistaId(p.id);
     setPanelistaModalMode('edit');
@@ -1112,7 +1114,8 @@ export default function Dashboard() {
           linkedin: panelistaForm.linkedin.trim() || '#',
           twitter: panelistaForm.twitter.trim() || '#'
         },
-        isFeatured: !!panelistaForm.isFeatured
+        isFeatured: !!panelistaForm.isFeatured,
+        bentoPosition: panelistaForm.isFeatured ? (panelistaForm.bentoPosition || 1) : null
       };
 
       if (panelistaModalMode === 'create') {

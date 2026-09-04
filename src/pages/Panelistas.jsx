@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -90,27 +90,303 @@ function TopicBadge({ label, color }) {
   )
 }
 
-/* ─── Featured Speaker ──────────────────────────────── */
-function FeaturedSpeaker({ featured }) {
-  if (!featured) return null;
-  const topics = Array.isArray(featured.topics) ? featured.topics : [];
-  const linkedinUrl = featured.social?.linkedin || '#';
-  const twitterUrl = featured.social?.twitter || '#';
+/* ─── Bento Featured Speaker Card ───────────────────── */
+function BentoCard({ speaker, variant = 'primary', index = 0 }) {
+  const color = speaker.color || '#9c3aed';
+  const topics = Array.isArray(speaker.topics) ? speaker.topics : [];
+
+  // Primary card: large, left side of grid
+  // Secondary/tertiary: stacked on the right
+  const isPrimary = variant === 'primary';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.7, delay: index * 0.15, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative rounded-3xl overflow-hidden cursor-default"
+      style={{
+        background: `linear-gradient(135deg, ${color}12 0%, rgba(4,11,15,0.97) 40%, ${color}08 100%)`,
+        border: `1px solid ${color}30`,
+        boxShadow: `0 0 60px ${color}15, inset 0 0 60px ${color}05`,
+      }}
+      whileHover={{ scale: 1.012, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } }}
+    >
+      {/* Ambient glow on hover */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none rounded-3xl"
+        initial={{ opacity: 0 }}
+        whileHover={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{ boxShadow: `inset 0 0 80px ${color}20, 0 0 80px ${color}20` }}
+      />
+
+      {/* Noise / grain overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03] rounded-3xl"
+        style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
+        }}
+      />
+
+      {/* Border gradient line top */}
+      <div
+        className="absolute top-0 left-8 right-8 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}60, transparent)` }}
+      />
+
+      <div className={`flex flex-col ${isPrimary ? 'p-8 md:p-10 gap-6 items-center justify-center h-full' : 'p-6 md:p-8 gap-5'}`}>
+
+        {/* Top row: badge + social */}
+        <div className={`flex items-center justify-between w-full`}>
+          <div
+            className="text-[9px] tracking-[0.3em] uppercase px-3 py-1.5 rounded-full font-semibold"
+            style={{ background: `${color}18`, color: color, border: `1px solid ${color}35` }}
+          >
+            Ponente Destacado
+          </div>
+          <div className="flex gap-2">
+            {speaker.social?.linkedin && (
+              <a
+                href={speaker.social.linkedin} target="_blank" rel="noopener noreferrer"
+                aria-label={`${speaker.name} LinkedIn`}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                style={{ background: `${color}15`, border: `1px solid ${color}30`, color: color }}
+                onClick={e => e.stopPropagation()}
+              >
+                <IconLinkedin size={13} />
+              </a>
+            )}
+            {speaker.social?.twitter && (
+              <a
+                href={speaker.social.twitter} target="_blank" rel="noopener noreferrer"
+                aria-label={`${speaker.name} Twitter`}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                style={{ background: `${color}15`, border: `1px solid ${color}30`, color: color }}
+                onClick={e => e.stopPropagation()}
+              >
+                <IconTwitterX size={13} />
+              </a>
+            )}
+          </div>
+        </div>
+
+        {isPrimary ? (
+          /* ── PRIMARY: centered vertical layout ── */
+          <>
+            {/* Large circular photo — centered */}
+            <div className="relative flex-shrink-0">
+              <motion.div
+                className="absolute rounded-full"
+                style={{ inset: '-8px', border: `1px solid ${color}40` }}
+                animate={{ scale: [1, 1.06, 1], opacity: [0.5, 0.15, 0.5] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <motion.div
+                className="absolute rounded-full"
+                style={{ inset: '-16px', border: `1px solid ${color}20` }}
+                animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.05, 0.3] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              />
+              <div
+                className="w-36 h-36 rounded-full overflow-hidden"
+                style={{
+                  border: `3px solid ${color}70`,
+                  boxShadow: `0 0 60px ${color}50, 0 0 0 6px ${color}12`,
+                }}
+              >
+                {speaker.photo ? (
+                  <img src={speaker.photo} alt={speaker.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center font-black text-white text-4xl"
+                    style={{
+                      background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}22)`,
+                      fontFamily: "'Space Grotesk', sans-serif",
+                    }}
+                  >
+                    {speaker.initials}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Name / role / company — centered */}
+            <div className="text-center">
+              <h3
+                className="text-[clamp(1.5rem,3vw,2.2rem)] font-black text-white leading-tight font-heading"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {speaker.name}
+              </h3>
+              <p className="text-secondary-light text-sm mt-1 font-medium">{speaker.role}</p>
+              <p className="text-sm mt-0.5 font-semibold" style={{ color }}>{speaker.company}</p>
+            </div>
+
+            {/* Bio — centered */}
+            {speaker.bio && (
+              <p className="text-secondary leading-relaxed text-[clamp(0.88rem,1.3vw,1rem)] line-clamp-4 text-center max-w-lg">
+                {speaker.bio}
+              </p>
+            )}
+
+            {/* Topics — centered */}
+            {topics.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {topics.slice(0, 4).map(t => (
+                  <TopicBadge key={t} label={t} color={color} />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          /* ── SECONDARY: horizontal photo + name row ── */
+          <>
+            {/* Circular photo — hero element */}
+            <div className="flex items-center gap-6">
+              <div className="relative flex-shrink-0">
+                <motion.div
+                  className="absolute rounded-full"
+                  style={{ inset: '-6px', border: `1px solid ${color}40` }}
+                  animate={{ scale: [1, 1.06, 1], opacity: [0.5, 0.15, 0.5] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <motion.div
+                  className="absolute rounded-full"
+                  style={{ inset: '-12px', border: `1px solid ${color}20` }}
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.05, 0.3] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                />
+                <div
+                  className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0"
+                  style={{
+                    border: `2.5px solid ${color}70`,
+                    boxShadow: `0 0 40px ${color}40, 0 0 0 4px ${color}10`,
+                  }}
+                >
+                  {speaker.photo ? (
+                    <img src={speaker.photo} alt={speaker.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center font-black text-white text-2xl"
+                      style={{
+                        background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}22)`,
+                        fontFamily: "'Space Grotesk', sans-serif",
+                      }}
+                    >
+                      {speaker.initials}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Name block beside photo */}
+              <div className="min-w-0">
+                <h3
+                  className="text-[clamp(1.1rem,2vw,1.5rem)] font-black text-white leading-tight font-heading"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  {speaker.name}
+                </h3>
+                <p className="text-secondary-light text-sm mt-0.5 font-medium">{speaker.role}</p>
+                <p className="text-sm mt-0.5 font-semibold" style={{ color }}>{speaker.company}</p>
+              </div>
+            </div>
+
+            {/* Bio */}
+            {speaker.bio && (
+              <p className="text-secondary leading-relaxed text-sm line-clamp-3">
+                {speaker.bio}
+              </p>
+            )}
+
+            {/* Topics */}
+            {topics.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {topics.slice(0, 3).map(t => (
+                  <TopicBadge key={t} label={t} color={color} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+
+      {/* Corner accent glow */}
+      <div
+        className="absolute bottom-0 right-0 w-40 h-40 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 100% 100%, ${color}18, transparent 65%)`,
+        }}
+      />
+    </motion.div>
+  );
+}
+
+/* ─── Responsive hook ────────────────────────────── */
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1280);
+  const handleResize = useCallback(() => setWidth(window.innerWidth), []);
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [handleResize]);
+  return width;
+}
+
+/* ─── Bento Layout (7/5 split on lg, stacked on mobile) ─ */
+function BentoLayout({ primary, rest }) {
+  const width = useWindowWidth();
+  const isLg = width >= 1024;
+
+  if (isLg) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '1.25rem', alignItems: 'stretch' }}>
+        <BentoCard speaker={primary} variant="primary" index={0} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {rest.map((sp, i) => (
+            <BentoCard key={sp.id || sp.name} speaker={sp} variant="secondary" index={i + 1} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile/tablet: stacked
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <BentoCard speaker={primary} variant="primary" index={0} />
+      {rest.map((sp, i) => (
+        <BentoCard key={sp.id || sp.name} speaker={sp} variant="secondary" index={i + 1} />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Featured Speakers Bento Grid ──────────────────── */
+function FeaturedSpeakersBento({ speakers }) {
+  if (!speakers || speakers.length === 0) return null;
+
+  const [primary, ...rest] = speakers;
+  const hasSideSpeakers = rest.length > 0;
 
   return (
     <section className="relative py-20 overflow-hidden">
-      {/* Glow */}
+      {/* Background glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
-            radial-gradient(ellipse 70% 80% at 20% 50%, rgba(156,58,237,0.18) 0%, transparent 55%),
-            radial-gradient(ellipse 50% 50% at 80% 50%, rgba(76,41,182,0.12) 0%, transparent 50%)
+            radial-gradient(ellipse 70% 80% at 15% 50%, rgba(156,58,237,0.12) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 60% at 85% 40%, rgba(76,41,182,0.10) 0%, transparent 50%)
           `,
         }}
       />
 
       <div className="max-w-7xl mx-auto px-6">
+        {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -125,186 +401,158 @@ function FeaturedSpeaker({ featured }) {
             className="text-[clamp(2rem,4vw,3.2rem)] font-black font-heading text-white"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
-            Ponente <span className="gradient-text">destacado</span>
+            Ponentes <span className="gradient-text">destacados</span>
           </h2>
         </motion.div>
 
-        <div
-          className="relative rounded-3xl overflow-hidden p-0.5"
-          style={{
-            background: `linear-gradient(135deg, ${featured.color || '#9c3aed'}66, rgba(76,41,182,0.4), ${featured.color || '#9c3aed'}22)`,
-          }}
-        >
-          <div
-            className="rounded-3xl p-10 md:p-14 flex flex-col md:flex-row gap-10 items-center"
-            style={{ background: 'rgba(4,11,15,0.92)' }}
-          >
-            {/* Avatar / Photo */}
-            <div className="flex-shrink-0 flex flex-col items-center gap-5">
-              <SpeakerPhoto photo={featured.photo} initials={featured.initials} color={featured.color || '#9c3aed'} size="lg" />
-              <div className="flex gap-3">
-                {linkedinUrl && (
-                  <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
-                    className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
-                    <IconLinkedin size={14} />
-                  </a>
-                )}
-                {twitterUrl && (
-                  <a href={twitterUrl} target="_blank" rel="noopener noreferrer" aria-label="Twitter / X"
-                    className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300">
-                    <IconTwitterX size={14} />
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 text-center md:text-left">
-              <div
-                className="inline-block text-[10px] tracking-[0.25em] uppercase px-3 py-1 rounded-full mb-4 font-medium"
-                style={{ background: `${featured.color || '#9c3aed'}22`, color: featured.color || '#9c3aed', border: `1px solid ${featured.color || '#9c3aed'}44` }}
-              >
-                Keynote Speaker
-              </div>
-              <h3
-                className="text-[clamp(1.8rem,4vw,3rem)] font-black font-heading text-white mb-1 leading-tight"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
-                {featured.name}
-              </h3>
-              <p className="text-secondary-light font-medium mb-1">{featured.role}</p>
-              <p className="text-accent text-sm mb-6">{featured.company}</p>
-              <p className="text-secondary leading-relaxed text-[clamp(0.9rem,1.4vw,1.05rem)] max-w-2xl mb-8">
-                {featured.bio}
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {topics.map(t => <TopicBadge key={t} label={t} color={featured.color || '#9c3aed'} />)}
-              </div>
-            </div>
+        {/* Bento Grid */}
+        {hasSideSpeakers ? (
+          <BentoLayout primary={primary} rest={rest} />
+        ) : (
+          // Single featured speaker: full-width centred
+          <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+            <BentoCard speaker={primary} variant="primary" index={0} />
           </div>
-
-          {/* Corner accent */}
-          <div
-            className="absolute top-0 right-0 w-64 h-64 pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at 100% 0%, ${featured.color}20, transparent 60%)`,
-            }}
-          />
-        </div>
+        )}
       </div>
     </section>
-  )
+  );
 }
 
-/* ─── Speaker Card ──────────────────────────────────── */
-function SpeakerCard({ speaker }) {
+/* ─── Speaker Card (minimal / sphere hero) ───────────── */
+function SpeakerCard({ speaker, index = 0 }) {
+  const color = speaker.color || '#9c3aed';
+  const topics = Array.isArray(speaker.topics) ? speaker.topics : [];
+
   return (
-    <div
-      className="group relative rounded-2xl glass border border-purple-500/20 hover:border-purple-400/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden cursor-default flex flex-col"
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.6, delay: (index % 6) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative rounded-2xl overflow-hidden cursor-default flex flex-col"
+      style={{
+        border: `1px solid ${color}20`,
+        background: 'transparent',
+        transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
+      }}
+      whileHover={{
+        boxShadow: `0 0 50px ${color}18, inset 0 0 50px ${color}08`,
+        borderColor: `${color}45`,
+        transition: { duration: 0.4 },
+      }}
     >
-      {/* Card hover glow */}
+      {/* Top shimmer line */}
       <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none z-0"
-        style={{ boxShadow: `inset 0 0 50px ${speaker.color}18` }}
+        className="absolute top-0 left-6 right-6 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}60, transparent)` }}
       />
       {/* Bottom accent line */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
-        style={{ background: `linear-gradient(90deg, transparent, ${speaker.color}, transparent)` }}
+        className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}50, transparent)` }}
       />
 
-      {/* ── PHOTO BANNER (top of card) ── */}
-      <div
-        className="relative w-full h-44 flex-shrink-0 overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${speaker.color}33 0%, rgba(4,11,15,0.9) 60%, ${speaker.color}18 100%)`,
-        }}
-      >
-        {/* Noise texture overlay */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `radial-gradient(circle at 70% 30%, ${speaker.color}44 0%, transparent 50%),
-                              radial-gradient(circle at 20% 70%, rgba(48,34,127,0.4) 0%, transparent 50%)`,
-          }}
-        />
+      <div className="flex flex-col items-center px-6 pt-8 pb-6 gap-5 h-full">
 
-        {/* Decorative pattern with initials watermark */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        {/* ── Circular photo sphere (hero) ── */}
+        <div className="relative flex-shrink-0">
+          {/* Outer slow pulse ring */}
+          <motion.div
+            className="absolute rounded-full"
+            style={{ inset: '-8px', border: `1px solid ${color}35` }}
+            animate={{ scale: [1, 1.07, 1], opacity: [0.45, 0.1, 0.45] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          {/* Inner fast pulse ring */}
+          <motion.div
+            className="absolute rounded-full"
+            style={{ inset: '-4px', border: `1px solid ${color}50` }}
+            animate={{ scale: [1, 1.04, 1], opacity: [0.6, 0.2, 0.6] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+          />
+
           <div
-            className="text-[5rem] font-black font-heading leading-none select-none opacity-20 group-hover:scale-110 transition-transform duration-500"
-            style={{ color: speaker.color, fontFamily: "'Space Grotesk', sans-serif" }}
+            className="w-24 h-24 rounded-full overflow-hidden"
+            style={{
+              border: `2px solid ${color}60`,
+              boxShadow: `0 0 30px ${color}35, 0 0 0 4px ${color}10`,
+            }}
           >
-            {speaker.initials}
+            {speaker.photo ? (
+              <img src={speaker.photo} alt={speaker.name} className="w-full h-full object-cover" />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center font-black text-white text-xl"
+                style={{
+                  background: `radial-gradient(circle at 30% 30%, ${color}55, ${color}22)`,
+                  fontFamily: "'Space Grotesk', sans-serif",
+                }}
+              >
+                {speaker.initials}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Bottom gradient fade into card */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16"
-          style={{ background: 'linear-gradient(to bottom, transparent, rgba(4,11,15,0.95))' }}
-        />
-
-        {/* Company badge — top right */}
-        <div
-          className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider"
-          style={{
-            background: 'rgba(4,11,15,0.75)',
-            border: `1px solid ${speaker.color}55`,
-            color: speaker.color,
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          {speaker.company}
-        </div>
-      </div>
-
-      {/* ── AVATAR overlapping banner ── */}
-      <div className="relative px-5 -mt-10 mb-3 z-10">
-        <SpeakerPhoto
-          photo={speaker.photo}
-          initials={speaker.initials}
-          color={speaker.color}
-          size="sm"
-        />
-      </div>
-
-      {/* ── CONTENT ── */}
-      <div className="px-5 pb-5 flex flex-col flex-1">
-        {/* Name + role */}
-        <div className="mb-3">
-          <h3 className="text-white font-bold text-base leading-tight font-heading mb-0.5">
+        {/* Name / role / company */}
+        <div className="text-center">
+          <h3
+            className="text-white font-bold text-base leading-tight font-heading mb-0.5"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
             {speaker.name}
           </h3>
-          <p className="text-secondary-light text-sm">{speaker.role}</p>
+          <p className="text-secondary-light text-xs mb-0.5">{speaker.role}</p>
+          <p className="text-xs font-semibold" style={{ color }}>{speaker.company}</p>
         </div>
 
-        <p className="text-secondary text-sm leading-relaxed mb-4 line-clamp-3 flex-1">{speaker.bio}</p>
+        {/* Bio */}
+        {speaker.bio && (
+          <p className="text-secondary text-xs leading-relaxed text-center line-clamp-3 flex-1">
+            {speaker.bio}
+          </p>
+        )}
 
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {speaker.topics.map(t => <TopicBadge key={t} label={t} color={speaker.color} />)}
-        </div>
+        {/* Topics */}
+        {topics.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {topics.slice(0, 3).map(t => <TopicBadge key={t} label={t} color={color} />)}
+          </div>
+        )}
 
-        {/* Social links */}
-        <div className="flex gap-2 pt-3 border-t border-purple-500/10">
-          {speaker.social.linkedin && (
-            <a href={speaker.social.linkedin} aria-label={`${speaker.name} LinkedIn`}
-              className="w-7 h-7 rounded-full glass border border-purple-500/20 flex items-center justify-center text-muted hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300"
-              onClick={e => e.stopPropagation()}>
-              <IconLinkedin size={12} />
-            </a>
-          )}
-          {speaker.social.twitter && (
-            <a href={speaker.social.twitter} aria-label={`${speaker.name} Twitter`}
-              className="w-7 h-7 rounded-full glass border border-purple-500/20 flex items-center justify-center text-muted hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300"
-              onClick={e => e.stopPropagation()}>
-              <IconTwitterX size={12} />
-            </a>
-          )}
-        </div>
+        {/* Social */}
+        {(speaker.social?.linkedin || speaker.social?.twitter) && (
+          <div className="flex gap-2 pt-3 border-t w-full justify-center" style={{ borderColor: `${color}15` }}>
+            {speaker.social.linkedin && (
+              <a
+                href={speaker.social.linkedin}
+                aria-label={`${speaker.name} LinkedIn`}
+                target="_blank" rel="noopener noreferrer"
+                className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                style={{ background: `${color}12`, border: `1px solid ${color}30`, color }}
+                onClick={e => e.stopPropagation()}
+              >
+                <IconLinkedin size={12} />
+              </a>
+            )}
+            {speaker.social.twitter && (
+              <a
+                href={speaker.social.twitter}
+                aria-label={`${speaker.name} Twitter`}
+                target="_blank" rel="noopener noreferrer"
+                className="w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
+                style={{ background: `${color}12`, border: `1px solid ${color}30`, color }}
+                onClick={e => e.stopPropagation()}
+              >
+                <IconTwitterX size={12} />
+              </a>
+            )}
+          </div>
+        )}
       </div>
-    </div>
-  )
+    </motion.div>
+  );
 }
 
 /* ─── Page Hero ─────────────────────────────────────── */
@@ -467,7 +715,10 @@ export default function Panelistas() {
     loadData();
   }, []);
 
-  const featuredSpeaker = panelistasList.find(p => p.isFeatured) || null;
+  const featuredSpeakers = panelistasList
+    .filter(p => p.isFeatured)
+    .sort((a, b) => (a.bentoPosition || 99) - (b.bentoPosition || 99))
+    .slice(0, 3);
   const regularSpeakers = panelistasList.filter(p => !p.isFeatured);
 
   return (
@@ -481,10 +732,10 @@ export default function Panelistas() {
 
       <PageHero />
 
-      {featuredSpeaker && (
+      {featuredSpeakers.length > 0 && (
         <>
           <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.3), transparent)' }} />
-          <FeaturedSpeaker featured={featuredSpeaker} />
+          <FeaturedSpeakersBento speakers={featuredSpeakers} />
         </>
       )}
 
@@ -520,14 +771,14 @@ export default function Panelistas() {
             <div className="text-center py-16 text-secondary text-sm animate-pulse">
               Cargando panelistas desde Firebase...
             </div>
-          ) : regularSpeakers.length === 0 && !featuredSpeaker ? (
+          ) : regularSpeakers.length === 0 && featuredSpeakers.length === 0 ? (
             <div className="text-center py-16 text-secondary text-sm">
               Próximamente anunciaremos los ponentes del evento.
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {regularSpeakers.map((speaker) => (
-                <SpeakerCard key={speaker.id || speaker.name} speaker={speaker} />
+              {regularSpeakers.map((speaker, idx) => (
+                <SpeakerCard key={speaker.id || speaker.name} speaker={speaker} index={idx} />
               ))}
             </div>
           )}
