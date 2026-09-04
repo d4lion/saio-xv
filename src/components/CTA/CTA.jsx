@@ -105,7 +105,7 @@ export default function CTA() {
             className="text-white font-black text-xl font-heading"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
-            $50.000 COP
+            $54.900 COP
           </span>
           <span className="text-accent text-sm font-medium">· Pago único</span>
         </motion.div>
@@ -139,10 +139,9 @@ export default function CTA() {
           className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-2"
         >
           {[
-            'Pago 100% seguro',
             'Boleta por correo',
             'Cupo limitado',
-            'Organizado por ANIAP',
+            'Organiza Aneiap'
           ].map((item) => (
             <span key={item} className="text-muted text-xs">{item}</span>
           ))}

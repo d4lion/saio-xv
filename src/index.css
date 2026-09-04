@@ -14,6 +14,7 @@
 
   --font-sans: 'Outfit', 'Space Grotesk', 'Inter', system-ui, sans-serif;
   --font-heading: 'Space Grotesk', 'Outfit', system-ui, sans-serif;
+  --font-mono: 'Space Mono', 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 *, *::before, *::after {
@@ -38,7 +39,7 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background-color: #040b0f;
+  background-color: #050507;
   color: #e2e8f0;
   font-family: var(--font-sans);
   overflow-x: hidden;
@@ -47,9 +48,9 @@ body {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #040b0f; }
-::-webkit-scrollbar-thumb { background: #30227f; border-radius: 3px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #050507; }
+::-webkit-scrollbar-thumb { background: #30227f; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #4c29b6; }
 
 /* Glassmorphism utility */

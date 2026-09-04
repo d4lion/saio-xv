@@ -9,12 +9,12 @@ export const ticketService = {
   async getActiveTickets() {
     try {
       const tickets = await adminService.getAllTickets();
-      if (!tickets || tickets.length === 0) return TICKETS_DATA;
+      if (!tickets || tickets.length === 0) return [];
       const activeOnly = tickets.filter(t => t.activo !== false);
-      return activeOnly.length > 0 ? activeOnly : TICKETS_DATA;
+      return activeOnly;
     } catch (e) {
-      console.warn("Fallo al obtener boletas de Firestore, usando respaldo:", e);
-      return TICKETS_DATA;
+      console.error("Fallo al obtener boletas de Firestore:", e);
+      throw e;
     }
   },
 

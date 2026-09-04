@@ -101,7 +101,7 @@ export default function WhatsAppButton() {
                 <div className="bg-white p-3 rounded-2xl rounded-tl-xs border border-gray-200 text-xs text-gray-800 shadow-xs space-y-1 max-w-[85%]">
                   <p className="font-semibold text-emerald-700">¡Hola! 👋 Bienvenido a SAIO-XV</p>
                   <p className="leading-relaxed">
-                    Si tienes dudas sobre el evento, boletas, agenda o conferencistas, no dudes en escribirnos.
+                    Si tienes dudas sobre el evento, boletas, cronograma o conferencistas, no dudes en escribirnos.
                   </p>
                   <div className="flex justify-end items-center gap-1 text-[10px] text-gray-400 pt-0.5">
                     <span>Justo ahora</span>

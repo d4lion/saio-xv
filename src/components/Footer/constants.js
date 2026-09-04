@@ -22,7 +22,7 @@ export const links = [
             path: "/boletas"
         },
         {
-            name: "Agenda",
+            name: "Cronograma",
             path: "#timeline"
         }
     ] 
