@@ -16,11 +16,9 @@ export default function TicketsTab({
   handleOpenCreateTicket,
   handleOpenEditTicket,
   handleToggleTicketStatus,
-  handleDeleteTicket,
-  onSeedTickets
+  handleDeleteTicket
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSeeding, setIsSeeding] = useState(false);
   const [chartTimeFilter, setChartTimeFilter] = useState('all'); // '10m', '1h', '24h', 'all'
 
   // 1. Calculate Click Traceability Metrics from telemetry logs
@@ -99,19 +97,6 @@ export default function TicketsTab({
     return <Zap className="w-5 h-5" style={{ color }} />;
   };
 
-  const handleSeedClick = async () => {
-    if (!onSeedTickets) return;
-    setIsSeeding(true);
-    try {
-      await onSeedTickets();
-      toast.success("Boletas base (General y VIP) guardadas en Firestore exitosamente.");
-    } catch (e) {
-      toast.error(`Error al sembrar boletas: ${e.message}`);
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       
@@ -132,15 +117,6 @@ export default function TicketsTab({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={handleSeedClick}
-            disabled={isSeeding}
-            className="px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-heading text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
-            title="Crear boletas General y VIP por defecto en Firestore"
-          >
-            <Database className="w-4 h-4 text-purple-600" />
-            <span>{isSeeding ? 'Sembrando...' : 'Sembrar Base Firestore'}</span>
-          </button>
 
           <button
             onClick={handleOpenCreateTicket}
@@ -289,15 +265,8 @@ export default function TicketsTab({
           <Ticket className="w-10 h-10 text-gray-300 mx-auto" />
           <h3 className="text-sm font-bold text-gray-800">No se encontraron boletas en Firestore</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
-            Puedes hacer clic en "Sembrar Base Firestore" para guardar automáticamente la Boleta General y VIP iniciales.
+            Puedes hacer clic en "Crear Boleta" para comenzar a configurar las entradas del evento.
           </p>
-          <button
-            onClick={handleSeedClick}
-            disabled={isSeeding}
-            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-heading text-xs font-bold transition-all shadow-sm cursor-pointer"
-          >
-            Sembrar Boletas Base Ahora
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
