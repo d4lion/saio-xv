@@ -30,7 +30,7 @@ export const storeService = {
    * Obtiene las reglas de puntos por compras de la colección 'store_rules'.
    */
   async getStoreRules() {
-    if (!db) return DEFAULT_STORE_RULES;
+    if (!db) return [];
 
     try {
       const rulesRef = collection(db, "store_rules");
@@ -40,19 +40,10 @@ export const storeService = {
         rules.push({ id: docSnap.id, ...docSnap.data() });
       });
 
-      if (rules.length === 0) {
-        // Inicializar reglas por defecto en Firestore la primera vez
-        for (const rule of DEFAULT_STORE_RULES) {
-          const ruleRef = doc(db, "store_rules", rule.id);
-          await setDoc(ruleRef, rule);
-        }
-        return DEFAULT_STORE_RULES;
-      }
-
       return rules.sort((a, b) => (a.montoMinimo || 0) - (b.montoMinimo || 0));
     } catch (err) {
       console.warn("Error al cargar reglas de tiendas de Firestore:", err);
-      return DEFAULT_STORE_RULES;
+      return [];
     }
   },
 
@@ -152,7 +143,7 @@ export const storeService = {
   /**
    * Procesar una venta realizada por una tienda en el evento.
    */
-  async processStoreSale({ vendorUid, storeName, attendee, amount, pointsCalculated }) {
+  async processStoreSale({ vendorUid, storeName, attendee, amount, pointsCalculated, paymentMethod }) {
     if (!db) throw new Error("Firestore no está configurado.");
     if (!attendee || !attendee.uid) throw new Error("No se especificó un asistente válido.");
     if (amount <= 0) throw new Error("El monto de la venta debe ser mayor a $0.");
@@ -187,6 +178,7 @@ export const storeService = {
         attendeeCorreo: userData.correo || userData.email || attendee.correo || 'N/A',
         montoCop: Number(amount),
         puntosOtorgados: Number(pointsCalculated),
+        metodoPago: paymentMethod || 'Efectivo',
         fecha: new Date().toISOString()
       });
 
@@ -197,7 +189,10 @@ export const storeService = {
         puntos: Number(pointsCalculated),
         fecha: new Date().toISOString(),
         tienda: storeName || 'Tienda SAIO-XV',
-        montoCop: Number(amount)
+        montoCop: Number(amount),
+        metodoPago: paymentMethod || 'Efectivo',
+        transactionName: 'Compra en Tienda',
+        transactionDescription: `Acumulación por compra en tienda (${paymentMethod || 'Efectivo'})`
       });
     });
 
@@ -217,6 +212,7 @@ export const storeService = {
    */
   async getVendorSalesHistory(vendorUid, limitCount = 20) {
     if (!db) return [];
+    console.log(`[getVendorSalesHistory] Buscando ventas para el vendedor con UID: ${vendorUid}`);
 
     try {
       const salesRef = collection(db, "store_sales");
@@ -232,23 +228,30 @@ export const storeService = {
       querySnapshot.forEach((docSnap) => {
         sales.push({ id: docSnap.id, ...docSnap.data() });
       });
-
+      
+      console.log(`[getVendorSalesHistory] Búsqueda indexada exitosa. Ventas encontradas: ${sales.length}`);
       return sales;
     } catch (err) {
-      console.warn("Consulta indexada de ventas falló, procesando ordenamiento en memoria:", err);
+      console.warn("[getVendorSalesHistory] Consulta indexada de ventas falló. Puede que falte el índice compuesto en Firestore. Mensaje de error:", err.message);
+      console.log("[getVendorSalesHistory] Iniciando búsqueda de respaldo en memoria...");
       try {
         const salesRef = collection(db, "store_sales");
         const querySnapshot = await getDocs(salesRef);
         const sales = [];
+        let totalDocs = 0;
+        
         querySnapshot.forEach((docSnap) => {
+          totalDocs++;
           const data = docSnap.data();
           if (data.vendorUid === vendorUid) {
             sales.push({ id: docSnap.id, ...data });
           }
         });
+        
+        console.log(`[getVendorSalesHistory] Búsqueda en memoria finalizada. Documentos totales en store_sales: ${totalDocs}. Ventas del vendedor: ${sales.length}`);
         return sales.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).slice(0, limitCount);
       } catch (err2) {
-        console.error("Error al obtener historial de ventas:", err2);
+        console.error("[getVendorSalesHistory] Error al obtener historial de ventas en el respaldo:", err2);
         return [];
       }
     }

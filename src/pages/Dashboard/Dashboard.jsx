@@ -9,7 +9,7 @@ import { storeService } from '../../services/storeService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon, Shield
 } from 'lucide-react';
 
 // Subcomponents
@@ -27,6 +27,7 @@ import TicketsTab from './TicketsTab';
 
 // Modals
 import UserModal from './UserModal';
+import UserTraceabilityModal from './UserTraceabilityModal';
 import CodeModal from './CodeModal';
 import RewardModal from './RewardModal';
 import QrPreviewModal from './QrPreviewModal';
@@ -191,6 +192,10 @@ export default function Dashboard() {
   // Modals state
   const [showUserModal, setShowUserModal] = useState(false);
   const [userModalMode, setUserModalMode] = useState('create');
+  
+  // User Traceability Modal State
+  const [showTraceabilityModal, setShowTraceabilityModal] = useState(false);
+  const [selectedTraceUser, setSelectedTraceUser] = useState(null);
   const [selectedUserUid, setSelectedUserUid] = useState(null);
   const [userForm, setUserForm] = useState({
     nombre: '',
@@ -198,6 +203,7 @@ export default function Dashboard() {
     cedula: '',
     puntos: 0,
     rol: ROLES.ASISTENTE,
+    boleta: 'No determinado',
     password: ''
   });
 
@@ -520,6 +526,7 @@ export default function Dashboard() {
       cedula: '',
       puntos: 0,
       rol: ROLES.ASISTENTE,
+      boleta: 'No determinado',
       password: ''
     });
     setUserModalMode('create');
@@ -533,6 +540,7 @@ export default function Dashboard() {
       cedula: u.cedula || '',
       puntos: u.puntos || 0,
       rol: u.rol || ROLES.ASISTENTE,
+      boleta: u.boleta || 'No determinado',
       password: ''
     });
     setSelectedUserUid(u.uid);
@@ -557,7 +565,8 @@ export default function Dashboard() {
           userForm.password,
           userForm.nombre,
           userForm.cedula,
-          userForm.rol
+          userForm.rol,
+          userForm.boleta
         );
         addTerminalEvent(`Usuario creado exitosamente: ${userForm.correo}`);
         toast.success(`Usuario Creado: El usuario ${userForm.nombre} ha sido registrado.`);
@@ -567,7 +576,8 @@ export default function Dashboard() {
           nombre: userForm.nombre,
           cedula: userForm.cedula,
           puntos: Number(userForm.puntos),
-          rol: userForm.rol
+          rol: userForm.rol,
+          boleta: userForm.boleta
         });
         addTerminalEvent(`Usuario actualizado exitosamente: ${userForm.nombre}`);
         toast.success(`Usuario Actualizado: Se actualizaron los datos de ${userForm.nombre}.`);
@@ -875,6 +885,11 @@ export default function Dashboard() {
       console.error(err);
       toast.error('Error: Fallo al actualizar el estado del premio.');
     }
+  };
+
+  const handleOpenUserTraceability = (user) => {
+    setSelectedTraceUser(user);
+    setShowTraceabilityModal(true);
   };
 
   const handleDeleteReward = async (r) => {
@@ -1192,6 +1207,7 @@ export default function Dashboard() {
       title: 'Usuarios & Accesos',
       items: [
         { path: '/dashboard/usuarios', label: 'Usuarios', icon: User, roles: [ROLES.ADMIN] },
+        { path: '/dashboard/moderacion', label: 'Moderación', icon: Shield, roles: [ROLES.ADMIN] },
         { path: '/dashboard/panelistas', label: 'Panelistas', icon: Mic, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
       ]
     },
@@ -1379,12 +1395,34 @@ export default function Dashboard() {
               element={
                 user?.rol === ROLES.ADMIN ? (
                   <UsersTab 
-                    users={users} 
+                    users={users.filter(u => !u.rol || String(u.rol).toLowerCase() === ROLES.ASISTENTE)} 
                     loadingUsers={loadingUsers} 
                     userSearch={userSearch} 
                     setUserSearch={setUserSearch} 
                     handleOpenCreateUser={handleOpenCreateUser} 
                     handleOpenEditUser={handleOpenEditUser} 
+                    handleOpenUserTraceability={handleOpenUserTraceability}
+                    handleToggleUserStatus={handleToggleUserStatus} 
+                    handleDeleteUser={handleDeleteUser} 
+                  />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
+            <Route 
+              path="moderacion" 
+              element={
+                user?.rol === ROLES.ADMIN ? (
+                  <UsersTab 
+                    users={users.filter(u => String(u.rol).toLowerCase() === ROLES.ADMIN || String(u.rol).toLowerCase() === ROLES.COORDINADOR)} 
+                    loadingUsers={loadingUsers} 
+                    userSearch={userSearch} 
+                    setUserSearch={setUserSearch} 
+                    handleOpenCreateUser={handleOpenCreateUser} 
+                    handleOpenEditUser={handleOpenEditUser} 
+                    handleOpenUserTraceability={handleOpenUserTraceability}
                     handleToggleUserStatus={handleToggleUserStatus} 
                     handleDeleteUser={handleDeleteUser} 
                   />
@@ -1578,6 +1616,13 @@ export default function Dashboard() {
         setForm={setUserForm} 
         onSave={handleSaveUser} 
         selectedUserUid={selectedUserUid} 
+      />
+
+      <UserTraceabilityModal
+        isOpen={showTraceabilityModal}
+        onClose={() => setShowTraceabilityModal(false)}
+        user={selectedTraceUser}
+        allTransactions={logs}
       />
 
       <CodeModal 

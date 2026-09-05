@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 import { useAuth } from '../../context/AuthContext'
 import { navLinks } from './navLinksData'
+import { ROLES } from '../../constants/roles'
 
 
 // ─── Animations ─────────────────────────────────────────────────────────
@@ -91,10 +92,10 @@ export default function Navbar() {
             {/* Desktop CTA */}
             <div className="hidden md:flex items-center gap-6">
               <Link
-                to={user ? "/pasaporte/perfil" : "/login"}
+                to={user ? (user.rol === ROLES.VENDEDOR ? "/saio/mi-tienda" : "/pasaporte/perfil") : "/login"}
                 className={`text-sm font-semibold tracking-wide transition-colors duration-300 relative group outline-none ${menuOpen ? 'text-white' : 'text-secondary hover:text-white'}`}
               >
-                {user ? "MI PERFIL" : "ACCESO PORTAL"}
+                {user ? (user.rol === ROLES.VENDEDOR ? "MI COMERCIO" : "MI PERFIL") : "ACCESO PORTAL"}
                 <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-purple-500 to-accent group-hover:w-full transition-all duration-300" />
               </Link>
               <Link
@@ -190,11 +191,11 @@ export default function Navbar() {
                 >
                   <div className="md:hidden flex flex-col gap-4 mb-4">
                      <Link
-                        to={user ? "/pasaporte/perfil" : "/login"}
+                        to={user ? (user.rol === ROLES.VENDEDOR ? "/saio/mi-tienda" : "/pasaporte/perfil") : "/login"}
                         onClick={() => setMenuOpen(false)}
                         className="text-white text-sm tracking-[0.2em] uppercase border border-white/20 px-6 py-3 rounded-full text-center hover:bg-white hover:text-black transition-colors"
                       >
-                        {user ? "Mi Perfil" : "Acceso Portal"}
+                        {user ? (user.rol === ROLES.VENDEDOR ? "Mi Comercio" : "Mi Perfil") : "Acceso Portal"}
                       </Link>
                       <Link
                         to="/boletas"

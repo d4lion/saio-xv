@@ -101,7 +101,7 @@ export default function App() {
         <Route 
           path="/saio/mi-tienda" 
           element={
-            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR, ROLES.ADMIN, ROLES.COORDINADOR]}>
+            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR]}>
               <MiTienda />
             </ProtectedRoute>
           } 
@@ -109,7 +109,7 @@ export default function App() {
         <Route 
           path="/store" 
           element={
-            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR, ROLES.ADMIN, ROLES.COORDINADOR]}>
+            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR]}>
               <MiTienda />
             </ProtectedRoute>
           } 

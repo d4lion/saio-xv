@@ -215,7 +215,9 @@ export const pointsService = {
       coordenadas: coords ? { 
         latitud: coords.latitude, 
         longitud: coords.longitude 
-      } : null
+      } : null,
+      transactionName: 'Código de Puntos',
+      transactionDescription: `Reclamo de código QR: ${uppercaseCode}`
     });
 
     telemetryService.logSuccess('QR_CODE', `Código QR ${uppercaseCode} canjeado exitosamente (+${codeData.puntos} pts).`, { uid });
@@ -355,7 +357,9 @@ export const pointsService = {
         puntos: -cost,
         fecha: new Date().toISOString(),
         premioCanjeado: title,
-        coordenadas: null
+        coordenadas: null,
+        transactionName: 'Canje de Premio',
+        transactionDescription: `Canje de puntos por: ${title}`
       });
 
       // Guardar ticket de canje único
