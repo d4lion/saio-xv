@@ -27,6 +27,7 @@ import TicketsTab from './TicketsTab';
 
 // Modals
 import UserModal from './UserModal';
+import UserTraceabilityModal from './UserTraceabilityModal';
 import CodeModal from './CodeModal';
 import RewardModal from './RewardModal';
 import QrPreviewModal from './QrPreviewModal';
@@ -191,6 +192,10 @@ export default function Dashboard() {
   // Modals state
   const [showUserModal, setShowUserModal] = useState(false);
   const [userModalMode, setUserModalMode] = useState('create');
+  
+  // User Traceability Modal State
+  const [showTraceabilityModal, setShowTraceabilityModal] = useState(false);
+  const [selectedTraceUser, setSelectedTraceUser] = useState(null);
   const [selectedUserUid, setSelectedUserUid] = useState(null);
   const [userForm, setUserForm] = useState({
     nombre: '',
@@ -877,6 +882,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleOpenUserTraceability = (user) => {
+    setSelectedTraceUser(user);
+    setShowTraceabilityModal(true);
+  };
+
   const handleDeleteReward = async (r) => {
     const confirm = await themedSwal.fire({
       icon: 'warning',
@@ -1385,6 +1395,7 @@ export default function Dashboard() {
                     setUserSearch={setUserSearch} 
                     handleOpenCreateUser={handleOpenCreateUser} 
                     handleOpenEditUser={handleOpenEditUser} 
+                    handleOpenUserTraceability={handleOpenUserTraceability}
                     handleToggleUserStatus={handleToggleUserStatus} 
                     handleDeleteUser={handleDeleteUser} 
                   />
@@ -1578,6 +1589,13 @@ export default function Dashboard() {
         setForm={setUserForm} 
         onSave={handleSaveUser} 
         selectedUserUid={selectedUserUid} 
+      />
+
+      <UserTraceabilityModal
+        isOpen={showTraceabilityModal}
+        onClose={() => setShowTraceabilityModal(false)}
+        user={selectedTraceUser}
+        allTransactions={logs}
       />
 
       <CodeModal 

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Search, UserPlus, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, UserPlus, Edit, Trash2, Eye } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
+import Pagination from '../../components/Pagination';
 
 export default function UsersTab({
   users,
@@ -9,6 +10,7 @@ export default function UsersTab({
   setUserSearch,
   handleOpenCreateUser,
   handleOpenEditUser,
+  handleOpenUserTraceability,
   handleToggleUserStatus,
   handleDeleteUser
 }) {
@@ -21,6 +23,16 @@ export default function UsersTab({
       (u.rol || '').toLowerCase().includes(q)
     );
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [userSearch]);
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-4 animate-fadeIn">
@@ -67,8 +79,8 @@ export default function UsersTab({
                   <td colSpan="6" className="text-center py-8 text-gray-500 font-medium">No se encontraron usuarios.</td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => (
-                  <tr key={u.uid} className="hover:bg-gray-50/80 transition-colors duration-150">
+                paginatedUsers.map((u) => (
+                  <tr key={u.correo} className="hover:bg-gray-50/80 transition-colors duration-150">
                     <td className="px-6 py-4.5">
                       <div className="font-semibold text-gray-900">{u.nombre || 'Sin nombre'}</div>
                       <div className="text-xs text-gray-500 mt-0.5">{u.correo}</div>
@@ -97,6 +109,13 @@ export default function UsersTab({
                     <td className="px-6 py-4.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
+                          onClick={() => handleOpenUserTraceability(u)}
+                          className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 cursor-pointer transition-colors border border-blue-200 shadow-sm"
+                          title="Ver Trazabilidad"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleOpenEditUser(u)}
                           className="p-2 rounded-lg bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors border border-gray-200 shadow-sm"
                           title="Editar perfil"
@@ -118,6 +137,16 @@ export default function UsersTab({
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div className="px-6 py-2">
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              onPageChange={setCurrentPage} 
+              theme="light" 
+            />
+          </div>
+        )}
       </div>
     </div>
   );
