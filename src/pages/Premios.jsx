@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { pointsService } from '../services/pointsService';
 import { Gift, Award, CheckCircle, AlertTriangle, Coins, X, ChevronDown, ChevronUp, Image as ImageIcon } from 'lucide-react';
@@ -23,6 +24,7 @@ const themedSwal = Swal.mixin({
 
 export default function Premios() {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('catalogo');
   const [rewardsList, setRewardsList] = useState([]);
   const [claimedRewards, setClaimedRewards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,13 +174,33 @@ export default function Premios() {
         </div>
       )}
 
+      {/* Tabs */}
+      <div className="flex border-b border-white/10 mb-4 relative z-10">
+        <button
+          onClick={() => setActiveTab('catalogo')}
+          className={`flex-1 pb-4 text-center font-heading text-sm font-bold uppercase tracking-widest relative cursor-pointer transition-colors ${activeTab === 'catalogo' ? 'text-white' : 'text-secondary hover:text-white'}`}
+        >
+          <Gift className="w-4 h-4 inline-block mr-2 -mt-1" />
+          Catálogo
+          {activeTab === 'catalogo' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent glow-purple"></div>}
+        </button>
+        <button
+          onClick={() => setActiveTab('mis-premios')}
+          className={`flex-1 pb-4 text-center font-heading text-sm font-bold uppercase tracking-widest relative cursor-pointer transition-colors ${activeTab === 'mis-premios' ? 'text-white' : 'text-secondary hover:text-white'}`}
+        >
+          <Award className="w-4 h-4 inline-block mr-2 -mt-1" />
+          Mis Canjes
+          {activeTab === 'mis-premios' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent glow-purple"></div>}
+        </button>
+      </div>
+
       {/* Carga del Catálogo */}
       {isLoading ? (
         <div className="py-24 text-center text-secondary text-sm flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin"></div>
           <p className="font-heading text-xs tracking-[0.2em] uppercase font-bold text-secondary/60">Cargando Catálogo...</p>
         </div>
-      ) : (
+      ) : activeTab === 'catalogo' ? (
         /* Grid de Premios */
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {rewardsList.map((reward) => {
@@ -323,71 +345,124 @@ export default function Premios() {
             );
           })}
         </section>
+      ) : (
+        /* Grid de Mis Canjes */
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {userClaims.length === 0 ? (
+            <div className="col-span-full py-16 text-center">
+              <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                <Gift className="w-8 h-8 text-secondary/40" />
+              </div>
+              <p className="text-secondary font-mono text-xs uppercase tracking-widest">No has canjeado ningún premio aún.</p>
+            </div>
+          ) : (
+            userClaims.map(claim => (
+              <div key={claim.id} className="glass p-6 sm:p-8 rounded-[1.5rem] flex flex-col justify-between relative group overflow-hidden border-emerald-500/30 bg-emerald-500/5 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full pointer-events-none group-hover:bg-emerald-500/10 transition-colors z-0" />
+                
+                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-heading text-[10px] font-bold tracking-widest uppercase border border-emerald-500/30 z-20 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                  <CheckCircle className="w-3 h-3" /> {claim.estado === 'pendiente' ? 'Pendiente' : 'Entregado'}
+                </div>
+                
+                <div className="space-y-4 mt-6 relative z-10">
+                  <h3 className="font-heading font-black text-xl text-emerald-400">{claim.premio}</h3>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-[10px] text-secondary font-mono tracking-widest uppercase border-b border-white/5 pb-2">
+                      <span>Costo</span>
+                      <span className="text-white font-bold">{claim.costo} PTS</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-secondary font-mono tracking-widest uppercase">
+                      <span>Fecha</span>
+                      <span className="text-white">{new Date(claim.fecha).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-white/10 relative z-10">
+                  <button
+                    onClick={() => {
+                      setSelectedClaim(claim);
+                      setShowClaimModal(true);
+                    }}
+                    className="w-full py-3.5 rounded-full font-heading text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_30px_rgba(16,185,129,0.25)]"
+                  >
+                    <Gift className="w-4 h-4" />
+                    <span>Ver Ticket QR</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </section>
       )}
 
       {/* Modal del Ticket QR de Canje */}
-      {showClaimModal && selectedClaim && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
-          <div className="relative w-full max-w-sm overflow-hidden border border-white/10 rounded-[2.5rem] bg-black/90 text-white shadow-2xl p-8 flex flex-col items-center">
-            {/* Cabecera */}
-            <div className="w-full flex justify-between items-center mb-8">
+      {showClaimModal && selectedClaim && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in zoom-in-95 duration-300">
+          <div className="relative w-full max-w-sm max-h-[90dvh] flex flex-col border border-white/10 rounded-[2.5rem] bg-black/90 text-white shadow-2xl overflow-hidden">
+            {/* Cabecera Fija */}
+            <div className="w-full flex justify-between items-center p-6 sm:p-8 pb-4 border-b border-white/10 shrink-0 bg-black/90 z-20">
               <span className="font-heading font-black text-xs uppercase tracking-widest text-accent">Ticket de Canje</span>
               <button 
                 onClick={() => {
                   setShowClaimModal(false);
                   setSelectedClaim(null);
                 }}
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-secondary hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-secondary hover:text-white hover:bg-white/20 transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Detalles del Premio */}
-            <h4 className="text-xl font-heading font-black text-white text-center mb-3">
-              {selectedClaim.premio}
-            </h4>
-            <div className="px-4 py-1.5 bg-emerald-500/20 text-emerald-400 font-heading text-[10px] font-bold rounded-full uppercase tracking-widest mb-8 border border-emerald-500/30 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-              <CheckCircle className="w-3.5 h-3.5" />
-              {selectedClaim.estado === 'pendiente' ? 'Pendiente de Entrega' : 'Entregado'}
-            </div>
+            {/* Contenido Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 pt-6 flex flex-col items-center scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+              {/* Detalles del Premio */}
+              <h4 className="text-xl font-heading font-black text-white text-center mb-3">
+                {selectedClaim.premio}
+              </h4>
+              <div className="px-4 py-1.5 bg-emerald-500/20 text-emerald-400 font-heading text-[10px] font-bold rounded-full uppercase tracking-widest mb-8 border border-emerald-500/30 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                <CheckCircle className="w-3.5 h-3.5" />
+                {selectedClaim.estado === 'pendiente' ? 'Pendiente de Entrega' : 'Entregado'}
+              </div>
 
-            {/* Imagen del Código QR */}
-            <div className="p-5 bg-white border border-white/10 rounded-3xl mb-8 shadow-[0_0_40px_rgba(255,255,255,0.1)] glow-purple flex items-center justify-center">
-              {claimQrUrl ? (
-                <img 
-                  src={claimQrUrl} 
-                  alt="Código QR de Canje" 
-                  className="w-48 h-48 object-contain rounded-xl" 
-                />
-              ) : (
-                <div className="w-48 h-48 flex items-center justify-center text-xs text-black font-mono tracking-widest uppercase animate-pulse">
-                  Generando...
+              {/* Imagen del Código QR */}
+              <div className="p-5 bg-white border border-white/10 rounded-3xl mb-8 shadow-[0_0_40px_rgba(255,255,255,0.1)] glow-purple flex items-center justify-center">
+                {claimQrUrl ? (
+                  <img 
+                    src={claimQrUrl} 
+                    alt="Código QR de Canje" 
+                    className="w-48 h-48 object-contain rounded-xl" 
+                  />
+                ) : (
+                  <div className="w-48 h-48 flex items-center justify-center text-xs text-black font-mono tracking-widest uppercase animate-pulse">
+                    Generando...
+                  </div>
+                )}
+              </div>
+
+              {/* Información adicional del ticket */}
+              <div className="w-full space-y-3 border-t border-white/10 pt-6 text-[10px] font-mono tracking-wider">
+                <div className="flex justify-between items-center">
+                  <span className="text-secondary/70">CÓDIGO ÚNICO</span>
+                  <span className="text-white font-bold truncate max-w-[150px] text-right" title={selectedClaim.id}>{selectedClaim.id}</span>
                 </div>
-              )}
-            </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-secondary/70">COSTO</span>
+                  <span className="text-accent font-bold text-xs">{selectedClaim.costo} PTS</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-secondary/70">FECHA</span>
+                  <span className="text-white">{new Date(selectedClaim.fecha).toLocaleString()}</span>
+                </div>
+              </div>
 
-            {/* Información adicional del ticket */}
-            <div className="w-full space-y-3 border-t border-white/10 pt-6 text-[10px] font-mono tracking-wider">
-              <div className="flex justify-between items-center">
-                <span className="text-secondary/70">CÓDIGO ÚNICO</span>
-                <span className="text-white font-bold">{selectedClaim.id}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-secondary/70">COSTO</span>
-                <span className="text-accent font-bold text-xs">{selectedClaim.costo} PTS</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-secondary/70">FECHA</span>
-                <span className="text-white">{new Date(selectedClaim.fecha).toLocaleString()}</span>
-              </div>
+              <p className="mt-8 text-[10px] text-center text-secondary/60 leading-relaxed font-semibold uppercase tracking-widest">
+                Muestra este código al staff del evento para reclamar tu premio físico.
+              </p>
             </div>
-
-            <p className="mt-8 text-[10px] text-center text-secondary/60 leading-relaxed font-semibold uppercase tracking-widest">
-              Muestra este código al staff del evento para reclamar tu premio físico.
-            </p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
