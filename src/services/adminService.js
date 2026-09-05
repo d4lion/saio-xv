@@ -284,7 +284,7 @@ export const adminService = {
     }
   },
 
-  async createUser(email, password, nombre, cedula, rol) {
+  async createUser(email, password, nombre, cedula, rol, boleta = 'No determinado') {
     if (!db || !isConfigValid) {
       // Local implementation
       const users = getLocalStorage('mock_users', defaultMockUsers);
@@ -299,6 +299,7 @@ export const adminService = {
         cedula,
         puntos: 0,
         rol,
+        boleta,
         activo: true,
         fechaCreacion: new Date().toISOString()
       };
@@ -337,6 +338,7 @@ export const adminService = {
       cedula,
       puntos: 0,
       rol,
+      boleta,
       activo: true,
       fechaCreacion: new Date().toISOString()
     };

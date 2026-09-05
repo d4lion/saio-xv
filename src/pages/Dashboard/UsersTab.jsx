@@ -14,9 +14,14 @@ export default function UsersTab({
   handleToggleUserStatus,
   handleDeleteUser
 }) {
+  const [boletaFilter, setBoletaFilter] = useState('Todos');
+
   const filteredUsers = users.filter(u => {
     const q = userSearch.toLowerCase();
-    return (
+    const b = u.boleta || 'No determinado';
+    const matchesBoleta = boletaFilter === 'Todos' || b === boletaFilter;
+    
+    return matchesBoleta && (
       (u.nombre || '').toLowerCase().includes(q) ||
       (u.correo || '').toLowerCase().includes(q) ||
       (u.cedula || '').toLowerCase().includes(q) ||
@@ -47,6 +52,18 @@ export default function UsersTab({
             className="w-full pl-11 pr-5 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-300 shadow-sm"
           />
         </div>
+        <div className="w-full sm:w-auto">
+          <select
+            value={boletaFilter}
+            onChange={(e) => setBoletaFilter(e.target.value)}
+            className="w-full sm:w-auto px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-sm text-gray-700 outline-none transition-all duration-300 shadow-sm cursor-pointer"
+          >
+            <option value="Todos">Todas las Boletas</option>
+            <option value="No determinado">No determinado</option>
+            <option value="Boleta Orbita">Boleta Orbita</option>
+            <option value="Boleta Supernova">Boleta Supernova</option>
+          </select>
+        </div>
         <button
           onClick={handleOpenCreateUser}
           className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold font-heading flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 shadow-sm"
@@ -64,6 +81,7 @@ export default function UsersTab({
                 <th className="px-6 py-4.5">Usuario</th>
                 <th className="px-6 py-4.5">Cédula</th>
                 <th className="px-6 py-4.5">Rol</th>
+                <th className="px-6 py-4.5">Boleta</th>
                 <th className="px-6 py-4.5">Puntos</th>
                 <th className="px-6 py-4.5">Estado</th>
                 <th className="px-6 py-4.5 text-right">Acciones</th>
@@ -95,6 +113,11 @@ export default function UsersTab({
                         {u.rol}
                       </span>
                     </td>
+                    <td className="px-6 py-4.5">
+                      <span className="text-gray-700 font-medium text-sm whitespace-nowrap">
+                        {u.boleta || 'No determinado'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4.5 font-bold text-blue-600 font-mono">{u.puntos || 0} PTS</td>
                     <td className="px-6 py-4.5">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border ${
@@ -107,27 +130,27 @@ export default function UsersTab({
                       </span>
                     </td>
                     <td className="px-6 py-4.5 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2 flex-wrap">
                         <button
                           onClick={() => handleOpenUserTraceability(u)}
-                          className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 cursor-pointer transition-colors border border-blue-200 shadow-sm"
-                          title="Ver Trazabilidad"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 font-semibold cursor-pointer transition-all duration-200 border border-blue-200 hover:border-blue-600 shadow-sm text-xs"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Trazabilidad</span>
                         </button>
                         <button
                           onClick={() => handleOpenEditUser(u)}
-                          className="p-2 rounded-lg bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors border border-gray-200 shadow-sm"
-                          title="Editar perfil"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-800 hover:text-white text-gray-700 font-semibold cursor-pointer transition-all duration-200 border border-gray-200 hover:border-gray-800 shadow-sm text-xs"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Editar</span>
                         </button>
                         <button
                           onClick={() => handleDeleteUser(u)}
-                          className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 cursor-pointer transition-colors border border-red-200 shadow-sm"
-                          title="Eliminar perfil"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-700 font-semibold cursor-pointer transition-all duration-200 border border-red-200 hover:border-red-600 shadow-sm text-xs"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Eliminar</span>
                         </button>
                       </div>
                     </td>
