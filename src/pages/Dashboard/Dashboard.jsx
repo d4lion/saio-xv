@@ -9,7 +9,7 @@ import { storeService } from '../../services/storeService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon, Shield
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon, Shield, Store
 } from 'lucide-react';
 
 // Subcomponents
@@ -24,6 +24,8 @@ import PanelistasTab from './PanelistasTab';
 import StoreRulesTab from './StoreRulesTab';
 import ComerciosTab from './ComerciosTab';
 import TicketsTab from './TicketsTab';
+import AdminPointsTab from './AdminPointsTab';
+import FoodTab from './FoodTab';
 
 // Modals
 import UserModal from './UserModal';
@@ -1224,6 +1226,13 @@ export default function Dashboard() {
         { path: '/dashboard/codigos', label: 'Códigos QR', icon: Key, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
         { path: '/dashboard/premios', label: 'Premios', icon: Gift, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
         { path: '/dashboard/canjes', label: 'Tickets Canje', icon: Award, roles: [ROLES.ADMIN] },
+        { path: '/dashboard/asignar-puntos', label: 'Asignar Puntos', icon: Award, roles: [ROLES.ADMIN] },
+      ]
+    },
+    {
+      title: 'Logística',
+      items: [
+        { path: '/dashboard/alimentacion', label: 'Alimentación', icon: Store, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
       ]
     },
     {
@@ -1367,6 +1376,28 @@ export default function Dashboard() {
           <Routes>
             <Route path="" element={<Navigate to={defaultPath} replace />} />
             
+            <Route 
+              path="asignar-puntos" 
+              element={
+                user?.rol === ROLES.ADMIN ? (
+                  <AdminPointsTab storeRules={storeRules} />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
+            <Route 
+              path="alimentacion" 
+              element={
+                user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR ? (
+                  <FoodTab />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
             <Route 
               path="telemetria" 
               element={
