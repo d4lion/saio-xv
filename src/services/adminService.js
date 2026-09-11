@@ -8,7 +8,8 @@ import {
   updateDoc, 
   deleteDoc,
   getDoc,
-  runTransaction
+  runTransaction,
+  arrayUnion
 } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -528,6 +529,66 @@ export const adminService = {
       console.warn("Firestore error reading general transactions, falling back to mocks:", e);
       return getLocalStorage('mock_general_transactions', defaultMockGeneralTransactions);
     }
+  },
+
+  async assignPointsForPurchase({ adminUid, adminName, attendeeUid, amount, pointsCalculated }) {
+    if (!db || !isConfigValid) throw new Error("Firestore no está configurado.");
+    if (!attendeeUid) throw new Error("No se especificó un asistente válido.");
+
+    const userRef = doc(db, "users", attendeeUid);
+    const txPointsRef = collection(db, "points_transactions");
+    const newTxRef = doc(txPointsRef);
+
+    await runTransaction(db, async (transaction) => {
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) {
+        throw new Error("El perfil del asistente no existe.");
+      }
+
+      const userData = userSnap.data();
+      const currentPoints = userData.puntos || 0;
+      const newPoints = currentPoints + pointsCalculated;
+
+      // Actualizar puntos del asistente
+      transaction.update(userRef, { puntos: newPoints });
+
+      // Registrar transacción de auditoría de puntos
+      transaction.set(newTxRef, {
+        uid: attendeeUid,
+        code: `ADMIN_ASIGNACION_${Date.now()}`,
+        puntos: Number(pointsCalculated),
+        fecha: new Date().toISOString(),
+        tienda: `Admin: ${adminName || 'Sistema'}`,
+        montoCop: Number(amount),
+        metodoPago: 'Asignación Manual',
+        transactionName: 'Asignación de Puntos Admin',
+        transactionDescription: `Asignación manual por administrador. Motivo: Compra en Comercio`
+      });
+    });
+
+    return {
+      txId: newTxRef.id,
+      puntosOtorgados: pointsCalculated
+    };
+  },
+
+  async redeemFood(attendeeUid, type) {
+    if (!db || !isConfigValid) throw new Error("Firestore no está configurado.");
+    if (!attendeeUid) throw new Error("No se especificó un asistente válido.");
+    if (type !== 'almuerzos' && type !== 'refrigerios') throw new Error("Tipo de comida inválido.");
+
+    const userRef = doc(db, "users", attendeeUid);
+    const now = new Date().toISOString();
+
+    const updateData = {};
+    updateData[`comidas.${type}`] = arrayUnion(now);
+
+    await updateDoc(userRef, updateData);
+    
+    return {
+      timestamp: now,
+      type
+    };
   },
 
   // --- REWARDS MANAGEMENT ---

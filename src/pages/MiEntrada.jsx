@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Sparkles, Ticket } from 'lucide-react';
+import { Shield, Sparkles, Ticket, Utensils, Coffee } from 'lucide-react';
 import QRCode from 'qrcode';
 
 export default function MiEntrada() {
   const { user } = useAuth();
   const [qrSrc, setQrSrc] = useState('');
+
+  const ticketType = user?.boleta || 'No determinado';
+  const isSupernova = ticketType.toLowerCase().includes('supernova');
+  const maxAlmuerzos = isSupernova ? 2 : 1;
+  const maxRefrigerios = 4;
+
+  const almuerzosRedeemed = user?.comidas?.almuerzos?.length || 0;
+  const refrigeriosRedeemed = user?.comidas?.refrigerios?.length || 0;
 
   useEffect(() => {
     if (user?.uid) {
@@ -97,6 +105,38 @@ export default function MiEntrada() {
             <div className="pt-4 border-t border-white/5 flex items-center gap-2 text-[10px] text-secondary font-mono truncate">
               <Shield className="w-3.5 h-3.5 text-purple-400 shrink-0" />
               <span>UID: {user?.uid}</span>
+            </div>
+          </div>
+
+          {/* Alimentación Info */}
+          <div className="w-full space-y-4 text-left bg-black/40 p-6 rounded-2xl border border-white/5 mt-4 relative z-10">
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-2">
+              <Utensils className="w-4 h-4 text-orange-400" />
+              Alimentación
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-[10px] text-secondary font-bold uppercase tracking-widest">
+                  <span>Almuerzos</span>
+                  <span className="text-white">{almuerzosRedeemed}/{maxAlmuerzos}</span>
+                </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: maxAlmuerzos }).map((_, i) => (
+                    <div key={`alm-${i}`} className={`h-1.5 flex-1 rounded-full ${i < almuerzosRedeemed ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]' : 'bg-white/10'}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-[10px] text-secondary font-bold uppercase tracking-widest">
+                  <span>Refrigerios</span>
+                  <span className="text-white">{refrigeriosRedeemed}/{maxRefrigerios}</span>
+                </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: maxRefrigerios }).map((_, i) => (
+                    <div key={`ref-${i}`} className={`h-1.5 flex-1 rounded-full ${i < refrigeriosRedeemed ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'bg-white/10'}`} />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
