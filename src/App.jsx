@@ -18,6 +18,7 @@ import MiTienda from './pages/MiTienda'
 import NotFound from './pages/NotFound'
 import PaymentStatus from './pages/PaymentStatus'
 import Boletas from './pages/Boletas'
+import Privacidad from './pages/Privacidad'
 
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/boletas" element={<Boletas />} />
         <Route path="/tickets" element={<Boletas />} />
+        <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/payment/status" element={<PaymentStatus />} />
         
         {/* Rutas Protegidas del Asistente (Experiencia Pasaporte) */}
