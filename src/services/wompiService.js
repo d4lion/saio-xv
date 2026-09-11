@@ -33,9 +33,9 @@ export function getWompiBaseUrl(envParam) {
 }
 
 /**
- * Consulta los detalles de una transacción en Wompi por su ID
+ * Consulta los detalles de una transacción en Wompi por su ID llamando al endpoint del servidor
  * @param {string} transactionId ID de transacción de Wompi
- * @param {string} [envParam] Parámetro de entorno de la URL (opcional)
+ * @param {string} [envParam] Parámetro de entorno de la URL (opcional: 'sandbox' o 'production')
  * @returns {Promise<Object>} Datos de la transacción devueltos por Wompi
  */
 export async function getTransactionStatus(transactionId, envParam) {
@@ -43,8 +43,13 @@ export async function getTransactionStatus(transactionId, envParam) {
     throw new Error('ID de transacción no proporcionado')
   }
 
-  const baseUrl = getWompiBaseUrl(envParam)
-  const url = `${baseUrl}/transactions/${encodeURIComponent(transactionId)}`
+  const params = new URLSearchParams()
+  params.set('id', transactionId)
+  if (envParam) {
+    params.set('env', envParam)
+  }
+
+  const url = `/api/transaction?${params.toString()}`
 
   const response = await fetch(url, {
     method: 'GET',
