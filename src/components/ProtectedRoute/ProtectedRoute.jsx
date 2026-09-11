@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldAlert, ShieldCheck, Lock } from 'lucide-react';
+import MandatoryDataUpdate from '../MandatoryDataUpdate/MandatoryDataUpdate';
 
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading, logout } = useAuth();
@@ -87,6 +88,11 @@ export default function ProtectedRoute({ children, allowedRoles }) {
         </div>
       </div>
     );
+  }
+
+  // Verificar si el usuario ya actualizó sus datos y aceptó políticas
+  if (!user.dataVerified || !user.acceptedPrivacyPolicy) {
+    return <MandatoryDataUpdate user={user} />;
   }
 
   if (allowedRoles) {
