@@ -23,7 +23,7 @@ import SEO from '../components/SEO/SEO'
 export default function PaymentStatus() {
   const [searchParams] = useSearchParams()
   const transactionId = searchParams.get('id')
-  const envParam = searchParams.get('env')
+  const envParam = 'PROD';
 
   const [transaction, setTransaction] = useState(null)
   const [loading, setLoading] = useState(true)
