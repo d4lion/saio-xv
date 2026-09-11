@@ -144,7 +144,7 @@ service cloud.firestore {
     
     match /store_sales/{saleId} {
       allow read: if true;
-      allow write: if isStore();
+      allow write: if isAdmin() || isStore();
     }
     
     match /store_rules/{saleId} {
