@@ -37,11 +37,8 @@ export default function Home() {
       {/* 2. SAIO EN NÚMEROS */}
       <Metrics />
 
-
-      <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.4), transparent)' }} />
-
-      {/* 4. CRONOGRAMA */}
-      <Timeline />
+      {/* 4. CRONOGRAMA (Oculto temporalmente) */}
+      {/* <Timeline /> */}
 
       <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(156,58,237,0.4), transparent)' }} />
 

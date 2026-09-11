@@ -21,10 +21,10 @@ export const links = [
             name: "Boletas",
             path: "/boletas"
         },
-        {
-            name: "Cronograma",
-            path: "#timeline"
-        }
+        // {
+        //     name: "Cronograma",
+        //     path: "#timeline"
+        // }
     ] 
   },
 
