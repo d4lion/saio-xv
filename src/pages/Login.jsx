@@ -249,8 +249,8 @@ export default function Login() {
         </motion.div>
 
         {/* Footer Area */}
-        <div className="mt-12 text-center text-[10px] font-mono text-secondary/40 uppercase tracking-widest">
-          <p>© 2026 SAIO-XV. All rights reserved.</p>
+        <div className="mt-12 text-center text-[10px] text-secondary/40 uppercase tracking-widest">
+          <p><a href="https://adamind.cloud" className='hover:text-accent transition-colors cursor-pointer underline text-white'>Adamind Labs © 2026</a></p>
         </div>
       </div>
 
