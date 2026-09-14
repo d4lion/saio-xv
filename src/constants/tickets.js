@@ -15,7 +15,7 @@ export const TICKETS_DATA = [
     glowColor: 'rgba(76,41,182,0.3)',
     features: [
       'Acceso completo a talleres y conferencias',
-      'Asistencia a los paneles de ponentes',
+      'Asistencia a los paneles de expertos',
       'Material digital exclusivo del evento',
       'Networking con asistentes y profesionales',
       'Coffee break incluido',
@@ -42,7 +42,7 @@ export const TICKETS_DATA = [
     features: [
       'Todo lo incluido en la Boleta General',
       'Ubicación preferencial en conferencias',
-      'Acceso a sesión privada Meet & Greet con ponentes',
+      'Acceso a sesión privada Meet & Greet con expertos',
       'Kit de bienvenida físico exclusivo SAIO XV',
       'Acceso prioritario a zona VIP de networking',
       'Grabaciones completas en HD del evento',

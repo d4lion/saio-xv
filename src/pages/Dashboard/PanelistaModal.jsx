@@ -147,7 +147,7 @@ export default function PanelistaModal({
               rows={3}
               value={form.bio}
               onChange={(e) => setForm(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Breve trayectoria, logros y especialidades del ponente..."
+              placeholder="Breve trayectoria, logros y especialidades del experto..."
               className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300 resize-none"
             />
           </div>
@@ -242,7 +242,7 @@ export default function PanelistaModal({
 
               {/* Upload Foto / URL */}
               <div className="col-span-2 space-y-1">
-                <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Foto del Ponente</label>
+                <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Foto del Experto</label>
                 
                 <div className="flex items-center gap-3">
                   {/* Avatar Preview */}
@@ -326,7 +326,7 @@ export default function PanelistaModal({
             </div>
           </div>
 
-          {/* Checkbox Keynote / Ponente Destacado */}
+          {/* Checkbox Keynote / Experto Destacado */}
           <div className="pt-2 space-y-3">
             <label className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl border border-purple-200 cursor-pointer hover:bg-purple-100/70 transition-colors">
               <input
@@ -338,10 +338,10 @@ export default function PanelistaModal({
               <div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900">
                   <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span>Ponente Destacado / Keynote Principal</span>
+                  <span>Experto Destacado / Keynote Principal</span>
                 </div>
                 <p className="text-[11px] text-purple-700">
-                  Al marcar esta casilla, este ponente aparecerá en la sección superior destacada de la página pública.
+                  Al marcar esta casilla, este experto aparecerá en la sección superior destacada de la página pública.
                 </p>
               </div>
             </label>

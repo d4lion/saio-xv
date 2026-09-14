@@ -66,7 +66,7 @@ const defaultMockTickets = [
     glowColor: 'rgba(76,41,182,0.3)',
     features: [
       'Acceso completo a talleres y conferencias',
-      'Asistencia a los paneles de ponentes',
+      'Asistencia a los paneles de expertos',
       'Material digital exclusivo del evento',
       'Networking con asistentes y profesionales',
       'Coffee break incluido',
@@ -94,7 +94,7 @@ const defaultMockTickets = [
     features: [
       'Todo lo incluido en la Boleta General',
       'Ubicación preferencial en conferencias',
-      'Acceso a sesión privada Meet & Greet con ponentes',
+      'Acceso a sesión privada Meet & Greet con expertos',
       'Kit de bienvenida físico exclusivo SAIO XV',
       'Acceso prioritario a zona VIP de networking',
       'Grabaciones completas en HD del evento',
@@ -767,11 +767,11 @@ export const adminService = {
         });
         
         if (featuredCount >= 3) {
-          throw new Error("Límite superado: Solo puedes tener hasta 3 ponentes destacados simultáneamente. Por favor, quítale el destacado a otro ponente primero.");
+          throw new Error("Límite superado: Solo puedes tener hasta 3 expertos destacados simultáneamente. Por favor, quítale el destacado a otro experto primero.");
         }
       } catch (err) {
         if (err.message.includes("Límite superado")) throw err;
-        console.warn("No se pudo validar la cantidad de ponentes destacados:", err);
+        console.warn("No se pudo validar la cantidad de expertos destacados:", err);
       }
     }
 
@@ -796,11 +796,11 @@ export const adminService = {
         });
 
         if (featuredCount >= 3) {
-          throw new Error("Límite superado: Solo puedes tener hasta 3 ponentes destacados simultáneamente. Por favor, quítale el destacado a otro ponente primero.");
+          throw new Error("Límite superado: Solo puedes tener hasta 3 expertos destacados simultáneamente. Por favor, quítale el destacado a otro experto primero.");
         }
       } catch (err) {
         if (err.message.includes("Límite superado")) throw err;
-        console.warn("No se pudo validar la cantidad de ponentes destacados:", err);
+        console.warn("No se pudo validar la cantidad de expertos destacados:", err);
       }
     }
 
