@@ -122,7 +122,7 @@ export default function Features() {
                         {cap.description}
                       </p>
                       
-                      <Link to="/panelistas" className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer text-white hover:text-purple-400 group/btn">
+                      <Link to="/expertos" className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer text-white hover:text-purple-400 group/btn">
                         Descubrir más 
                         <span className="group-hover/btn:translate-x-1 transition-transform" style={{ color: cap.color }}>→</span>
                       </Link>

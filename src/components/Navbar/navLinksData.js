@@ -4,5 +4,5 @@ export const navLinks = [
   { label: 'Numeros', href: '/#metrics'},
   // { label: 'Agenda', href: '/#agenda' },
   { label: 'Boletas', href: '/boletas', isRoute: true },
-  { label: 'Ponentes', href: '/panelistas', isRoute: true },
+  { label: 'Expertos', href: '/expertos', isRoute: true },
 ]

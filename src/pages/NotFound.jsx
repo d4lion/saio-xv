@@ -128,11 +128,11 @@ export default function NotFound() {
             </Link>
 
             <Link
-              to="/panelistas"
+              to="/expertos"
               className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-full glass border border-purple-400/30 text-secondary-light font-medium text-sm tracking-wide hover:border-purple-400/60 hover:text-white transition-all duration-300 hover:scale-105"
             >
               <Users size={16} />
-              <span>Ver Panelistas</span>
+              <span>Ver Expertos</span>
             </Link>
 
             <Link
