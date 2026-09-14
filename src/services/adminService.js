@@ -66,7 +66,7 @@ const defaultMockTickets = [
     glowColor: 'rgba(76,41,182,0.3)',
     features: [
       'Acceso completo a talleres y conferencias',
-      'Asistencia a los paneles de ponentes',
+      'Asistencia a los paneles de expertos',
       'Material digital exclusivo del evento',
       'Networking con asistentes y profesionales',
       'Coffee break incluido',
@@ -94,7 +94,7 @@ const defaultMockTickets = [
     features: [
       'Todo lo incluido en la Boleta General',
       'Ubicación preferencial en conferencias',
-      'Acceso a sesión privada Meet & Greet con ponentes',
+      'Acceso a sesión privada Meet & Greet con expertos',
       'Kit de bienvenida físico exclusivo SAIO XV',
       'Acceso prioritario a zona VIP de networking',
       'Grabaciones completas en HD del evento',
@@ -345,6 +345,98 @@ export const adminService = {
     };
     await setDoc(userRef, newUserData);
     return newUserData;
+  },
+
+  async createUserManual(formData) {
+    if (!db || !isConfigValid) {
+      // Local implementation
+      const users = getLocalStorage('mock_users', defaultMockUsers);
+      const userExists = users.some(u => u.correo === formData.correo);
+      if (userExists) throw new Error("El correo ya está registrado.");
+
+      const newUid = 'local-uid-' + Math.random().toString(36).substr(2, 9);
+      const newUser = {
+        uid: newUid,
+        nombre: formData.nombre,
+        correo: formData.correo,
+        cedula: formData.cedula,
+        telefono: formData.telefono || "",
+        monto: formData.monto ? String(formData.monto) : "0",
+        puntos: 0,
+        rol: formData.rol || "asistente",
+        boleta: formData.boleta || "Boleta Cortesía",
+        activo: true,
+        fechaCreacion: new Date().toISOString()
+      };
+      users.push(newUser);
+      setLocalStorage('mock_users', users);
+      return newUser;
+    }
+
+    try {
+      const auth = getAuth();
+      const adminUser = auth.currentUser;
+
+      if (!adminUser) {
+        throw new Error("No hay una sesión activa de administrador.");
+      }
+
+      // 1. Obtener el token de autenticación del Admin actual
+      const token = await adminUser.getIdToken();
+
+      // 2. Realizar la petición HTTP al nuevo endpoint de la API Gateway
+      const apiDomain = import.meta.env.VITE_API_GATEWAY_DOMAIN || 'https://saio.adamind.cloud';
+      const cleanDomain = apiDomain.replace(/\/$/, '');
+
+      const response = await fetch(`${cleanDomain}/saio/api/v15/users/manual`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          correo: formData.correo,
+          cedula: formData.cedula,
+          telefono: formData.telefono || "",
+          boleta: formData.boleta || "Boleta Cortesía",
+          monto: formData.monto !== undefined && formData.monto !== null ? String(formData.monto) : "0",
+          rol: formData.rol || "asistente"
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Error creando usuario en el servidor.");
+      }
+
+      return result;
+    } catch (error) {
+      console.warn("Error en registro manual vía backend API, intentando fallback:", error);
+      if (error.message && (error.message.includes("registrado") || error.message.includes("ya existe"))) {
+        throw error;
+      }
+      
+      const fallbackPassword = formData.password || "Saio2026!";
+      try {
+        const fallbackUser = await this.createUser(
+          formData.correo,
+          fallbackPassword,
+          formData.nombre,
+          formData.cedula,
+          formData.rol || 'asistente',
+          formData.boleta || 'Boleta Cortesía'
+        );
+        return {
+          ...fallbackUser,
+          isFallback: true,
+          message: "Usuario creado mediante fallback local/Firebase."
+        };
+      } catch (fallbackError) {
+        throw new Error(`Error al conectar con la API Gateway (${error.message}) y en fallback: ${fallbackError.message}`);
+      }
+    }
   },
 
   async updateUser(uid, data) {
@@ -767,11 +859,11 @@ export const adminService = {
         });
         
         if (featuredCount >= 3) {
-          throw new Error("Límite superado: Solo puedes tener hasta 3 ponentes destacados simultáneamente. Por favor, quítale el destacado a otro ponente primero.");
+          throw new Error("Límite superado: Solo puedes tener hasta 3 expertos destacados simultáneamente. Por favor, quítale el destacado a otro experto primero.");
         }
       } catch (err) {
         if (err.message.includes("Límite superado")) throw err;
-        console.warn("No se pudo validar la cantidad de ponentes destacados:", err);
+        console.warn("No se pudo validar la cantidad de expertos destacados:", err);
       }
     }
 
@@ -796,11 +888,11 @@ export const adminService = {
         });
 
         if (featuredCount >= 3) {
-          throw new Error("Límite superado: Solo puedes tener hasta 3 ponentes destacados simultáneamente. Por favor, quítale el destacado a otro ponente primero.");
+          throw new Error("Límite superado: Solo puedes tener hasta 3 expertos destacados simultáneamente. Por favor, quítale el destacado a otro experto primero.");
         }
       } catch (err) {
         if (err.message.includes("Límite superado")) throw err;
-        console.warn("No se pudo validar la cantidad de ponentes destacados:", err);
+        console.warn("No se pudo validar la cantidad de expertos destacados:", err);
       }
     }
 

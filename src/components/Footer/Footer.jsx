@@ -3,8 +3,8 @@ import logo from '../../assets/logo.png'
 import { footer_paths, links } from './constants'
 
 const socials = [
-  { icon: FaLinkedinIn, href: '#', label: 'LinkedIn' },
-  { icon: FaInstagram, href: '#', label: 'Instagram' },
+  { icon: FaLinkedinIn, href: 'https://www.linkedin.com/company/aneiap', label: 'LinkedIn' },
+  { icon: FaInstagram, href: 'https://www.instagram.com/saio.med/', label: 'Instagram' },
 ]
 
 
@@ -41,6 +41,8 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full glass border border-purple-500/20 flex items-center justify-center text-secondary hover:text-purple-400 hover:border-purple-400/40 transition-all duration-300"
                 >
                   <Icon size={15} />

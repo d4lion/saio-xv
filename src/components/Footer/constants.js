@@ -14,8 +14,8 @@ export const links = [
     section: 'Evento',
     items: [
         {
-            name: "Ponentes",
-            path: "/panelistas"
+            name: "Expertos",
+            path: "/expertos"
         },
         {
             name: "Boletas",

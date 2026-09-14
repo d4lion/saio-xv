@@ -51,7 +51,7 @@ export default function PanelistasTab({
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase font-heading font-bold tracking-wider text-xs">
-                <th className="px-6 py-4.5">Ponente</th>
+                <th className="px-6 py-4.5">Experto</th>
                 <th className="px-6 py-4.5">Cargo / Empresa</th>
                 <th className="px-6 py-4.5">Especialidades (Topics)</th>
                 <th className="px-6 py-4.5">Destacado</th>

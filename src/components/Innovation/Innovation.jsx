@@ -116,7 +116,7 @@ export default function Innovation() {
           className="order-1 md:order-2"
         >
           <span className="inline-block text-xs tracking-[0.3em] text-accent uppercase mb-4 font-medium">
-            Ponentes
+            Expertos
           </span>
           <h2
             className="text-[clamp(2rem,4vw,3.5rem)] font-black font-heading text-white leading-tight mb-6"

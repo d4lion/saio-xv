@@ -194,6 +194,7 @@ export default function Dashboard() {
   // Modals state
   const [showUserModal, setShowUserModal] = useState(false);
   const [userModalMode, setUserModalMode] = useState('create');
+  const [isSubmittingUser, setIsSubmittingUser] = useState(false);
   
   // User Traceability Modal State
   const [showTraceabilityModal, setShowTraceabilityModal] = useState(false);
@@ -203,6 +204,8 @@ export default function Dashboard() {
     nombre: '',
     correo: '',
     cedula: '',
+    telefono: '',
+    monto: '',
     puntos: 0,
     rol: ROLES.ASISTENTE,
     boleta: 'No determinado',
@@ -526,6 +529,8 @@ export default function Dashboard() {
       nombre: '',
       correo: '',
       cedula: '',
+      telefono: '',
+      monto: '',
       puntos: 0,
       rol: ROLES.ASISTENTE,
       boleta: 'No determinado',
@@ -540,6 +545,8 @@ export default function Dashboard() {
       nombre: u.nombre || '',
       correo: u.correo || '',
       cedula: u.cedula || '',
+      telefono: u.telefono || '',
+      monto: u.monto !== undefined && u.monto !== null ? String(u.monto) : '',
       puntos: u.puntos || 0,
       rol: u.rol || ROLES.ASISTENTE,
       boleta: u.boleta || 'No determinado',
@@ -552,31 +559,39 @@ export default function Dashboard() {
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
+    setIsSubmittingUser(true);
     try {
       if (Number(userForm.puntos) < 0) {
         throw new Error("Los puntos no pueden ser negativos.");
       }
 
       if (userModalMode === 'create') {
-        if (!userForm.password || userForm.password.length < 6) {
-          throw new Error("La contraseña debe tener al menos 6 caracteres.");
+        addTerminalEvent(`Procesando registro manual vía API Gateway: ${userForm.correo}...`);
+        const res = await adminService.createUserManual({
+          nombre: userForm.nombre,
+          correo: userForm.correo,
+          cedula: userForm.cedula,
+          telefono: userForm.telefono || "",
+          boleta: userForm.boleta,
+          monto: userForm.monto !== undefined && userForm.monto !== null ? String(userForm.monto) : "0",
+          rol: userForm.rol,
+          password: userForm.password
+        });
+
+        if (res?.isFallback) {
+          addTerminalEvent(`[WARNING] API Gateway no disponible. Usuario creado vía fallback local/Firebase: ${userForm.correo}`);
+          toast.warning(`Usuario creado (${userForm.nombre}). Nota: API Gateway no respondió (CORS u offline), se aplicó registro de respaldo.`);
+        } else {
+          addTerminalEvent(`Usuario creado y entrada enviada por correo: ${userForm.correo}`);
+          toast.success(`Usuario Creado: ${userForm.nombre} ha sido registrado y su boleta fue enviada por correo.`);
         }
-        addTerminalEvent(`Creando usuario en Firebase Auth y Firestore: ${userForm.correo}...`);
-        await adminService.createUser(
-          userForm.correo,
-          userForm.password,
-          userForm.nombre,
-          userForm.cedula,
-          userForm.rol,
-          userForm.boleta
-        );
-        addTerminalEvent(`Usuario creado exitosamente: ${userForm.correo}`);
-        toast.success(`Usuario Creado: El usuario ${userForm.nombre} ha sido registrado.`);
       } else {
         addTerminalEvent(`Actualizando datos del usuario: ${userForm.nombre} (UID: ${selectedUserUid})...`);
         await adminService.updateUser(selectedUserUid, {
           nombre: userForm.nombre,
           cedula: userForm.cedula,
+          telefono: userForm.telefono,
+          monto: userForm.monto,
           puntos: Number(userForm.puntos),
           rol: userForm.rol,
           boleta: userForm.boleta
@@ -590,6 +605,8 @@ export default function Dashboard() {
     } catch (err) {
       console.error(err);
       toast.error(`Error de Guardado: ${err.message || 'Ocurrió un error al procesar el usuario.'}`);
+    } finally {
+      setIsSubmittingUser(false);
     }
   };
 
@@ -1647,6 +1664,7 @@ export default function Dashboard() {
         setForm={setUserForm} 
         onSave={handleSaveUser} 
         selectedUserUid={selectedUserUid} 
+        isSubmitting={isSubmittingUser}
       />
 
       <UserTraceabilityModal

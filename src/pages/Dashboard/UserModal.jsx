@@ -1,5 +1,5 @@
-import React from 'react';
-import { User, X } from 'lucide-react';
+import  { useState, useEffect } from 'react';
+import { User, X, Loader2, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
 export default function UserModal({
@@ -9,148 +9,342 @@ export default function UserModal({
   form,
   setForm,
   onSave,
-  selectedUserUid
+  isSubmitting = false
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Reiniciar estados de contraseña al abrir o cambiar de modo
+  useEffect(() => {
+    if (isOpen) {
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+      setConfirmPassword(form.password || '');
+      setPasswordError('');
+    }
+  }, [isOpen, mode]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xl relative text-gray-900">
-        <button 
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  const handleClose = () => {
+    if (isSubmitting) return; // Bloquear cierre durante la creación
+    onClose();
+  };
 
-        <div className="border-b border-gray-150 p-5 bg-gray-50">
-          <h3 className="font-heading font-extrabold text-md text-gray-900 flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-600" />
-            <span>{mode === 'create' ? 'Crear Nuevo Usuario' : 'Editar Perfil de Usuario'}</span>
-          </h3>
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    if (mode === 'create') {
+      if (!form.password || form.password.length < 6) {
+        setPasswordError('La contraseña es obligatoria y debe tener al menos 6 caracteres.');
+        return;
+      }
+      if (!confirmPassword) {
+        setPasswordError('Debes confirmar la contraseña.');
+        return;
+      }
+      if (form.password !== confirmPassword) {
+        setPasswordError('Las contraseñas no coinciden.');
+        return;
+      }
+    }
+    setPasswordError('');
+    onSave(e);
+  };
+
+  const isPasswordMismatch = mode === 'create' && Boolean(confirmPassword) && form.password !== confirmPassword;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+      <div className="w-full max-w-2xl bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl relative text-gray-900 transition-all max-h-[90vh] flex flex-col">
+        
+        {/* Modal Overlay / Lock when Submitting */}
+        {isSubmitting && (
+          <div className="absolute inset-0 z-30 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-fadeIn">
+            <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mb-4 shadow-inner">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+            <h4 className="font-heading font-extrabold text-lg text-gray-900 mb-1">
+              Creando usuario y enviando ticket...
+            </h4>
+            <p className="text-xs text-gray-500 max-w-sm leading-relaxed">
+              Por favor espera unos segundos. Estamos registrando la información y despachando la entrada por correo electrónico.
+            </p>
+            <div className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+              <Lock className="w-3.5 h-3.5" />
+              <span>Modal bloqueado hasta finalizar el proceso</span>
+            </div>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="border-b border-gray-100 p-6 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+              <User className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-heading font-extrabold text-lg text-gray-900 leading-tight">
+                {mode === 'create' ? 'Crear Nuevo Usuario' : 'Editar Perfil de Usuario'}
+              </h3>
+              <p className="text-xs text-gray-500 font-medium">
+                {mode === 'create' ? 'Todos los campos son obligatorios para registrar al asistente y enviar la entrada por correo.' : 'Modifica los campos del perfil seleccionado.'}
+              </p>
+            </div>
+          </div>
+          <button 
+            type="button"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-all flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <form onSubmit={onSave} className="p-5 space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Nombre Completo</label>
+        {/* Form Body */}
+        <form onSubmit={handleFormSubmit} className="p-6 space-y-5 overflow-y-auto">
+          {/* Nombre Completo */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+              Nombre Completo <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               required
+              disabled={isSubmitting}
               value={form.nombre}
               onChange={(e) => setForm(prev => ({ ...prev, nombre: e.target.value }))}
               placeholder="Ej: Juan Pérez"
-              className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300"
+              className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Correo Electrónico</label>
+          {/* Correo Electrónico */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+              Correo Electrónico <span className="text-red-500">*</span>
+            </label>
             <input
               type="email"
               required
-              disabled={mode === 'edit'}
+              disabled={mode === 'edit' || isSubmitting}
               value={form.correo}
               onChange={(e) => setForm(prev => ({ ...prev, correo: e.target.value }))}
               placeholder="ejemplo@saio.com"
-              className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300 disabled:opacity-55"
+              className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Cédula</label>
+          {/* Cédula y Teléfono */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                Cédula / Documento <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 required
+                disabled={isSubmitting}
                 value={form.cedula}
                 onChange={(e) => setForm(prev => ({ ...prev, cedula: e.target.value }))}
-                placeholder="Documento"
-                className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300"
+                placeholder="Ej: 1020304050"
+                className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Rol asignado</label>
-              <select
-                value={form.rol}
-                onChange={(e) => setForm(prev => ({ ...prev, rol: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300 cursor-pointer"
-              >
-                <option value={ROLES.ASISTENTE}>Asistente</option>
-                <option value={ROLES.COORDINADOR}>Coordinador</option>
-                <option value={ROLES.ADMIN}>Admin</option>
-              </select>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                Teléfono <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                disabled={isSubmitting}
+                value={form.telefono || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, telefono: e.target.value }))}
+                placeholder="Ej: 3001234567"
+                className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Boleta Asignada</label>
+          {/* Boleta y Monto Pagado */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                Boleta Asignada <span className="text-red-500">*</span>
+              </label>
               <select
+                required
+                disabled={isSubmitting}
                 value={form.boleta}
-                onChange={(e) => setForm(prev => ({ ...prev, boleta: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300 cursor-pointer"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  let suggestedMonto = form.monto;
+                  if (val === 'Boleta Supernova') suggestedMonto = '70000';
+                  else if (val === 'Boleta Orbita') suggestedMonto = '50000';
+                  else if (val === 'Boleta Cortesía' || val === 'No determinado') suggestedMonto = '0';
+                  setForm(prev => ({ ...prev, boleta: val, monto: suggestedMonto }));
+                }}
+                className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 cursor-pointer disabled:bg-gray-50 disabled:opacity-60"
               >
                 <option value="No determinado">No determinado</option>
-                <option value="Boleta Orbita">Boleta Orbita</option>
+                <option value="Boleta Cortesía">Boleta Cortesía</option>
+                <option value="Boleta Orbita">Boleta Órbita</option>
                 <option value="Boleta Supernova">Boleta Supernova</option>
               </select>
             </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                Monto Pagado ($ COP) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                disabled={isSubmitting}
+                value={form.monto !== undefined && form.monto !== null ? form.monto : ''}
+                onChange={(e) => setForm(prev => ({ ...prev, monto: e.target.value }))}
+                placeholder="Ej: 70000"
+                className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {mode === 'create' ? (
-              <div className="col-span-2 space-y-1">
-                <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Contraseña (Mínimo 6 char)</label>
-                <input
-                  type="password"
-                  required
-                  value={form.password}
-                  onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="••••••••"
-                  className="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-xs text-gray-900 outline-none transition-all duration-300"
-                />
-              </div>
-            ) : (
-              <div className="col-span-2 space-y-2">
-                <label className="text-[10px] font-heading font-bold uppercase tracking-wider text-gray-500">Puntos Totales (Ajuste Rápido)</label>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    readOnly
-                    value={form.puntos}
-                    className="w-full sm:w-1/3 px-3 py-2 bg-gray-100 border border-gray-300 rounded-xl text-md font-bold text-gray-900 outline-none font-mono text-center cursor-not-allowed"
-                  />
-                  <div className="flex items-center justify-between sm:justify-start gap-1 w-full flex-wrap">
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: Math.max(0, prev.puntos - 100) }))} className="px-2 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[10px] font-bold hover:bg-red-100 cursor-pointer transition-colors">-100</button>
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: Math.max(0, prev.puntos - 10) }))} className="px-2 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[10px] font-bold hover:bg-red-100 cursor-pointer transition-colors">-10</button>
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: Math.max(0, prev.puntos - 1) }))} className="px-2 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[10px] font-bold hover:bg-red-100 cursor-pointer transition-colors">-1</button>
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 1 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+1</button>
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 10 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+10</button>
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 50 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+50</button>
-                    <button type="button" onClick={() => setForm(prev => ({ ...prev, puntos: prev.puntos + 100 }))} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 cursor-pointer transition-colors text-center">+100</button>
+          {/* Rol Asignado */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+              Rol Asignado <span className="text-red-500">*</span>
+            </label>
+            <select
+              required
+              disabled={isSubmitting}
+              value={form.rol}
+              onChange={(e) => setForm(prev => ({ ...prev, rol: e.target.value }))}
+              className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 cursor-pointer disabled:bg-gray-50 disabled:opacity-60"
+            >
+              <option value={ROLES.ASISTENTE}>Asistente</option>
+              <option value={ROLES.COORDINADOR}>Coordinador</option>
+              <option value={ROLES.ADMIN}>Admin</option>
+            </select>
+          </div>
+
+          {/* Contraseña / Confirmación de Contraseña con Ojo Toggle (en modo creación) */}
+          {mode === 'create' ? (
+            <div className="space-y-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Campo Contraseña */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                    Contraseña <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      disabled={isSubmitting}
+                      value={form.password || ''}
+                      onChange={(e) => {
+                        setForm(prev => ({ ...prev, password: e.target.value }));
+                        setPasswordError('');
+                      }}
+                      placeholder="Mínimo 6 caracteres"
+                      className={`w-full px-4 py-3 pr-11 bg-white border ${isPasswordMismatch ? 'border-red-400 focus:ring-red-400/20' : 'border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-blue-600/20'} focus:ring-2 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60`}
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowPassword(prev => !prev)}
+                      disabled={isSubmitting}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 transition-colors cursor-pointer"
+                      title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-400 font-medium">Usa los botones para calcular rápidamente y generar una transacción automática al guardar.</p>
-              </div>
-            )}
-          </div>
 
-          <div className="border-t border-gray-150 pt-4 mt-6 flex justify-end gap-2 bg-gray-50 -mx-5 -mb-5 p-5">
+                {/* Campo Confirmar Contraseña */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                    Confirmar Contraseña <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      disabled={isSubmitting}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordError('');
+                      }}
+                      placeholder="Repite la contraseña"
+                      className={`w-full px-4 py-3 pr-11 bg-white border ${isPasswordMismatch ? 'border-red-400 focus:ring-red-400/20 bg-red-50/20' : 'border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-blue-600/20'} focus:ring-2 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60`}
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowConfirmPassword(prev => !prev)}
+                      disabled={isSubmitting}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 transition-colors cursor-pointer disabled:opacity-40"
+                      title={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mensaje de Error de Validación */}
+              {(isPasswordMismatch || passwordError) && (
+                <div className="flex items-center gap-2 text-xs font-semibold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{passwordError || 'Las contraseñas no coinciden.'}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                Puntos Totales
+              </label>
+              <input
+                type="number"
+                readOnly
+                disabled={isSubmitting}
+                value={form.puntos}
+                className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-xl text-sm font-bold text-gray-900 font-mono text-center cursor-not-allowed"
+              />
+            </div>
+          )}
+
+          {/* Footer Buttons - Google Style */}
+          <div className="pt-6 border-t border-gray-100 flex items-center justify-end gap-3 -mx-6 -mb-6 p-6 bg-gray-50/80 shrink-0">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-heading text-xs font-semibold cursor-pointer transition-all duration-200"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="px-6 py-3 rounded-xl bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 font-heading text-sm font-semibold cursor-pointer transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-heading text-xs font-semibold cursor-pointer transition-all duration-200 shadow-sm"
+              disabled={isSubmitting || isPasswordMismatch}
+              className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-heading text-sm font-bold shadow-md hover:shadow-lg shadow-blue-500/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed min-w-[140px]"
             >
-              {mode === 'create' ? 'Crear' : 'Guardar'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Procesando...</span>
+                </>
+              ) : (
+                <span>{mode === 'create' ? 'Crear Usuario' : 'Guardar Cambios'}</span>
+              )}
             </button>
           </div>
         </form>

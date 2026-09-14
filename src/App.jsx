@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Home from './pages/Home'
 import Panelistas from './pages/Panelistas'
@@ -19,6 +19,8 @@ import NotFound from './pages/NotFound'
 import PaymentStatus from './pages/PaymentStatus'
 import Boletas from './pages/Boletas'
 import Privacidad from './pages/Privacidad'
+
+import CookieBanner from './components/CookieBanner/CookieBanner'
 
 import { ROLES } from './constants/roles'
 import { Toaster } from 'sonner';
@@ -42,7 +44,7 @@ function PendingClaimHandler() {
 
   useEffect(() => {
     // 1. Capturar código de la URL si existe en los parámetros de búsqueda
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.href);
     const code = params.get('code');
     if (code) {
       sessionStorage.setItem('pendingClaimCode', code);
@@ -72,10 +74,12 @@ export default function App() {
     <AuthProvider>
       <ScrollToTop />
       <PendingClaimHandler />
+      <CookieBanner />
       <Toaster position="bottom-right" richColors closeButton />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/panelistas" element={<Panelistas />} />
+        <Route path="/expertos" element={<Panelistas />} />
+        <Route path="/panelistas" element={<Navigate to="/expertos" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/boletas" element={<Boletas />} />
         <Route path="/tickets" element={<Boletas />} />

@@ -80,7 +80,7 @@ export const speakers = [
 ]
 
 export const stats = [
-  { icon: Mic, value: '20+', label: 'Ponentes confirmados' },
+  { icon: Mic, value: '20+', label: 'Expertos confirmados' },
   { icon: Award, value: '15+', label: 'Años de experiencia promedio' },
   { icon: Users, value: '8', label: 'Empresas representadas' },
 ]

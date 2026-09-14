@@ -141,7 +141,7 @@ export default function CTA() {
           {[
             'Boleta por correo',
             'Cupo limitado',
-            'Organiza Aneiap'
+            'Organiza ANEIAP'
           ].map((item) => (
             <span key={item} className="text-muted text-xs">{item}</span>
           ))}

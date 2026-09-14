@@ -16,7 +16,7 @@ export default function Home() {
     <main className="relative bg-[#050507] snap-container">
       <SEO 
         title="SAIO XV - ENTROPIX 2026 | El Evento de Inteligencia Artificial & Datos"
-        description="Transformando datos en infinitas posibilidades. Asiste a SAIO XV Entropix en Medellín: talleres prácticos, ponentes internacionales, networking VIP y conferencias sobre Inteligencia Artificial y Ciencia de Datos."
+        description="Transformando datos en infinitas posibilidades. Asiste a SAIO XV Entropix en Medellín: talleres prácticos, expertos internacionales, networking VIP y conferencias sobre Inteligencia Artificial y Ciencia de Datos."
         path="/"
       />
       <WhatsAppButton />
