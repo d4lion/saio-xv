@@ -24,7 +24,7 @@ export const capabilities = [
   },
   {
     icon: Link2,
-    title: 'Impacto de las decisiones',
+    title: 'Impacto Social',
     description: 'Mide y anticipa el efecto de cada decisión para maximizar el valor empresarial.',
     color: '#c3abdc',
     gradient: 'from-secondary-light/20 to-accent/5',
