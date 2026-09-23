@@ -16,12 +16,20 @@ export default function UserModal({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Reiniciar estados de contraseña al abrir o cambiar de modo
+  // Reiniciar y sincronizar estados de contraseña al abrir o cambiar de modo
   useEffect(() => {
     if (isOpen) {
       setShowPassword(false);
       setShowConfirmPassword(false);
-      setConfirmPassword(form.password || '');
+      if (mode === 'create') {
+        const initialPass = form.cedula || '';
+        setConfirmPassword(initialPass);
+        if (form.password !== initialPass) {
+          setForm(prev => ({ ...prev, password: initialPass }));
+        }
+      } else {
+        setConfirmPassword(form.password || '');
+      }
       setPasswordError('');
     }
   }, [isOpen, mode]);
@@ -36,16 +44,9 @@ export default function UserModal({
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (mode === 'create') {
-      if (!form.password || form.password.length < 6) {
-        setPasswordError('La contraseña es obligatoria y debe tener al menos 6 caracteres.');
-        return;
-      }
-      if (!confirmPassword) {
-        setPasswordError('Debes confirmar la contraseña.');
-        return;
-      }
-      if (form.password !== confirmPassword) {
-        setPasswordError('Las contraseñas no coinciden.');
+      const ced = (form.cedula || '').trim();
+      if (!ced || ced.length < 6) {
+        setPasswordError('La cédula debe tener al menos 6 caracteres para usarse como contraseña temporal.');
         return;
       }
     }
@@ -148,7 +149,18 @@ export default function UserModal({
                 required
                 disabled={isSubmitting}
                 value={form.cedula}
-                onChange={(e) => setForm(prev => ({ ...prev, cedula: e.target.value }))}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setForm(prev => ({
+                    ...prev,
+                    cedula: val,
+                    ...(mode === 'create' ? { password: val } : {})
+                  }));
+                  if (mode === 'create') {
+                    setConfirmPassword(val);
+                    setPasswordError('');
+                  }
+                }}
                 placeholder="Ej: 1020304050"
                 className="w-full px-4 py-3 bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60"
               />
@@ -232,27 +244,29 @@ export default function UserModal({
             </select>
           </div>
 
-          {/* Contraseña / Confirmación de Contraseña con Ojo Toggle (en modo creación) */}
+          {/* Contraseña / Confirmación de Contraseña (Autocompletada con Cédula, solo visualización) */}
           {mode === 'create' ? (
             <div className="space-y-3 pt-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Campo Contraseña */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
-                    Contraseña <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                      Contraseña Temporal
+                    </label>
+                    <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                      Auto (Cédula)
+                    </span>
+                  </div>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
-                      disabled={isSubmitting}
+                      readOnly
+                      tabIndex={-1}
                       value={form.password || ''}
-                      onChange={(e) => {
-                        setForm(prev => ({ ...prev, password: e.target.value }));
-                        setPasswordError('');
-                      }}
-                      placeholder="Mínimo 6 caracteres"
-                      className={`w-full px-4 py-3 pr-11 bg-white border ${isPasswordMismatch ? 'border-red-400 focus:ring-red-400/20' : 'border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-blue-600/20'} focus:ring-2 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60`}
+                      placeholder="Autocompleta con cédula"
+                      className="w-full px-4 py-3 pr-11 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 outline-none transition-all duration-200 cursor-default select-all"
                     />
                     <button
                       type="button"
@@ -265,25 +279,30 @@ export default function UserModal({
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                  <p className="text-[11px] text-gray-400 font-normal">
+                    Se rellena automáticamente con el documento
+                  </p>
                 </div>
 
                 {/* Campo Confirmar Contraseña */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
-                    Confirmar Contraseña <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-600">
+                      Confirmar Contraseña
+                    </label>
+                    <span className="text-[10px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                      Auto (Cédula)
+                    </span>
+                  </div>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       required
-                      disabled={isSubmitting}
-                      value={confirmPassword}
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                        setPasswordError('');
-                      }}
-                      placeholder="Repite la contraseña"
-                      className={`w-full px-4 py-3 pr-11 bg-white border ${isPasswordMismatch ? 'border-red-400 focus:ring-red-400/20 bg-red-50/20' : 'border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-blue-600/20'} focus:ring-2 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all duration-200 disabled:bg-gray-50 disabled:opacity-60`}
+                      readOnly
+                      tabIndex={-1}
+                      value={confirmPassword || ''}
+                      placeholder="Autocompleta con cédula"
+                      className="w-full px-4 py-3 pr-11 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 outline-none transition-all duration-200 cursor-default select-all"
                     />
                     <button
                       type="button"
@@ -296,14 +315,17 @@ export default function UserModal({
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                  <p className="text-[11px] text-gray-400 font-normal">
+                    Confirmación automática sincronizada
+                  </p>
                 </div>
               </div>
 
               {/* Mensaje de Error de Validación */}
-              {(isPasswordMismatch || passwordError) && (
+              {passwordError && (
                 <div className="flex items-center gap-2 text-xs font-semibold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100 animate-fadeIn">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{passwordError || 'Las contraseñas no coinciden.'}</span>
+                  <span>{passwordError}</span>
                 </div>
               )}
             </div>
@@ -334,7 +356,7 @@ export default function UserModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || isPasswordMismatch}
+              disabled={isSubmitting}
               className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-heading text-sm font-bold shadow-md hover:shadow-lg shadow-blue-500/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed min-w-[140px]"
             >
               {isSubmitting ? (
