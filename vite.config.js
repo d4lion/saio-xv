@@ -50,5 +50,40 @@ export default defineConfig(({ mode }) => {
     server: {
       allowedHosts: ['b962-190-158-28-67.ngrok-free.app'],
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            // Firebase — chunks separados por módulo
+            if (id.includes('firebase/app') || id.includes('@firebase/app')) {
+              return 'vendor-firebase-app'
+            }
+            if (id.includes('firebase/auth') || id.includes('@firebase/auth')) {
+              return 'vendor-firebase-auth'
+            }
+            if (id.includes('firebase/firestore') || id.includes('@firebase/firestore')) {
+              return 'vendor-firebase-firestore'
+            }
+            if (id.includes('firebase/') || id.includes('@firebase/')) {
+              return 'vendor-firebase-misc'
+            }
+            // Librerías pesadas de UI
+            if (id.includes('framer-motion')) {
+              return 'vendor-framer-motion'
+            }
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-recharts'
+            }
+            if (id.includes('sweetalert2')) {
+              return 'vendor-sweetalert'
+            }
+            // React core
+            if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+              return 'vendor-react'
+            }
+          },
+        },
+      },
+    },
   }
 })
