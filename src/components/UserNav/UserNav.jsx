@@ -18,7 +18,7 @@ export default function UserNav() {
   ];
 
   return (
-    <nav className="w-full border-b border-muted/10 py-3 bg-black/10 backdrop-blur-sm z-20">
+    <nav className="w-full border-b border-muted/10 py-3 bg-[#070510]/90 backdrop-blur-sm z-20">
       <div className="flex items-center gap-3 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none max-w-7xl mx-auto w-full px-6 justify-start sm:justify-center">
         {tabs.map((tab) => {
           const Icon = tab.icon;
