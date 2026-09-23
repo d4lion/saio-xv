@@ -58,7 +58,7 @@ export default function Ranking() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+    <div className="w-full flex flex-col gap-8">
       
       {/* Header local */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
@@ -121,7 +121,7 @@ export default function Ranking() {
                       <div className="relative mb-4 flex flex-col items-center">
                         {isGold && <Crown className="w-8 h-8 text-yellow-400 absolute -top-8 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse-glow" />}
                         
-                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center font-heading font-black text-lg border-2 shadow-2xl backdrop-blur-md
+                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center font-heading font-black text-lg border-2 shadow-2xl
                           ${isGold 
                             ? 'bg-yellow-500/20 border-yellow-400 text-yellow-200 shadow-[0_0_30px_rgba(250,204,21,0.3)]' 
                             : isSilver 
@@ -146,7 +146,7 @@ export default function Ranking() {
                       </div>
 
                       {/* Info del usuario */}
-                      <div className="text-center w-full mb-3 bg-black/40 rounded-xl py-2 px-1 border border-white/5 backdrop-blur-sm">
+                      <div className="text-center w-full mb-3 bg-[#090615]/90 rounded-xl py-2 px-1 border border-white/5">
                         <p className={`text-[10px] sm:text-xs font-bold truncate px-2 ${isSelf ? 'text-accent' : 'text-white'}`}>
                           {pUser.nombre}
                         </p>

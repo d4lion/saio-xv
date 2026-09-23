@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { pointsService } from '../services/pointsService';
-import { Html5Qrcode } from 'html5-qrcode';
+// html5-qrcode se importa dinámicamente solo cuando el usuario activa la cámara
 import { Camera, Keyboard, MapPin, AlertTriangle, CheckCircle, RefreshCw, History, ShieldAlert, QrCode, FlipHorizontal, X, Store, Receipt, MessageCircleWarning, ScanLine } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
@@ -218,31 +218,41 @@ export default function MisPuntos() {
     const el = document.getElementById('qr-reader-container');
     if (!el) return;
 
-    const html5Qrcode = new Html5Qrcode('qr-reader-container', { verbose: false });
-    scannerRef.current = html5Qrcode;
+    // ══ Dynamic import de html5-qrcode ═ solo se descarga cuando el usuario abre la cámara
+    let cancelled = false
+    import('html5-qrcode').then(({ Html5Qrcode }) => {
+      if (cancelled) return
 
-    // Enumerate cameras — prefer rear
-    Html5Qrcode.getCameras()
-      .then((devices) => {
-        if (!devices || devices.length === 0) {
-          toast.error('No se encontró ninguna cámara en este dispositivo.');
-          return;
-        }
-        setCameras(devices);
-        // Pick rear camera by default (label usually contains 'back' or 'trasera' or 'rear' or 'environment')
-        const rearIdx = devices.findIndex(d =>
-          /back|rear|trasera|environment/i.test(d.label)
-        );
-        const defaultIdx = rearIdx >= 0 ? rearIdx : 0;
-        setActiveCameraIndex(defaultIdx);
-        startScanner(devices[defaultIdx].id);
-      })
-      .catch((err) => {
-        console.error('Error enumerando cámaras:', err);
-        toast.error('No se pudo acceder a las cámaras del dispositivo.');
-      });
+      const html5Qrcode = new Html5Qrcode('qr-reader-container', { verbose: false });
+      scannerRef.current = html5Qrcode;
+
+      // Enumerate cameras — prefer rear
+      Html5Qrcode.getCameras()
+        .then((devices) => {
+          if (cancelled) return
+          if (!devices || devices.length === 0) {
+            toast.error('No se encontró ninguna cámara en este dispositivo.');
+            return;
+          }
+          setCameras(devices);
+          const rearIdx = devices.findIndex(d =>
+            /back|rear|trasera|environment/i.test(d.label)
+          );
+          const defaultIdx = rearIdx >= 0 ? rearIdx : 0;
+          setActiveCameraIndex(defaultIdx);
+          startScanner(devices[defaultIdx].id);
+        })
+        .catch((err) => {
+          console.error('Error enumerando cámaras:', err);
+          toast.error('No se pudo acceder a las cámaras del dispositivo.');
+        });
+    }).catch(err => {
+      console.error('Error cargando html5-qrcode:', err)
+      toast.error('Error al cargar el escaner QR.')
+    })
 
     return () => {
+      cancelled = true
       stopScanner().then(() => {
         if (scannerRef.current) {
           scannerRef.current = null;
@@ -311,7 +321,7 @@ export default function MisPuntos() {
   const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+    <div className="w-full flex flex-col gap-8">
       
       {/* HEADER PREMIUM */}
       <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-6 relative z-10">
@@ -338,7 +348,7 @@ export default function MisPuntos() {
             Novedades
           </button>
           
-          <div className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-black/40 border border-accent/40 shadow-[0_0_40px_rgba(156,58,237,0.15)] flex flex-col items-center sm:items-end justify-center backdrop-blur-xl relative overflow-hidden group">
+          <div className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[#090615]/90 border border-accent/40 shadow-[0_0_40px_rgba(156,58,237,0.15)] flex flex-col items-center sm:items-end justify-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
             <span className="text-[10px] text-accent font-heading uppercase tracking-[0.2em] font-bold mb-0.5">Saldo Disponible</span>
             <span className="text-2xl font-black text-white font-mono tracking-tighter shadow-black drop-shadow-md">
@@ -349,7 +359,7 @@ export default function MisPuntos() {
       </div>
 
       {/* Geolocation Status - Sleek Banner */}
-      <div className={`w-full rounded-2xl border p-3 flex flex-col sm:flex-row items-center justify-between gap-3 backdrop-blur-md shadow-lg transition-all duration-500
+      <div className={`w-full rounded-2xl border p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg transition-all duration-500
         ${geoStatus === 'SUCCESS' ? 'bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/5' : 
           geoStatus === 'PENDING' ? 'bg-amber-500/10 border-amber-500/20 shadow-amber-500/5' : 
           'bg-red-500/10 border-red-500/20 shadow-red-500/5'}
@@ -377,7 +387,7 @@ export default function MisPuntos() {
         <div className="lg:col-span-7 flex flex-col gap-3">
           
           {/* Segmented Control */}
-          <div className="w-full p-1 bg-black/40 border border-white/10 rounded-xl flex relative backdrop-blur-md">
+          <div className="w-full p-1 bg-[#090615]/90 border border-white/10 rounded-xl flex relative">
             <div className={`absolute top-1 bottom-1 w-[calc(50%-0.25rem)] bg-white/10 border border-white/10 rounded-lg transition-transform duration-500 ease-out shadow-lg ${activeTab === 'camera' ? 'translate-x-[calc(100%+0.25rem)]' : 'translate-x-0'}`} />
             
             <button

@@ -1,29 +1,54 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Home from './pages/Home'
-import Panelistas from './pages/Panelistas'
 import Login from './pages/Login'
-import Perfil from './pages/Perfil'
-import MisPuntos from './pages/MisPuntos'
-import MiEntrada from './pages/MiEntrada'
-import Premios from './pages/Premios'
-import Ranking from './pages/Ranking'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
-import PasaporteLayout from './layouts/PasaporteLayout/PasaporteLayout'
-import Dashboard from './pages/Dashboard/Dashboard'
-
-import MiTienda from './pages/MiTienda'
-
-import NotFound from './pages/NotFound'
-import PaymentStatus from './pages/PaymentStatus'
-import Boletas from './pages/Boletas'
-import Privacidad from './pages/Privacidad'
-
 import CookieBanner from './components/CookieBanner/CookieBanner'
-
 import { ROLES } from './constants/roles'
-import { Toaster } from 'sonner';
+import { Toaster } from 'sonner'
+
+// ── Lazy-loaded pages (se descargan solo cuando el usuario navega a ellas) ──
+const Panelistas     = lazy(() => import('./pages/Panelistas'))
+const Perfil         = lazy(() => import('./pages/Perfil'))
+const MisPuntos      = lazy(() => import('./pages/MisPuntos'))
+const MiEntrada      = lazy(() => import('./pages/MiEntrada'))
+const Premios        = lazy(() => import('./pages/Premios'))
+const Ranking        = lazy(() => import('./pages/Ranking'))
+const MiTienda       = lazy(() => import('./pages/MiTienda'))
+const NotFound       = lazy(() => import('./pages/NotFound'))
+const PaymentStatus  = lazy(() => import('./pages/PaymentStatus'))
+const Boletas        = lazy(() => import('./pages/Boletas'))
+const Privacidad     = lazy(() => import('./pages/Privacidad'))
+const PasaporteLayout = lazy(() => import('./layouts/PasaporteLayout/PasaporteLayout'))
+const Dashboard      = lazy(() => import('./pages/Dashboard/Dashboard'))
+
+// ── Loader mínimo para transiciones de ruta ──────────────────────────────────
+function PageLoader() {
+  return (
+    <div
+      style={{
+        minHeight: '100dvh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#050507',
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          border: '2px solid rgba(156,58,237,0.2)',
+          borderTop: '2px solid #9c3aed',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }}
+      />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  )
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -76,66 +101,69 @@ export default function App() {
       <PendingClaimHandler />
       <CookieBanner />
       <Toaster position="bottom-right" richColors closeButton />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/expertos" element={<Panelistas />} />
-        <Route path="/panelistas" element={<Navigate to="/expertos" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/boletas" element={<Boletas />} />
-        <Route path="/tickets" element={<Boletas />} />
-        <Route path="/privacidad" element={<Privacidad />} />
-        <Route path="/payment/status" element={<PaymentStatus />} />
-        
-        {/* Rutas Protegidas del Asistente (Experiencia Pasaporte) */}
-        <Route 
-          path="/pasaporte" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <PasaporteLayout />
-            </ProtectedRoute>
-          } 
-        >
-          <Route index element={<MiEntrada />} />
-          <Route path="entrada" element={<MiEntrada />} />
-          <Route path="puntos" element={<MisPuntos />} />
-          <Route path="premios" element={<Premios />} />
-          <Route path="ranking" element={<Ranking />} />
-          <Route path="perfil" element={<Perfil />} />
-        </Route>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/expertos" element={<Panelistas />} />
+          <Route path="/panelistas" element={<Navigate to="/expertos" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/boletas" element={<Boletas />} />
+          <Route path="/tickets" element={<Boletas />} />
+          <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/payment/status" element={<PaymentStatus />} />
 
-        {/* Ruta Protegida de Tiendas/Vendedores */}
-        <Route 
-          path="/saio/mi-tienda" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR]}>
-              <MiTienda />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/store" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.VENDEDOR]}>
-              <MiTienda />
-            </ProtectedRoute>
-          } 
-        />
+          {/* Rutas Protegidas del Asistente (Experiencia Pasaporte) */}
+          <Route
+            path="/pasaporte"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ASISTENTE, ROLES.ADMIN, ROLES.COORDINADOR]}>
+                <PasaporteLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<MiEntrada />} />
+            <Route path="entrada" element={<MiEntrada />} />
+            <Route path="puntos" element={<MisPuntos />} />
+            <Route path="premios" element={<Premios />} />
+            <Route path="ranking" element={<Ranking />} />
+            <Route path="perfil" element={<Perfil />} />
+          </Route>
 
-        <Route 
-          path="/dashboard/*" 
-          element={
-            <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.COORDINADOR]}>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
+          {/* Ruta Protegida de Tiendas/Vendedores */}
+          <Route
+            path="/saio/mi-tienda"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.VENDEDOR]}>
+                <MiTienda />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/store"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.VENDEDOR]}>
+                <MiTienda />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Ruta 404 para cualquier pestaña no definida */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.COORDINADOR]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Ruta 404 para cualquier pestaña no definida */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </AuthProvider>
   )
 }
+
 
 
 

@@ -385,7 +385,7 @@ export const adminService = {
       const token = await adminUser.getIdToken();
 
       // 2. Realizar la petición HTTP al nuevo endpoint de la API Gateway
-      const apiDomain = import.meta.env.VITE_API_GATEWAY_DOMAIN || 'https://saio.adamind.cloud';
+      const apiDomain = import.meta.env.VITE_API_GATEWAY_DOMAIN;
       const cleanDomain = apiDomain.replace(/\/$/, '');
 
       const response = await fetch(`${cleanDomain}/saio/api/v15/users/manual`, {

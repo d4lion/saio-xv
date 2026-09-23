@@ -31,7 +31,7 @@ export default function MiEntrada() {
   }, [user]);
 
   return (
-    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+    <div className="w-full flex flex-col gap-8">
       
       <div className="flex items-center gap-3 mb-2">
         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">

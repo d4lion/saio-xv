@@ -21,7 +21,7 @@ const fadeUp = {
 };
 
 export default function Login() {
-  const { user, login, isFirebaseConfigured } = useAuth();
+  const { login, isFirebaseConfigured } = useAuth();
   
   // Form states
   const [email, setEmail] = useState('');
@@ -54,9 +54,9 @@ export default function Login() {
 
     try {
       setIsSubmitting(true);
-      await login(email, password);
+      const { userData: profile } = await login(email, password);
       
-      const userRole = (user?.rol || '').toLowerCase();
+      const userRole = (profile?.rol || '').toLowerCase();
       let targetPath = from;
 
       if (!targetPath) {
@@ -69,9 +69,13 @@ export default function Login() {
         }
       }
 
-      setTimeout(() => {
-        navigate(targetPath, { replace: true });
-      }, 300);
+      navigate(targetPath, { 
+        replace: true, 
+        state: { 
+          fromLogin: true, 
+          from: location.state?.from 
+        } 
+      });
     } catch (err) {
       console.error(err);
       let friendlyError = 'Ocurrió un error al procesar tu solicitud.';

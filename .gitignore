@@ -1,5 +1,6 @@
 # Enviroment Variables
 .env
+.agents
 
 # Firestore rules
 firestore.rules

@@ -13,6 +13,12 @@ export default function Features() {
     <section id="capabilities" ref={ref} className="relative py-28 lg:py-10 lg:min-h-[100dvh] lg:flex lg:flex-col lg:justify-center overflow-hidden select-none">
       <UniverseBackground opacity={0.3} nebulaColor="rgba(156,58,237,0.15)" />
 
+      {/* Noise overlay estático para toda la sección — tamaño fijo, 0 recálculos al redimensionar cards */}
+      <div 
+        className="absolute inset-0 opacity-[0.025] z-0 pointer-events-none"
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='featuresNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23featuresNoise)'/%3E%3C/svg%3E")` }}
+      />
+
       <div className="max-w-[1400px] w-full mx-auto px-6 relative z-10 flex flex-col h-full">
         
         {/* Header */}
@@ -46,96 +52,143 @@ export default function Features() {
             const Icon = cap.icon
 
             return (
-              <motion.div
+              <div
                 key={cap.title}
-                layout
                 onClick={() => setActiveIdx(idx)}
                 onMouseEnter={() => {
-                  if (window.innerWidth >= 1024) setActiveIdx(idx)
+                  if (window.innerWidth >= 1024 && activeIdx !== idx) {
+                    setActiveIdx(idx)
+                  }
                 }}
-                className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-6 lg:p-8 cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] border ${
+                className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-6 lg:p-8 cursor-pointer transition-[flex,background-color,border-color] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] transform-gpu will-change-[flex] border ${
                   isActive 
-                    ? 'lg:flex-[3] flex-[1] border-purple-500/40 bg-[#0a0614]/80 shadow-[0_0_50px_rgba(156,58,237,0.2)]' 
-                    : 'lg:flex-[0.8] flex-[0.5] border-white/5 bg-black/30 hover:bg-black/50 opacity-70 hover:opacity-100'
+                    ? 'lg:flex-[3] flex-[1] border-purple-500/40 bg-[#0a0614]/85' 
+                    : 'lg:flex-[0.8] flex-[0.5] border-white/[0.07] bg-[#07050f]/60 hover:bg-[#0c081a]/80 hover:border-white/15'
                 }`}
-                style={{ backdropFilter: 'blur(20px)' }}
               >
-                {/* Active Background Glow */}
+                {/* Ambient Glow (GPU accelerated via opacity) */}
+                <div 
+                  className={`absolute inset-0 rounded-[2rem] pointer-events-none transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                  style={{ 
+                    boxShadow: `inset 0 0 35px ${cap.color}20, 0 0 50px rgba(156,58,237,0.18)` 
+                  }}
+                />
+
+                {/* Active Background Radial Glow */}
                 <div 
                   className={`absolute inset-0 pointer-events-none transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`}
                   style={{ background: `radial-gradient(circle at 50% 100%, ${cap.color}25 0%, transparent 70%)` }}
                 />
 
-                {/* Noise overlay */}
+                {/* Giant Watermark Icon (GPU accelerated, without heavy gaussian blur) */}
                 <div 
-                  className="absolute inset-0 opacity-[0.03] z-0 pointer-events-none"
-                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
-                />
-
-                {/* Giant Watermark Icon */}
-                <div 
-                  className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:left-auto lg:right-[-10%] pointer-events-none transition-all duration-[1.2s] ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                    isActive ? 'opacity-[0.08] scale-100 rotate-0 blur-[2px]' : 'opacity-0 scale-50 rotate-45 blur-md'
+                  className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:left-auto lg:right-[-10%] pointer-events-none transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] transform-gpu will-change-transform ${
+                    isActive ? 'opacity-[0.07] scale-100 rotate-0' : 'opacity-0 scale-75 rotate-12'
                   }`}
                 >
                   <Icon size={350} style={{ color: cap.color }} />
                 </div>
 
-                {/* Top: Icon */}
-                <div className="relative z-10 flex items-center gap-4">
-                  <div 
-                    className={`w-12 h-12 lg:w-16 lg:h-16 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-700 ${isActive ? 'bg-white/10 scale-100' : 'bg-white/5 scale-90'}`} 
-                    style={{ border: `1px solid ${cap.color}44`, boxShadow: isActive ? `0 0 30px ${cap.color}30` : 'none' }}
-                  >
-                    <Icon size={isActive ? 28 : 22} style={{ color: isActive ? cap.color : '#888' }} className="transition-all duration-700" />
-                  </div>
-                  
-                  {/* Title when inactive (mobile only) */}
-                  <h3 className={`lg:hidden font-black font-heading transition-all duration-700 ${isActive ? 'text-2xl text-white opacity-0 absolute' : 'text-xl text-white/70 opacity-100 relative'}`}>
-                    {cap.title}
-                  </h3>
-                </div>
-
-                {/* Bottom: Text Content */}
-                <div className="relative z-10 mt-auto pt-8">
-                  <motion.div layout="position">
-                    {/* Desktop inactive/active title */}
-                    <h3 className={`font-black font-heading transition-all duration-700 hidden lg:block ${
-                      isActive 
-                        ? 'text-3xl lg:text-4xl text-white mb-4' 
-                        : 'text-2xl lg:text-[2.2rem] uppercase tracking-[0.15em] text-white/20 -rotate-90 origin-bottom-left absolute bottom-[-20px] left-4 whitespace-nowrap opacity-100'
+                {/* Top: Icon, Index & Mobile Inactive Title */}
+                <div className="relative z-10 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div 
+                      className={`w-12 h-12 lg:w-16 lg:h-16 shrink-0 rounded-2xl flex items-center justify-center transition-[transform,background-color,border-color,box-shadow] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                        isActive ? 'bg-white/10 scale-100' : 'bg-white/5 scale-90'
+                      }`} 
+                      style={{ 
+                        border: `1px solid ${cap.color}44`, 
+                        boxShadow: isActive ? `0 0 30px ${cap.color}30` : 'none' 
+                      }}
+                    >
+                      <Icon 
+                        size={isActive ? 28 : 22} 
+                        style={{ color: isActive ? cap.color : '#888' }} 
+                        className="transition-colors duration-500" 
+                      />
+                    </div>
+                    
+                    {/* Title when inactive (mobile only) */}
+                    <h3 className={`lg:hidden font-bold font-heading text-lg text-white/90 transition-opacity duration-500 ${
+                      isActive ? 'opacity-0 hidden' : 'opacity-100'
                     }`}>
                       {cap.title}
                     </h3>
+                  </div>
 
-                    {/* Mobile active title */}
-                    <h3 className={`lg:hidden font-black font-heading transition-all duration-700 ${isActive ? 'text-2xl text-white mb-2' : 'hidden'}`}>
-                      {cap.title}
-                    </h3>
-                    
+                  {/* Tech Index badge */}
+                  <span className={`font-mono text-xs tracking-widest transition-opacity duration-500 select-none ${
+                    isActive ? 'text-white/60' : 'text-white/20'
+                  }`}>
+                    0{idx + 1}
+                  </span>
+                </div>
+
+                {/* Desktop Inactive Vertical Title (separated to prevent layout thrashing) */}
+                <div 
+                  className={`hidden lg:block absolute bottom-8 left-8 pointer-events-none -rotate-90 origin-bottom-left whitespace-nowrap transition-[opacity,transform] duration-500 ease-out ${
+                    isActive 
+                      ? 'opacity-0 translate-y-4 pointer-events-none' 
+                      : 'opacity-100 translate-y-0'
+                  }`}
+                >
+                  <span className="text-xl xl:text-2xl font-black font-heading uppercase tracking-[0.2em] text-white/30 group-hover:text-white/60 transition-colors">
+                    {cap.title}
+                  </span>
+                </div>
+
+                {/* Bottom: Active Text Content */}
+                <div className="relative z-10 mt-auto pt-6">
+                  {/* Active Heading */}
+                  <h3 
+                    className={`font-black font-heading text-2xl lg:text-3xl xl:text-4xl text-white transition-[opacity,transform] duration-500 ease-out ${
+                      isActive 
+                        ? 'opacity-100 translate-y-0 mb-3' 
+                        : 'opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden'
+                    }`}
+                  >
+                    {cap.title}
+                  </h3>
+
+                  {/* Zero-reflow CSS Grid accordion content */}
+                  <div 
+                    className={`grid transition-[grid-template-rows] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                      isActive ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                    }`}
+                  >
                     <div 
-                      className={`overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-                        isActive ? 'max-h-[200px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 translate-y-8'
+                      className={`overflow-hidden transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                        isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                       }`}
                     >
-                      <p className="text-secondary text-sm lg:text-lg leading-relaxed max-w-lg">
+                      <p className="text-secondary text-sm lg:text-base xl:text-lg leading-relaxed max-w-lg mb-6">
                         {cap.description}
                       </p>
                       
-                      <Link to="/expertos" className="mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer text-white hover:text-purple-400 group/btn">
+                      <Link 
+                        to="/expertos" 
+                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer text-white hover:text-purple-400 group/btn"
+                      >
                         Descubrir más 
-                        <span className="group-hover/btn:translate-x-1 transition-transform" style={{ color: cap.color }}>→</span>
+                        <span 
+                          className="group-hover/btn:translate-x-1 transition-transform inline-block" 
+                          style={{ color: cap.color }}
+                        >
+                          →
+                        </span>
                       </Link>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
 
                 {/* Bottom colored accent line */}
                 <div 
-                  className={`absolute bottom-0 left-0 right-0 h-1 transition-all duration-700 ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                  className={`absolute bottom-0 left-0 right-0 h-1 transition-opacity duration-700 pointer-events-none ${
+                    isActive ? 'opacity-100' : 'opacity-0'
+                  }`}
                   style={{ background: `linear-gradient(90deg, transparent, ${cap.color}, transparent)` }}
                 />
-              </motion.div>
+              </div>
             )
           })}
         </motion.div>

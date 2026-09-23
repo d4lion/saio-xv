@@ -71,7 +71,7 @@ export default function Navbar() {
         transition={{ duration: 0.8, ease: 'easeOut' }}
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 outline-none select-none ${
           scrolled && !menuOpen
-            ? 'bg-[#040b0f]/80 backdrop-blur-md border-b border-purple-500/10 py-4 shadow-xl'
+            ? 'bg-[#040b0f]/95 backdrop-blur-md border-b border-purple-500/10 py-4 shadow-xl'
             : 'bg-transparent py-6 border-b border-transparent'
         }`}
       >

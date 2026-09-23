@@ -8,27 +8,28 @@ export default function UniverseBackground({ opacity = 0.2, overlay = "bg-gradie
         alt=""
         className="w-full h-full object-cover"
         style={{ opacity }}
+        loading="lazy"
       />
       <div className={`absolute inset-0 ${overlay}`} />
-      
-      {/* Floating particles/stars */}
-      {Array.from({ length: 25 }).map((_, i) => (
+
+      {/* Estrellas reducidas a 8 — suficiente para el efecto visual */}
+      {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
           className="absolute rounded-full animate-twinkle bg-white"
           style={{
             width: `${(i % 3) + 1}px`,
             height: `${(i % 3) + 1}px`,
-            left: `${(i * 17 + 5) % 100}%`,
-            top: `${(i * 31 + 7) % 100}%`,
+            left: `${(i * 13 + 5) % 100}%`,
+            top: `${(i * 37 + 11) % 100}%`,
             background: i % 2 === 0 ? '#9c3aed' : '#c3abdc',
-            animationDelay: `${(i * 0.3) % 4}s`,
-            animationDuration: `${2 + (i % 3)}s`,
+            animationDelay: `${(i * 0.5) % 4}s`,
+            animationDuration: `${2.5 + (i % 3)}s`,
             opacity: 0.5,
           }}
         />
       ))}
-      
+
       {/* Nebula glow */}
       <div
         className="absolute inset-0"
@@ -37,3 +38,4 @@ export default function UniverseBackground({ opacity = 0.2, overlay = "bg-gradie
     </div>
   )
 }
+
