@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,17 +7,41 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function MandatoryDataUpdate({ user }) {
   const { logout } = useAuth();
-  const [nombre, setNombre] = useState(user?.nombre || '');
-  const [cedula, setCedula] = useState(user?.cedula || '');
-  const [telefono, setTelefono] = useState(user?.telefono || '');
+
+  // Helper para extraer campos admitiendo posibles alias
+  const getInitialCedula = (u) => u?.cedula || u?.legal_id || u?.legalId || u?.documento || '';
+  const getInitialNombre = (u) => u?.nombre || u?.full_name || u?.fullName || '';
+  const getInitialTelefono = (u) => u?.telefono || u?.phone_number || u?.phoneNumber || '';
+
+  const [nombre, setNombre] = useState(() => getInitialNombre(user));
+  const [cedula, setCedula] = useState(() => getInitialCedula(user));
+  const [telefono, setTelefono] = useState(() => getInitialTelefono(user));
   const [aceptaPoliticas, setAceptaPoliticas] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Sincronización reactiva cuando los datos del usuario llegan o se actualizan desde Firestore
+  useEffect(() => {
+    if (user) {
+      const incomingCedula = getInitialCedula(user);
+      const incomingNombre = getInitialNombre(user);
+      const incomingTelefono = getInitialTelefono(user);
+
+      if (incomingCedula && !cedula) setCedula(incomingCedula);
+      if (incomingNombre && !nombre) setNombre(incomingNombre);
+      if (incomingTelefono && !telefono) setTelefono(incomingTelefono);
+    }
+  }, [user]);
+
+  // Documento actual a mostrar: estado local o prop de usuario
+  const currentCedula = cedula || getInitialCedula(user);
+  // La cédula queda bloqueada solo si ya está registrada en el sistema
+  const isCedulaDisabled = Boolean(getInitialCedula(user));
+
   const handleReportIssue = (e) => {
     e.preventDefault();
     const phone = import.meta.env.VITE_WHATSAPP_PHONE || "573000000000";
-    const message = `Hola equipo SAIO, tengo una novedad con mis datos registrados (Cédula: ${user?.cedula || 'No registrada'}). Solicito corrección.`;
+    const message = `Hola equipo SAIO, tengo una novedad con mis datos registrados (Cédula: ${currentCedula || 'No registrada'}). Solicito corrección.`;
     const link = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(link, '_blank', 'noopener,noreferrer');
   };
@@ -26,12 +50,16 @@ export default function MandatoryDataUpdate({ user }) {
     e.preventDefault();
     setError('');
 
-    if (!nombre.trim() || !cedula.trim() || !telefono.trim()) {
+    const effectiveNombre = (nombre || getInitialNombre(user)).trim();
+    const effectiveCedula = (cedula || getInitialCedula(user)).trim();
+    const effectiveTelefono = (telefono || getInitialTelefono(user)).trim();
+
+    if (!effectiveNombre || !effectiveCedula || !effectiveTelefono) {
       setError('Por favor, completa todos los campos de datos.');
       return;
     }
 
-    if (nombre.trim().length < 4) {
+    if (effectiveNombre.length < 4) {
       setError('El nombre debe tener al menos 4 caracteres.');
       return;
     }
@@ -45,9 +73,9 @@ export default function MandatoryDataUpdate({ user }) {
       setLoading(true);
       const userRef = doc(db, 'users', user.uid);
       await updateDoc(userRef, {
-        nombre: nombre.trim(),
-        cedula: cedula.trim(),
-        telefono: telefono.trim(),
+        nombre: effectiveNombre,
+        cedula: effectiveCedula,
+        telefono: effectiveTelefono,
         dataVerified: true,
         acceptedPrivacyPolicy: true,
         verifiedAt: new Date().toISOString()
@@ -140,9 +168,15 @@ export default function MandatoryDataUpdate({ user }) {
                 <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-secondary/40" />
                 <input
                   type="text"
-                  value={cedula}
-                  disabled
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-secondary/60 cursor-not-allowed outline-none font-sans tracking-widest"
+                  value={currentCedula}
+                  onChange={(e) => setCedula(e.target.value)}
+                  disabled={isCedulaDisabled}
+                  placeholder="Ej: 1020304050"
+                  className={`w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm outline-none font-sans tracking-widest ${
+                    isCedulaDisabled
+                      ? 'text-secondary/60 cursor-not-allowed'
+                      : 'text-white hover:border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
+                  }`}
                 />
               </div>
             </div>
