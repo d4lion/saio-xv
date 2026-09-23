@@ -26,7 +26,7 @@ export default function Perfil() {
     : 'No registrada';
 
   return (
-    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+    <div className="w-full flex flex-col gap-8">
       
       <div className="flex items-center gap-3 mb-2">
         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
@@ -50,7 +50,7 @@ export default function Perfil() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-black/40 border border-white/10 py-4 px-6 rounded-2xl glow-purple relative z-10 backdrop-blur-md">
+        <div className="flex items-center gap-4 bg-black/40 border border-white/10 py-4 px-6 rounded-2xl glow-purple relative z-10">
           <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
             <Award className="w-6 h-6 text-accent" />
           </div>
