@@ -106,12 +106,11 @@ export default function Premios() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-8 animate-in fade-in duration-700">
+    <div className="w-full flex flex-col gap-8">
 
       {/* ══ HERO HEADER ══ */}
-      <div className="relative rounded-[1.75rem] overflow-hidden bg-black/30 border border-white/8 px-6 py-8 sm:px-12 sm:py-14">
-        <div className="absolute -top-16 -left-16 w-64 h-64 bg-purple-600/20 rounded-full blur-[70px] pointer-events-none" />
-        <div className="absolute -bottom-8 right-8 w-48 h-48 bg-indigo-600/15 rounded-full blur-[50px] pointer-events-none" />
+      <div className="relative rounded-[1.75rem] overflow-hidden bg-black/40 border border-white/8 px-6 py-8 sm:px-12 sm:py-14">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 10% 10%, rgba(147,51,234,0.18) 0%, transparent 55%), radial-gradient(circle at 90% 90%, rgba(79,70,229,0.14) 0%, transparent 55%)' }} />
 
         <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -127,7 +126,7 @@ export default function Premios() {
           </div>
 
           {/* Balance */}
-          <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm self-start sm:self-auto">
+          <div className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-[#0e0a34]/80 border border-white/10 self-start sm:self-auto">
             <Coins className="w-5 h-5 text-purple-400 shrink-0" />
             <div>
               <div className="text-[10px] font-bold uppercase tracking-widest text-secondary/60 leading-none mb-0.5">Tu saldo</div>
@@ -197,20 +196,16 @@ export default function Premios() {
                   key={reward.id}
                   onMouseEnter={() => setHoveredId(reward.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  style={{
-                    borderColor: isClaimed
-                      ? 'rgba(16,185,129,0.4)'
-                      : isHovered
-                        ? accent.border
-                        : 'rgba(255,255,255,0.07)',
-                    boxShadow: isHovered && !isClaimed && !isOutOfStock
-                      ? `0 0 50px ${accent.glow}, 0 16px 50px rgba(0,0,0,0.35)`
-                      : isClaimed
-                        ? '0 0 30px rgba(16,185,129,0.08)'
-                        : '0 4px 20px rgba(0,0,0,0.25)',
-                  }}
                   className={`group relative rounded-[1.75rem] border overflow-hidden transition-all duration-500
-                    ${isClaimed ? 'bg-emerald-950/25' : isOutOfStock ? 'opacity-60 bg-black/20' : 'bg-black/35'}`}
+                    ${
+                      isClaimed
+                        ? 'bg-emerald-950/25 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.08)]'
+                        : isOutOfStock
+                        ? 'opacity-60 bg-black/20 border-white/7'
+                        : isHovered
+                        ? `bg-black/35 border-purple-500/50 shadow-[0_0_50px_rgba(156,58,237,0.15),0_16px_50px_rgba(0,0,0,0.35)]`
+                        : 'bg-black/35 border-white/7 shadow-[0_4px_20px_rgba(0,0,0,0.25)]'
+                    }`}
                 >
                   {/* ─── MOBILE LAYOUT: image top + content bottom ─── */}
                   {/* ─── DESKTOP (sm+): image left + content right ─── */}
@@ -234,6 +229,7 @@ export default function Premios() {
                         <img
                           src={reward.imageUrl || reward.imagen}
                           alt={reward.title}
+                          loading="lazy"
                           className={`w-full h-full object-cover transition-transform duration-700 ${isHovered && !isClaimed && !isOutOfStock ? 'scale-110' : 'scale-100'} ${isClaimed ? 'opacity-75' : ''}`}
                         />
                       ) : (
@@ -250,9 +246,8 @@ export default function Premios() {
 
                       {/* Mobile: title text overlaid on image */}
                       <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 p-4 pb-5">
-                        {/* Status pill with blur bg */}
                         <span
-                          className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1.5 backdrop-blur-sm ${
+                          className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-1.5 ${
                             isClaimed
                               ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40'
                               : isOutOfStock
