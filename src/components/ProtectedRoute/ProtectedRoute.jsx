@@ -1,13 +1,34 @@
+import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldAlert, ShieldCheck, Lock } from 'lucide-react';
 import MandatoryDataUpdate from '../MandatoryDataUpdate/MandatoryDataUpdate';
 
 export default function ProtectedRoute({ children, allowedRoles }) {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, isProfileLoaded, logout } = useAuth();
   const location = useLocation();
+  const isFromLogin = !!location.state?.fromLogin;
 
-  if (loading) {
+  // Estado de validación para asegurar una verificación limpia en la pantalla de seguridad
+  const [isValidating, setIsValidating] = useState(() => isFromLogin || loading || !isProfileLoaded);
+
+  useEffect(() => {
+    // Si aún está cargando la autenticación o el perfil de Firestore no ha terminado, mantenemos la validación activa
+    if (loading || (user && !isProfileLoaded)) {
+      return;
+    }
+
+    // Si viene de login, damos un breve lapso (500ms) para que la pantalla de seguridad ejecute
+    // visualmente las comprobaciones antes de revelar el contenido o el formulario
+    const delay = isFromLogin ? 500 : 0;
+    const timer = setTimeout(() => {
+      setIsValidating(false);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [loading, isProfileLoaded, user, isFromLogin]);
+
+  if (isValidating || loading || (user && !isProfileLoaded)) {
     return (
       <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center text-gray-900 select-none p-6 font-sans">
         {/* Panel Blanco Enterprise / Minimalista tipo Google */}
@@ -33,7 +54,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
               Adamind Security Check
             </h3>
             <p className="text-xs text-gray-500 font-normal">
-              Verificando autenticación y permisos...
+              Verificando autenticación, estado y permisos...
             </p>
           </div>
 
