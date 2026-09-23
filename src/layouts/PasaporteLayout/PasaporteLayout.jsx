@@ -8,6 +8,28 @@ import EntropixCanvas from '../../components/Hero/EntropixCanvas';
 import Swal from 'sweetalert2';
 import logo from '../../assets/logo.png';
 
+// Canvas decorativo: solo desktop, con delay de 1.5s para no competir con el render de la ruta hija
+function PasaporteCanvasBg() {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    // Solo en desktop — en mobile el canvas no tiene sentido como background decorativo
+    if (window.innerWidth < 1024) return
+
+    // Esperar 1.5s para que la página hija se pinte completamente primero
+    const t = setTimeout(() => setShow(true), 1500)
+    return () => clearTimeout(t)
+  }, [])
+
+  if (!show) return null
+
+  return (
+    <div className="w-full h-full">
+      <EntropixCanvas className="w-full h-full opacity-20 mix-blend-screen pointer-events-none" />
+    </div>
+  )
+}
+
 // Configuración de SweetAlert2 con temática espacial
 const themedSwal = Swal.mixin({
   background: '#0e0a34',
@@ -79,14 +101,17 @@ export default function PasaporteLayout() {
   return (
     <div className="min-h-[100dvh] w-full flex bg-[#050507] text-white overflow-hidden relative selection:bg-purple-500/30">
       
-      {/* ─── BACKGROUND VISUALS ─── */}
+      {/* ─── BACKGROUND VISUALS (Optimizado para GPU/Scroll) ─── */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <EntropixCanvas className="w-full h-full opacity-30 mix-blend-screen pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#050507]/90 via-[#050507]/60 to-[#0A0713]/90" />
-        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px] mix-blend-screen" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent/5 rounded-full blur-[120px] mix-blend-screen" />
+        <PasaporteCanvasBg />
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            background: 'radial-gradient(circle at 85% 10%, rgba(156,58,237,0.14) 0%, transparent 60%), radial-gradient(circle at 10% 90%, rgba(76,41,182,0.12) 0%, transparent 60%), linear-gradient(135deg, #050507 0%, #080512 100%)'
+          }} 
+        />
         {/* Subtle noise */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Crect x='0' y='0' width='1' height='1'/%3E%3Crect x='3' y='3' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E")` }} />
       </div>
 
       {/* ─── MOBILE HEADER (Premium Solid) ─── */}
@@ -133,7 +158,7 @@ export default function PasaporteLayout() {
             className={`
               fixed lg:relative top-0 left-0 h-[100dvh] w-full lg:w-[280px] shrink-0 
               border-r border-white/10 z-50 flex flex-col pt-20 lg:pt-0 
-              bg-[#050507] lg:bg-black/20 lg:backdrop-blur-2xl
+              bg-[#050507] lg:bg-[#070510]/95
               ${isMobileMenuOpen ? 'block' : 'hidden lg:flex'}
             `}
           >
@@ -266,8 +291,8 @@ export default function PasaporteLayout() {
         )}
       </AnimatePresence>
 
-      {/* ─── MAIN CONTENT AREA ─── */}
-      <main className="flex-1 h-[100dvh] overflow-y-auto relative z-10 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      {/* ─── MAIN CONTENT AREA (GPU Compositor Isolated) ─── */}
+      <main className="flex-1 h-[100dvh] overflow-y-auto relative z-10 will-change-transform transform-gpu scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {/* Top spacer for mobile header */}
         <div className="h-16 lg:hidden w-full" />
         
