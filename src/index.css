@@ -12,9 +12,10 @@
   --color-dark-accent: #2d104a;
   --color-muted: #4f3c60;
 
-  --font-sans: 'Outfit', 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  --font-heading: 'Space Grotesk', 'Outfit', system-ui, sans-serif;
-  --font-mono: 'Space Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  /* 2 familias tipográficas — Space Grotesk cubre Sans, Space Mono cubre Mono */
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', 'Courier New', monospace;
 }
 
 *, *::before, *::after {
@@ -22,18 +23,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
-}
-
-@media (min-width: 1024px) {
-  .snap-container {
-    scroll-snap-type: y mandatory;
-  }
-
-  .snap-container section {
-    scroll-snap-align: center;
-    scroll-snap-stop: always;
-  }
+  /* Scroll nativo directo e instantáneo */
 }
 
 body {
@@ -53,19 +43,15 @@ body {
 ::-webkit-scrollbar-thumb { background: #30227f; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #4c29b6; }
 
-/* Glassmorphism utility */
+/* Glassmorphism utility (Optimizado para GPU/Scroll con alta opacidad) */
 .glass {
-  background: rgba(48, 34, 127, 0.12);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(156, 58, 237, 0.2);
+  background: rgba(14, 10, 35, 0.92);
+  border: 1px solid rgba(156, 58, 237, 0.25);
 }
 
 .glass-light {
-  background: rgba(76, 41, 182, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(195, 171, 220, 0.12);
+  background: rgba(22, 14, 55, 0.88);
+  border: 1px solid rgba(195, 171, 220, 0.18);
 }
 
 /* Glow effects */
