@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { ROLES } from '../constants/roles';
 import { motion, AnimatePresence } from 'framer-motion';
 import EntropixCanvas from '../components/Hero/EntropixCanvas';
+import TurnstileCaptcha from '../components/Turnstile/TurnstileCaptcha';
 
 // Animation variants
 const staggerContainer = {
@@ -27,6 +28,23 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Captcha state & ref
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
+
+  const handleTurnstileVerify = useCallback((token) => {
+    setTurnstileToken(token);
+    setError('');
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken('');
+  }, []);
   
   // Feedback states
   const [error, setError] = useState('');
@@ -52,8 +70,32 @@ export default function Login() {
       return setError('La contraseña debe tener al menos 6 caracteres.');
     }
 
+    if (!turnstileToken) {
+      return setError('Por favor completa la verificación de seguridad (Captcha).');
+    }
+
     try {
       setIsSubmitting(true);
+
+      // 1. Validar Token de Turnstile en el Backend
+      const verifyRes = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token: turnstileToken })
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok || !verifyData.success) {
+        setTurnstileToken('');
+        turnstileRef.current?.reset();
+        setIsSubmitting(false);
+        return setError(verifyData.error || 'Verificación de seguridad fallida. Por favor completa el captcha.');
+      }
+
+      // 2. Proceder con el inicio de sesión
       const { userData: profile } = await login(email, password);
       
       const userRole = (profile?.rol || '').toLowerCase();
@@ -83,6 +125,10 @@ export default function Login() {
       else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') friendlyError = 'Correo electrónico o contraseña incorrectos.';
       else if (err.message) friendlyError = err.message;
       
+      // Reiniciar captcha en caso de fallo para requerir nuevo token por cada intento
+      setTurnstileToken('');
+      turnstileRef.current?.reset();
+
       setError(friendlyError);
       setIsSubmitting(false);
     }
@@ -219,6 +265,14 @@ export default function Login() {
                 </button>
               </div>
             </div>
+
+            {/* Cloudflare Turnstile Captcha Widget */}
+            <TurnstileCaptcha
+              ref={turnstileRef}
+              onVerify={handleTurnstileVerify}
+              onExpire={handleTurnstileExpire}
+              onError={handleTurnstileError}
+            />
 
             {/* Submit Button */}
             <div className="pt-2">
