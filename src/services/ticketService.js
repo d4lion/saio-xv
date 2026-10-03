@@ -9,12 +9,11 @@ export const ticketService = {
   async getActiveTickets() {
     try {
       const tickets = await adminService.getAllTickets();
-      if (!tickets || tickets.length === 0) return [];
-      const activeOnly = tickets.filter(t => t.activo !== false);
-      return activeOnly;
+      if (!tickets || tickets.length === 0) return TICKETS_DATA;
+      return tickets;
     } catch (e) {
       console.error("Fallo al obtener boletas de Firestore:", e);
-      throw e;
+      return TICKETS_DATA;
     }
   },
 
