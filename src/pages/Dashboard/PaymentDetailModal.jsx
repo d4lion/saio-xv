@@ -257,8 +257,8 @@ export default function PaymentDetailModal({
 
           {/* Audit Timestamps */}
           <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-center text-xs text-gray-500 font-mono grid grid-cols-2 gap-2">
-            <div>Creado el: {p.created_at ? new Date(p.created_at).toLocaleString() : 'N/A'}</div>
-            <div>Finalizado el: {p.finalized_at ? new Date(p.finalized_at).toLocaleString() : 'N/A'}</div>
+            <div>Creado / Enviado: {p.created_at_formatted || 'N/A'}</div>
+            <div>Finalizado el: {p.finalized_at_formatted || 'N/A'}</div>
           </div>
 
         </div>
