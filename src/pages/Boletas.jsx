@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Check, ShieldCheck, Flame, ExternalLink, Ticket as TicketIcon, Zap, Crown, Sparkles } from 'lucide-react'
+import { Check, ShieldCheck, Flame, ExternalLink, Ticket as TicketIcon, Zap, Crown, Sparkles, Lock } from 'lucide-react'
 import Navbar from '../components/Navbar/Navbar'
 import Footer from '../components/Footer/Footer'
 import { TICKETS_DATA } from '../constants/tickets'
@@ -8,23 +8,24 @@ import { ticketService } from '../services/ticketService'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO/SEO'
 
-function AvailabilityBar({ total, remaining, color }) {
+function AvailabilityBar({ total, remaining, color, isDisabled }) {
   const pct = Math.round((remaining / total) * 100)
-  const filled = 100 - pct
+  const filled = isDisabled ? 100 : 100 - pct
+  const barColor = isDisabled ? '#ef4444' : color
   return (
     <div className="mt-6 p-4 rounded-2xl bg-black/20 border border-white/[0.03] shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
       <div className="flex justify-between items-center mb-2.5">
         <span className="text-[11px] text-gray-400 font-medium tracking-widest uppercase">Disponibilidad</span>
         <span className="text-[11px] font-bold text-white">
-          {remaining} cupos
+          {isDisabled ? '0 cupos' : `${remaining} cupos`}
         </span>
       </div>
       <div className="h-2 rounded-full overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.6)', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.9)' }}>
         <motion.div
           className="h-full relative rounded-full"
           style={{ 
-            background: `linear-gradient(90deg, ${color}22, ${color}88, ${color})`,
-            boxShadow: `0 0 10px ${color}`
+            background: `linear-gradient(90deg, ${barColor}22, ${barColor}88, ${barColor})`,
+            boxShadow: `0 0 10px ${barColor}`
           }}
           initial={{ width: 0 }}
           animate={{ width: `${filled}%` }}
@@ -54,6 +55,7 @@ export default function Boletas() {
   }, [])
 
   const handleBuyTicket = async (ticket) => {
+    if (ticket.activo === false) return;
     // 1. Trazabilidad de clic e intención con metadata de dispositivo
     await ticketService.trackTicketCheckoutClick(ticket, user)
 
@@ -111,7 +113,7 @@ export default function Boletas() {
           />
         ))}
 
-        <div className="relative z-10 max-w-5xl w-full mx-auto">
+        <div className="relative z-10 max-w-7xl w-full mx-auto">
           
 
           {/* Main Title */}
@@ -143,8 +145,9 @@ export default function Boletas() {
               <span className="text-gray-400 text-sm animate-pulse">Cargando boletas...</span>
             </div>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto text-left">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl lg:max-w-7xl mx-auto text-left">
             {tickets.map((ticket, idx) => {
+              const isDisabled = ticket.activo === false;
               const Icon = typeof ticket.icon === 'function' || typeof ticket.icon === 'object' 
 
                 ? ticket.icon 
@@ -155,14 +158,16 @@ export default function Boletas() {
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.7, delay: 0.2 + idx * 0.15 }}
-                  className={`relative p-[1.5px] rounded-3xl overflow-hidden flex flex-col group transition-all duration-500 hover:-translate-y-2 ${
-                    ticket.popular 
-                      ? 'shadow-[0_20px_40px_-15px_rgba(156,58,237,0.25)]' 
-                      : 'hover:shadow-2xl hover:shadow-white/5'
+                  className={`relative p-[1.5px] rounded-3xl overflow-hidden flex flex-col group transition-all duration-500 ${
+                    isDisabled
+                      ? 'opacity-65 grayscale-[0.4] cursor-not-allowed'
+                      : ticket.popular 
+                        ? 'shadow-[0_20px_40px_-15px_rgba(156,58,237,0.25)] hover:-translate-y-2' 
+                        : 'hover:shadow-2xl hover:shadow-white/5 hover:-translate-y-2'
                   }`}
                 >
                   {/* Rotating Glowing Border for Popular Ticket */}
-                  {ticket.popular ? (
+                  {ticket.popular && !isDisabled ? (
                     <div 
                       className="absolute -inset-[100%] animate-[spin_4s_linear_infinite] pointer-events-none z-0"
                       style={{
@@ -170,7 +175,7 @@ export default function Boletas() {
                       }}
                     />
                   ) : (
-                    <div className="absolute inset-0 border border-white/10 group-hover:border-white/20 rounded-3xl pointer-events-none transition-colors z-0" />
+                    <div className={`absolute inset-0 border ${isDisabled ? 'border-red-500/20' : 'border-white/10 group-hover:border-white/20'} rounded-3xl pointer-events-none transition-colors z-0`} />
                   )}
 
                   <div 
@@ -183,11 +188,18 @@ export default function Boletas() {
                     {/* Soft Background Glow */}
                   <div 
                     className="absolute -top-32 -right-32 w-64 h-64 rounded-full blur-[80px] opacity-30 pointer-events-none transition-opacity duration-500 group-hover:opacity-50"
-                    style={{ background: ticket.color }}
+                    style={{ background: isDisabled ? '#ef4444' : ticket.color }}
                   />
 
-                  {/* Popular Badge */}
-                  {ticket.popular && (
+                  {/* Popular Badge or Disabled Badge */}
+                  {isDisabled ? (
+                    <div
+                      className="absolute top-5 right-5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase z-20 flex items-center gap-1.5 backdrop-blur-md bg-red-500/20 border border-red-500/40 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                    >
+                      <Lock size={12} className="text-red-400" />
+                      No disponible
+                    </div>
+                  ) : ticket.popular ? (
                     <div
                       className="absolute top-5 right-5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase z-20 flex items-center gap-1.5 backdrop-blur-md"
                       style={{
@@ -200,7 +212,7 @@ export default function Boletas() {
                       <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: ticket.color, boxShadow: `0 0 6px ${ticket.color}` }} />
                       Recomendado
                     </div>
-                  )}
+                  ) : null}
 
                   <div className="relative p-8 md:p-10 h-full flex flex-col justify-between z-10 mt-2">
                     
@@ -213,7 +225,7 @@ export default function Boletas() {
                     {/* Nebula Inner Gradient */}
                     <div 
                       className="absolute inset-0 opacity-20 pointer-events-none rounded-3xl"
-                      style={{ background: `radial-gradient(circle at 10% 10%, ${ticket.color}40, transparent 40%), radial-gradient(circle at 90% 90%, ${ticket.color}20, transparent 40%)` }}
+                      style={{ background: `radial-gradient(circle at 10% 10%, ${isDisabled ? '#ef4444' : ticket.color}40, transparent 40%), radial-gradient(circle at 90% 90%, ${isDisabled ? '#ef4444' : ticket.color}20, transparent 40%)` }}
                     />
 
                     <div className="relative z-10">
@@ -221,15 +233,15 @@ export default function Boletas() {
                       <div className="flex items-center gap-5 mb-8">
                         <div className="relative shrink-0 flex items-center justify-center w-14 h-14">
                           {/* Orbital Ring 1 */}
-                          <div className="absolute inset-0 rounded-full border border-white/10 animate-[spin_8s_linear_infinite]" style={{ borderTopColor: ticket.color, borderRightColor: 'transparent' }} />
+                          <div className="absolute inset-0 rounded-full border border-white/10 animate-[spin_8s_linear_infinite]" style={{ borderTopColor: isDisabled ? '#ef4444' : ticket.color, borderRightColor: 'transparent' }} />
                           {/* Orbital Ring 2 */}
-                          <div className="absolute inset-[-5px] rounded-full border border-white/5 animate-[spin_12s_linear_infinite_reverse]" style={{ borderBottomColor: ticket.color, borderLeftColor: 'transparent' }} />
+                          <div className="absolute inset-[-5px] rounded-full border border-white/5 animate-[spin_12s_linear_infinite_reverse]" style={{ borderBottomColor: isDisabled ? '#ef4444' : ticket.color, borderLeftColor: 'transparent' }} />
                           
                           <div
                             className="w-11 h-11 rounded-full flex items-center justify-center relative z-10 backdrop-blur-md"
-                            style={{ background: `radial-gradient(circle, ${ticket.color}40, transparent)`, border: `1px solid ${ticket.color}50`, boxShadow: `0 0 15px ${ticket.color}30` }}
+                            style={{ background: `radial-gradient(circle, ${isDisabled ? '#ef4444' : ticket.color}40, transparent)`, border: `1px solid ${isDisabled ? '#ef4444' : ticket.color}50`, boxShadow: `0 0 15px ${isDisabled ? '#ef4444' : ticket.color}30` }}
                           >
-                            <Icon size={20} style={{ color: ticket.color }} />
+                            <Icon size={20} style={{ color: isDisabled ? '#ef4444' : ticket.color }} />
                           </div>
                         </div>
                         <div>
@@ -243,7 +255,7 @@ export default function Boletas() {
                         <div className="flex items-start gap-1.5">
                           <span className="text-gray-400 font-bold text-sm mt-2">{ticket.currency}</span>
                           <span
-                            className="text-[clamp(3rem,5vw,4rem)] font-black text-white tracking-tighter leading-none"
+                            className="text-[clamp(3rem,4vw,3.8rem)] font-black text-white tracking-tighter leading-none"
                             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                           >
                             {ticket.price}
@@ -255,6 +267,7 @@ export default function Boletas() {
                           total={ticket.totalAvailable}
                           remaining={ticket.remainingAvailable}
                           color={ticket.color}
+                          isDisabled={isDisabled}
                         />
                       </div>
 
@@ -262,41 +275,50 @@ export default function Boletas() {
                       <ul className="space-y-4 mb-10">
                         {(ticket.features || []).map((f) => (
                           <li key={f} className="flex items-start gap-3 text-[13px] leading-relaxed text-gray-300">
-                            <Check size={18} className="shrink-0 mt-0.5" style={{ color: ticket.color }} />
+                            <Check size={18} className="shrink-0 mt-0.5" style={{ color: isDisabled ? '#ef4444' : ticket.color }} />
                             <span className="font-medium">{f}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    {/* Wompi Checkout Button */}
-                    <button
-                      onClick={() => handleBuyTicket(ticket)}
-                      className="relative z-10 group/btn flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all duration-300 overflow-hidden"
-                      style={
-                        ticket.popular
-                          ? {
-                              backgroundColor: ticket.color,
-                              color: '#fff',
-                              boxShadow: `0 8px 25px -5px ${ticket.color}60`,
-                            }
-                          : {
-                              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                              border: '1px solid rgba(255, 255, 255, 0.1)',
-                              color: '#ffffff',
-                            }
-                      }
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        {ticket.cta} <ExternalLink size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-                      </span>
-                      {ticket.popular && (
-                        <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
-                      )}
-                      {!ticket.popular && (
-                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
-                      )}
-                    </button>
+                    {/* Wompi Checkout Button or Disabled CTA */}
+                    {isDisabled ? (
+                      <button
+                        disabled
+                        className="relative z-10 flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-bold text-sm tracking-wide bg-gray-800/80 border border-white/10 text-gray-400 cursor-not-allowed pointer-events-none"
+                      >
+                        <Lock size={16} /> No disponible
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleBuyTicket(ticket)}
+                        className="relative z-10 group/btn flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all duration-300 overflow-hidden"
+                        style={
+                          ticket.popular
+                            ? {
+                                backgroundColor: ticket.color,
+                                color: '#fff',
+                                boxShadow: `0 8px 25px -5px ${ticket.color}60`,
+                              }
+                            : {
+                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: '#ffffff',
+                              }
+                        }
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          {ticket.cta} <ExternalLink size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                        </span>
+                        {ticket.popular && (
+                          <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
+                        )}
+                        {!ticket.popular && (
+                          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                        )}
+                      </button>
+                    )}
 
                   </div>
                   </div>
