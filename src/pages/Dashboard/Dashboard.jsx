@@ -51,6 +51,51 @@ const themedSwal = Swal.mixin({
   }
 });
 
+// Helper to format Wompi dates (ISO strings like "2026-09-16T15:26:14.457Z", timestamps in seconds/ms, or Firestore objects)
+export const formatWompiDate = (rawDate) => {
+  if (!rawDate) return 'N/A';
+  try {
+    let d;
+    if (typeof rawDate === 'object' && rawDate !== null) {
+      if (typeof rawDate.toDate === 'function') {
+        d = rawDate.toDate();
+      } else if (typeof rawDate.seconds === 'number') {
+        d = new Date(rawDate.seconds * 1000);
+      } else if (typeof rawDate._seconds === 'number') {
+        d = new Date(rawDate._seconds * 1000);
+      } else {
+        d = new Date(rawDate);
+      }
+    } else if (typeof rawDate === 'number') {
+      d = new Date(rawDate < 1e11 ? rawDate * 1000 : rawDate);
+    } else if (typeof rawDate === 'string') {
+      const trimmed = rawDate.trim();
+      if (!isNaN(trimmed) && !isNaN(parseFloat(trimmed))) {
+        const num = Number(trimmed);
+        d = new Date(num < 1e11 ? num * 1000 : num);
+      } else {
+        d = new Date(trimmed);
+      }
+    } else {
+      d = new Date(rawDate);
+    }
+
+    if (!d || isNaN(d.getTime())) return 'N/A';
+
+    return d.toLocaleString('es-CO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  } catch (err) {
+    return 'N/A';
+  }
+};
+
 // Helper to extract fields from Wompi structures, webhooks, or Firestore camelCase objects
 const extractTxFields = (p) => {
   if (!p) return {};
@@ -67,11 +112,21 @@ const extractTxFields = (p) => {
 
   const asyncUrl = pExtra.asyncPaymentUrl || pExtra.async_payment_url || pMethod.asyncPaymentUrl || pMethod.async_payment_url || null;
 
+  const rawCreatedAt = p.sentAt || p.sent_at || t.sentAt || t.sent_at ||
+                       t.createdAt || t.created_at || t.fecha || t.timestamp ||
+                       p.createdAt || p.created_at || p.fecha || p.timestamp || null;
+
+  const rawFinalizedAt = t.finalizedAt || t.finalized_at || p.finalizedAt || p.finalized_at || null;
+
   return {
     id: t.id || t.userId || p.id || p.userId || 'N/A',
     userId: t.userId || p.userId || t.uid || p.uid || null,
-    created_at: t.createdAt || t.created_at || t.fecha || t.timestamp || p.createdAt || p.created_at || p.fecha || p.timestamp || null,
-    finalized_at: t.finalizedAt || t.finalized_at || p.finalizedAt || p.finalized_at || null,
+    created_at: rawCreatedAt,
+    created_at_formatted: formatWompiDate(rawCreatedAt),
+    sent_at: p.sentAt || p.sent_at || t.sentAt || t.sent_at || null,
+    sent_at_formatted: formatWompiDate(p.sentAt || p.sent_at || t.sentAt || t.sent_at),
+    finalized_at: rawFinalizedAt,
+    finalized_at_formatted: formatWompiDate(rawFinalizedAt),
     amount_in_cents: amountInCents,
     currency: t.currency || p.currency || 'COP',
     reference: t.reference || p.reference || 'N/A',
