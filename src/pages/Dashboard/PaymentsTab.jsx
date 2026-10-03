@@ -70,8 +70,8 @@ export default function PaymentsTab({
                   return (
                     <tr key={p.id} className="hover:bg-gray-50/80 transition-colors duration-150">
                       <td className="px-6 py-4.5 font-mono text-xs text-gray-950 max-w-[130px] truncate" title={p.id}>{p.id}</td>
-                      <td className="px-6 py-4.5 text-gray-500 text-xs">
-                        {p.created_at ? new Date(p.created_at).toLocaleString() : 'N/A'}
+                      <td className="px-6 py-4.5 text-gray-500 text-xs font-mono">
+                        {p.created_at_formatted || 'N/A'}
                       </td>
                       <td className="px-6 py-4.5">
                         <div className="font-semibold text-gray-900">{p.full_name || 'Sin nombre'}</div>
