@@ -10,6 +10,7 @@ import { Toaster } from 'sonner'
 
 // ── Lazy-loaded pages (se descargan solo cuando el usuario navega a ellas) ──
 const Panelistas     = lazy(() => import('./pages/Panelistas'))
+const Agenda         = lazy(() => import('./pages/Agenda'))
 const Perfil         = lazy(() => import('./pages/Perfil'))
 const MisPuntos      = lazy(() => import('./pages/MisPuntos'))
 const MiEntrada      = lazy(() => import('./pages/MiEntrada'))
@@ -105,6 +106,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/expertos" element={<Panelistas />} />
+          <Route path="/agenda" element={<Agenda />} />
           <Route path="/panelistas" element={<Navigate to="/expertos" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/boletas" element={<Boletas />} />
