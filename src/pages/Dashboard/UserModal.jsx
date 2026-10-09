@@ -197,6 +197,7 @@ export default function UserModal({
                   let suggestedMonto = form.monto;
                   if (val === 'Boleta Supernova') suggestedMonto = '70000';
                   else if (val === 'Boleta Orbita') suggestedMonto = '50000';
+                  else if (val === 'Boleta Estrella Fugaz') suggestedMonto = '19900';
                   else if (val === 'Boleta Cortesía' || val === 'No determinado') suggestedMonto = '0';
                   setForm(prev => ({ ...prev, boleta: val, monto: suggestedMonto }));
                 }}
@@ -206,6 +207,7 @@ export default function UserModal({
                 <option value="Boleta Cortesía">Boleta Cortesía</option>
                 <option value="Boleta Orbita">Boleta Órbita</option>
                 <option value="Boleta Supernova">Boleta Supernova</option>
+                <option value="Boleta Estrella Fugaz">Boleta Estrella Fugaz</option>
               </select>
             </div>
 
