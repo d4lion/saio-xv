@@ -9,7 +9,9 @@ import {
   deleteDoc,
   getDoc,
   runTransaction,
-  arrayUnion
+  arrayUnion,
+  query,
+  where
 } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -312,7 +314,7 @@ export const adminService = {
     }
   },
 
-  async createUser(email, password, nombre, cedula, rol, boleta = 'No determinado') {
+  async createUser(email, password, nombre, cedula, rol, boleta = 'No determinado', telefono = '', monto = '0') {
     if (!db || !isConfigValid) {
       // Local implementation
       const users = getLocalStorage('mock_users', defaultMockUsers);
@@ -325,6 +327,8 @@ export const adminService = {
         nombre,
         correo: email,
         cedula,
+        telefono: telefono || "",
+        monto: monto !== undefined && monto !== null ? String(monto) : "0",
         puntos: 0,
         rol,
         boleta,
@@ -364,6 +368,8 @@ export const adminService = {
       nombre,
       correo: email,
       cedula,
+      telefono: telefono || "",
+      monto: monto !== undefined && monto !== null ? String(monto) : "0",
       puntos: 0,
       rol,
       boleta,
@@ -438,6 +444,30 @@ export const adminService = {
         throw new Error(result.message || "Error creando usuario en el servidor.");
       }
 
+      // Sincronizar campo monto y teléfono directamente en el documento de Firestore si no fueron guardados por la API Gateway
+      try {
+        let userUid = result?.uid || result?.user?.uid || result?.data?.uid || result?.id || result?.user_id;
+
+        if (!userUid && db && formData.correo) {
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, where("correo", "==", formData.correo));
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            userUid = querySnap.docs[0].id;
+          }
+        }
+
+        if (userUid && db) {
+          const userDocRef = doc(db, "users", userUid);
+          await updateDoc(userDocRef, {
+            monto: formData.monto !== undefined && formData.monto !== null ? String(formData.monto) : "0",
+            telefono: formData.telefono || ""
+          });
+        }
+      } catch (postSyncErr) {
+        console.warn("No se pudo actualizar monto/teléfono en Firestore tras API Gateway:", postSyncErr);
+      }
+
       return result;
     } catch (error) {
       console.warn("Error en registro manual vía backend API, intentando fallback:", error);
@@ -453,7 +483,9 @@ export const adminService = {
           formData.nombre,
           formData.cedula,
           formData.rol || 'asistente',
-          formData.boleta || 'Boleta Cortesía'
+          formData.boleta || 'Boleta Cortesía',
+          formData.telefono || '',
+          formData.monto !== undefined && formData.monto !== null ? String(formData.monto) : '0'
         );
         return {
           ...fallbackUser,
