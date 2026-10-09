@@ -19,7 +19,9 @@ export default function UsersTab({
   const filteredUsers = users.filter(u => {
     const q = userSearch.toLowerCase();
     const b = u.boleta || 'No determinado';
-    const matchesBoleta = boletaFilter === 'Todos' || b === boletaFilter;
+    const matchesBoleta = boletaFilter === 'Todos' || b === boletaFilter || (
+      boletaFilter === 'Boleta Orbita' && (b === 'Boleta Órbita' || b === 'Boleta Orbita')
+    );
     
     return matchesBoleta && (
       (u.nombre || '').toLowerCase().includes(q) ||
@@ -34,7 +36,7 @@ export default function UsersTab({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [userSearch]);
+  }, [userSearch, boletaFilter]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -60,8 +62,10 @@ export default function UsersTab({
           >
             <option value="Todos">Todas las Boletas</option>
             <option value="No determinado">No determinado</option>
-            <option value="Boleta Orbita">Boleta Orbita</option>
+            <option value="Boleta Cortesía">Boleta Cortesía</option>
+            <option value="Boleta Orbita">Boleta Órbita</option>
             <option value="Boleta Supernova">Boleta Supernova</option>
+            <option value="Boleta Estrella Fugaz">Boleta Estrella Fugaz</option>
           </select>
         </div>
         <button
@@ -114,9 +118,14 @@ export default function UsersTab({
                       </span>
                     </td>
                     <td className="px-6 py-4.5">
-                      <span className="text-gray-700 font-medium text-sm whitespace-nowrap">
+                      <div className="text-gray-700 font-medium text-sm whitespace-nowrap">
                         {u.boleta || 'No determinado'}
-                      </span>
+                      </div>
+                      {u.monto !== undefined && u.monto !== null && u.monto !== '' && (
+                        <div className="text-[11px] text-gray-500 font-mono font-medium mt-0.5">
+                          ${Number(u.monto).toLocaleString()} COP
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4.5 font-bold text-blue-600 font-mono">{u.puntos || 0} PTS</td>
                     <td className="px-6 py-4.5">
