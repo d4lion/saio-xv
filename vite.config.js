@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
       },
     ],
     server: {
-      allowedHosts: ['b962-190-158-28-67.ngrok-free.app'],
+      allowedHosts: ['bdb3-190-158-28-67.ngrok-free.app'],
     },
     build: {
       rollupOptions: {
