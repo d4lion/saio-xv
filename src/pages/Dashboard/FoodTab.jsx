@@ -6,6 +6,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { storeService } from '../../services/storeService';
 import { adminService } from '../../services/adminService';
 import Swal from 'sweetalert2';
+import { getFoodLimits } from '../../constants/foodLimits';
 
 export default function FoodTab() {
   // States for search
@@ -26,9 +27,7 @@ export default function FoodTab() {
 
   // Computed Limits based on ticket
   const ticketType = foundUser?.boleta || 'No determinado';
-  const isSupernova = ticketType.toLowerCase().includes('supernova');
-  const maxAlmuerzos = isSupernova ? 2 : 1;
-  const maxRefrigerios = 4;
+  const { isSupernova, maxAlmuerzos, maxRefrigerios } = getFoodLimits(ticketType);
 
   const userComidas = foundUser?.comidas || { almuerzos: [], refrigerios: [] };
   const almuerzosRedeemed = userComidas.almuerzos?.length || 0;
@@ -282,7 +281,7 @@ export default function FoodTab() {
                 Almuerzos
               </h3>
               <span className="text-xs font-bold px-2.5 py-1 bg-gray-100 rounded-md text-gray-600">
-                {almuerzosRedeemed} / {maxAlmuerzos}
+                {maxAlmuerzos === 0 ? 'No incluido' : `${almuerzosRedeemed} / ${maxAlmuerzos}`}
               </span>
             </div>
             
@@ -302,7 +301,7 @@ export default function FoodTab() {
                 }`}
             >
               {isRedeeming ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-              {canRedeemAlmuerzo ? 'Registrar Entrega de Almuerzo' : 'Límite Alcanzado'}
+              {canRedeemAlmuerzo ? 'Registrar Entrega de Almuerzo' : maxAlmuerzos === 0 ? 'No incluye almuerzo' : 'Límite Alcanzado'}
             </button>
           </div>
 
