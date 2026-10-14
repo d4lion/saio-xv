@@ -63,6 +63,12 @@ function ScrollToTop() {
   return null
 }
 
+// Compatibilidad con QR antiguos: /mis-puntos?code=X → /pasaporte/mis-puntos?code=X
+function LegacyMisPuntosRedirect() {
+  const { search } = useLocation()
+  return <Navigate to={`/pasaporte/mis-puntos${search}`} replace />
+}
+
 function PendingClaimHandler() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -70,7 +76,7 @@ function PendingClaimHandler() {
 
   useEffect(() => {
     // 1. Capturar código de la URL si existe en los parámetros de búsqueda
-    const params = new URLSearchParams(window.location.href);
+    const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     if (code) {
       sessionStorage.setItem('pendingClaimCode', code);
@@ -109,6 +115,7 @@ export default function App() {
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/panelistas" element={<Navigate to="/expertos" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/mis-puntos" element={<LegacyMisPuntosRedirect />} />
           <Route path="/boletas" element={<Boletas />} />
           <Route path="/tickets" element={<Boletas />} />
           <Route path="/privacidad" element={<Privacidad />} />
@@ -129,6 +136,8 @@ export default function App() {
             <Route path="premios" element={<Premios />} />
             <Route path="ranking" element={<Ranking />} />
             <Route path="perfil" element={<Perfil />} />
+            {/* Alias de compatibilidad: los QR apuntan a /pasaporte/mis-puntos */}
+            <Route path="mis-puntos" element={<MisPuntos />} />
           </Route>
 
           {/* Ruta Protegida de Tiendas/Vendedores */}

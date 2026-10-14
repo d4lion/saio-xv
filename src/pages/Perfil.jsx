@@ -1,5 +1,6 @@
 import { useAuth } from '../context/AuthContext';
-import { User, Shield, Mail, Calendar, Award, Phone } from 'lucide-react';
+import { User, Shield, Mail, Calendar, Phone } from 'lucide-react';
+import BoletaPass from '../components/BoletaPass/BoletaPass';
 
 export default function Perfil() {
   const { user } = useAuth();
@@ -38,28 +39,8 @@ export default function Perfil() {
         </div>
       </div>
 
-      {/* Banner con Puntos */}
-      <section className="glass rounded-[2rem] p-6 sm:p-8 flex flex-col md:flex-row justify-between items-center gap-6 border border-white/10 shadow-[0_0_30px_rgba(156,58,237,0.1)] relative overflow-hidden bg-gradient-to-br from-purple-900/10 to-transparent">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none" />
-        <div className="space-y-1 text-center md:text-left relative z-10">
-          <h2 className="text-3xl md:text-4xl font-heading font-black text-white tracking-tight">
-            {user?.nombre || 'Explorador Espacial'}
-          </h2>
-          <p className="text-secondary text-sm tracking-wide">
-            Rol del Evento: <span className="text-accent font-bold uppercase tracking-widest bg-accent/10 px-3 py-1 rounded-full border border-accent/20 ml-2 inline-block mt-2 md:mt-0">{user?.rol || 'Asistente'}</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-4 bg-black/40 border border-white/10 py-4 px-6 rounded-2xl glow-purple relative z-10">
-          <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-            <Award className="w-6 h-6 text-accent" />
-          </div>
-          <div>
-            <p className="text-[10px] text-secondary tracking-[0.2em] uppercase font-bold mb-1">Puntos Acumulados</p>
-            <p className="text-3xl font-heading font-black text-white leading-none">{(user?.puntos || 0).toLocaleString()} <span className="text-base text-accent">PTS</span></p>
-          </div>
-        </div>
-      </section>
+      {/* Credencial digital con la boleta comprada */}
+      <BoletaPass user={user} />
 
       {/* Panel de Datos y Formulario */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">

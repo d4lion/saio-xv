@@ -851,14 +851,14 @@ export default function Dashboard() {
 
   // QR Helpers
   const handleCopyLink = (codeId) => {
-    const url = `${window.location.origin}/mis-puntos?code=${codeId}`;
+    const url = `${window.location.origin}/pasaporte/mis-puntos?code=${codeId}`;
     navigator.clipboard.writeText(url);
     toast.success('Enlace Copiado: El enlace de reclamo se copió al portapapeles.');
     addTerminalEvent(`Enlace de reclamo copiado: ${codeId}`);
   };
 
   const handleDownloadQr = async (codeId) => {
-    const url = `${window.location.origin}/mis-puntos?code=${codeId}`;
+    const url = `${window.location.origin}/pasaporte/mis-puntos?code=${codeId}`;
     try {
       addTerminalEvent(`Generando archivo PNG nativo para el código QR: ${codeId}...`);
       const dataUrl = await QRCode.toDataURL(url, { width: 500, margin: 2 });
