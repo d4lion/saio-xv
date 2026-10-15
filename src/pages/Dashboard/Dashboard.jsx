@@ -1319,7 +1319,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="h-screen overflow-hidden bg-[#f8f9fa] text-gray-800 flex flex-col font-sans relative antialiased">
+    <div className="h-screen h-[100dvh] overflow-hidden bg-[#f8f9fa] text-gray-800 flex flex-col font-sans relative antialiased">
       
       {/* Top Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3.5 sticky top-0 shadow-xs z-30">

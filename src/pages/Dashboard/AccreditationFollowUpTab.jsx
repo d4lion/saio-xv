@@ -449,7 +449,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por nombre, cédula, teléfono, correo o boleta..."
-              className="w-full pl-11 pr-4 py-2.5 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-400"
+              className="w-full pl-11 pr-4 py-2.5 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-base sm:text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-400"
             />
           </div>
 
@@ -457,7 +457,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
             <select
               value={ticketFilter}
               onChange={(e) => setTicketFilter(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-700 outline-none transition-all cursor-pointer"
+              className="w-full px-4 py-2.5 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-xl text-base sm:text-xs font-bold uppercase tracking-wider text-gray-700 outline-none transition-all cursor-pointer"
             >
               <option value="all">Todas las Boletas</option>
               <option value="orbita">Boleta Órbita</option>
@@ -517,8 +517,8 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto max-w-full">
+          <table className="w-full min-w-[720px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-heading font-bold text-[10px] tracking-wider">
                 <th className="px-5 py-3.5">Asistente</th>
@@ -792,7 +792,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
                     value={editingPhone}
                     onChange={(e) => setEditingPhone(e.target.value)}
                     placeholder="Ingresa número de celular (ej: 3001234567)..."
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-xs font-mono font-bold text-gray-900 outline-none"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 text-base sm:text-xs font-mono font-bold text-gray-900 outline-none"
                   />
                   <button
                     onClick={handleSavePhone}

@@ -24,6 +24,9 @@
 
 html {
   /* Scroll nativo directo e instantáneo */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -33,8 +36,18 @@ body {
   color: #e2e8f0;
   font-family: var(--font-sans);
   overflow-x: hidden;
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevenir auto-zoom automático en dispositivos móviles (iOS Safari / Android) al enfocar campos de texto */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Scrollbar */

@@ -514,7 +514,7 @@ export default function AccreditationTab() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por cédula (ej: 102030), correo electrónico o UID del asistente..."
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 rounded-xl text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-400"
+              className="w-full pl-11 pr-4 py-3 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 rounded-xl text-base sm:text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-400"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -912,8 +912,8 @@ export default function AccreditationTab() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <div className="overflow-x-auto max-w-full">
+          <table className="w-full min-w-[620px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-heading font-bold text-[10px] tracking-wider">
                 <th className="px-5 py-3">Fecha y Hora</th>
