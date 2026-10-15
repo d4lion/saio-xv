@@ -672,7 +672,7 @@ export default function AccreditationTab() {
                   </div>
 
                   <h4 className="font-heading font-extrabold text-base text-gray-900">
-                    Miércoles 15 de Octubre de 2025
+                    Jueves 15 de Octubre de 2025
                   </h4>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Primera jornada del evento SAIO-XV.
@@ -800,7 +800,7 @@ export default function AccreditationTab() {
                   </div>
 
                   <h4 className="font-heading font-extrabold text-base text-gray-900">
-                    Jueves 16 de Octubre de 2025
+                    Viernes 16 de Octubre de 2025
                   </h4>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Segunda jornada y cierre del evento SAIO-XV.

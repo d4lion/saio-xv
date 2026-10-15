@@ -123,7 +123,7 @@ export function evaluateAccreditationStatus(user) {
     dia1: {
       key: 'dia1',
       dateLabel: '15/10/2025',
-      fullTitle: 'Día 1: Miércoles 15 de Octubre de 2025',
+      fullTitle: 'Día 1: Jueves 15 de Octubre de 2025',
       status: dia1Status,
       acreditado: dia1Acreditado,
       record: dia1Record,
@@ -132,7 +132,7 @@ export function evaluateAccreditationStatus(user) {
     dia2: {
       key: 'dia2',
       dateLabel: '16/10/2025',
-      fullTitle: 'Día 2: Jueves 16 de Octubre de 2025',
+      fullTitle: 'Día 2: Viernes 16 de Octubre de 2025',
       status: dia2Status,
       acreditado: dia2Acreditado,
       record: dia2Record,

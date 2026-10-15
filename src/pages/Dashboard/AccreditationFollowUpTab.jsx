@@ -392,7 +392,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
             }`}
           >
             <div className="flex items-center justify-between text-blue-800 text-xs font-bold uppercase tracking-wider">
-              <span>Día 1 (15/10/2025)</span>
+              <span>Día 1 (Jueves 15/10)</span>
               <Calendar className="w-4.5 h-4.5 text-blue-600" />
             </div>
             <div className="mt-3 flex items-baseline gap-2">
@@ -418,7 +418,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
             }`}
           >
             <div className="flex items-center justify-between text-purple-800 text-xs font-bold uppercase tracking-wider">
-              <span>Día 2 (16/10/2025)</span>
+              <span>Día 2 (Viernes 16/10)</span>
               <Calendar className="w-4.5 h-4.5 text-purple-600" />
             </div>
             <div className="mt-3 flex items-baseline gap-2">
@@ -477,10 +477,10 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
           {[
             { id: 'sin_ingresar', label: 'Sin Ingresar (Ausentes)', color: 'bg-amber-100 text-amber-900 border-amber-300' },
             { id: 'all', label: 'Todos', color: 'bg-gray-100 text-gray-800 border-gray-300' },
-            { id: 'dia1_ingreso', label: 'Ingresaron Día 1 (15/10)', color: 'bg-blue-100 text-blue-900 border-blue-300' },
-            { id: 'dia1_pendiente', label: 'Pendientes Día 1', color: 'bg-gray-100 text-gray-700 border-gray-200' },
-            { id: 'dia2_ingreso', label: 'Ingresaron Día 2 (16/10)', color: 'bg-purple-100 text-purple-900 border-purple-300' },
-            { id: 'dia2_pendiente', label: 'Pendientes Día 2', color: 'bg-gray-100 text-gray-700 border-gray-200' },
+            { id: 'dia1_ingreso', label: 'Ingresaron Jueves 15/10', color: 'bg-blue-100 text-blue-900 border-blue-300' },
+            { id: 'dia1_pendiente', label: 'Pendientes Jueves 15/10', color: 'bg-gray-100 text-gray-700 border-gray-200' },
+            { id: 'dia2_ingreso', label: 'Ingresaron Viernes 16/10', color: 'bg-purple-100 text-purple-900 border-purple-300' },
+            { id: 'dia2_pendiente', label: 'Pendientes Viernes 16/10', color: 'bg-gray-100 text-gray-700 border-gray-200' },
             { id: 'ambos_dias', label: 'Asistieron Ambos Días', color: 'bg-emerald-100 text-emerald-900 border-emerald-300' },
           ].map(f => (
             <button
@@ -524,8 +524,8 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
                 <th className="px-5 py-3.5">Asistente</th>
                 <th className="px-5 py-3.5">Cédula</th>
                 <th className="px-5 py-3.5">Entrada</th>
-                <th className="px-5 py-3.5">Día 1 (15/10)</th>
-                <th className="px-5 py-3.5">Día 2 (16/10)</th>
+                <th className="px-5 py-3.5">Día 1 (Jueves 15/10)</th>
+                <th className="px-5 py-3.5">Día 2 (Viernes 16/10)</th>
                 <th className="px-5 py-3.5 text-center">Acciones de Contacto</th>
                 <th className="px-5 py-3.5 text-right">Detalle</th>
               </tr>
@@ -864,7 +864,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
                       : 'bg-white border-gray-200'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-xs text-gray-900">Día 1 (15/10/2025)</span>
+                      <span className="font-bold text-xs text-gray-900">Día 1 (Jueves 15/10/2025)</span>
                       {selectedAttendee.evaluation?.dia1?.status === 'ACREDITADO' ? (
                         <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                           Acreditado
@@ -894,7 +894,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
                         disabled={isProcessingAccreditation}
                         className="w-full mt-3 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-colors"
                       >
-                        Acreditar Día 1 Ahora
+                        Acreditar Jueves 15/10 Ahora
                       </button>
                     )}
                   </div>
@@ -908,7 +908,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
                       : 'bg-white border-gray-200'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-xs text-gray-900">Día 2 (16/10/2025)</span>
+                      <span className="font-bold text-xs text-gray-900">Día 2 (Viernes 16/10/2025)</span>
                       {selectedAttendee.evaluation?.dia2?.status === 'ACREDITADO' ? (
                         <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                           Acreditado
@@ -938,7 +938,7 @@ export default function AccreditationFollowUpTab({ currentStaff, onOpenAccreditD
                         disabled={isProcessingAccreditation}
                         className="w-full mt-3 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold cursor-pointer transition-colors"
                       >
-                        Acreditar Día 2 Ahora
+                        Acreditar Viernes 16/10 Ahora
                       </button>
                     )}
                   </div>
