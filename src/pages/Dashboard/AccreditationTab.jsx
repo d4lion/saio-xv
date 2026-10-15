@@ -374,38 +374,38 @@ export default function AccreditationTab() {
     <div className="space-y-6 animate-fadeIn max-w-6xl mx-auto pb-12">
       
       {/* ── Top Header & Description ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-600/20">
+            <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-md shadow-purple-600/20 shrink-0">
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-heading font-black text-gray-900 tracking-tight">
+              <h2 className="text-lg sm:text-xl font-heading font-black text-gray-900 tracking-tight">
                 Módulo de Acreditación de Asistentes
               </h2>
               <p className="text-xs text-gray-500 font-medium">
-                Logística de ingreso para las jornadas del 15/10/2025 y 16/10/2025.
+                Logística de ingreso para Jueves 15/10/2025 y Viernes 16/10/2025.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
             onClick={refreshStatsAndLogs}
             disabled={loadingStats}
             className="p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-            title="Refrescar estadísticas"
+            title="Refrescar datos"
           >
             <RefreshCw className={`w-4 h-4 ${loadingStats ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setShowScanner(true)}
-            className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-heading font-bold uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+            className="hidden sm:flex px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-heading font-bold uppercase tracking-wider items-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <QrCode className="w-4 h-4" />
-            <span>Escanear QR de Entrada</span>
+            <span>Escanear QR</span>
           </button>
         </div>
       </div>
@@ -449,104 +449,64 @@ export default function AccreditationTab() {
         />
       ) : (
         <>
-          {/* ── Metrics / Summary Cards ── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-gray-200 shadow-xs">
-          <div className="flex items-center justify-between text-gray-500 text-xs font-semibold">
-            <span>Total Asistentes</span>
-            <Users className="w-4 h-4 text-gray-400" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-heading font-black text-gray-900 font-mono">
-              {stats.totalAsistentes}
-            </span>
-            <span className="text-[11px] text-gray-400 font-medium">registrados</span>
-          </div>
-        </div>
+          {/* ── Check-in Action Bar (QR Scanner & Manual Search) ── */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Primary Mobile Action: Large QR Scanner Button */}
+              <button
+                type="button"
+                onClick={() => setShowScanner(true)}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-heading font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-md shadow-purple-500/20 active:scale-[0.99] transition-all cursor-pointer shrink-0"
+              >
+                <QrCode className="w-5 h-5 text-purple-200" />
+                <span>Escanear Código QR</span>
+              </button>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-gray-200 shadow-xs">
-          <div className="flex items-center justify-between text-blue-600 text-xs font-semibold">
-            <span>Día 1 (15/10/2025)</span>
-            <Calendar className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-heading font-black text-blue-700 font-mono">
-              {stats.dia1Count}
-            </span>
-            <span className="text-[11px] text-blue-600/70 font-medium">acreditados</span>
-          </div>
-        </div>
+              <div className="hidden sm:flex items-center text-gray-300 font-bold text-xs uppercase px-1">
+                <span>o</span>
+              </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-gray-200 shadow-xs">
-          <div className="flex items-center justify-between text-purple-600 text-xs font-semibold">
-            <span>Día 2 (16/10/2025)</span>
-            <Calendar className="w-4 h-4 text-purple-500" />
+              {/* Manual Search Form */}
+              <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-4.5 h-4.5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por cédula, correo o UID..."
+                    className="w-full pl-10 pr-9 py-3 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 rounded-xl text-base sm:text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSearching || !searchQuery.trim()}
+                  className="px-5 py-3 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-heading font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                >
+                  {isSearching ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span className="hidden sm:inline">Buscando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      <span className="hidden sm:inline">Buscar</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-heading font-black text-purple-700 font-mono">
-              {stats.dia2Count}
-            </span>
-            <span className="text-[11px] text-purple-600/70 font-medium">acreditados</span>
-          </div>
-        </div>
-
-        <div className="bg-white p-4.5 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-xs">
-          <div className="flex items-center justify-between text-amber-700 text-xs font-semibold">
-            <span>Boletas Estrella Fugaz</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-heading font-black text-amber-800 font-mono">
-              {stats.estrellaFugazAccredited} / {stats.estrellaFugazTotal}
-            </span>
-            <span className="text-[11px] text-amber-700/80 font-medium">acreditadas</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Search Bar ── */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
-        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="w-4.5 h-4.5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por cédula (ej: 102030), correo electrónico o UID del asistente..."
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 hover:bg-white focus:bg-white border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 rounded-xl text-base sm:text-sm font-medium text-gray-900 outline-none transition-all placeholder:text-gray-400"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="submit"
-              disabled={isSearching}
-              className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-heading font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
-            >
-              {isSearching ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Buscando...</span>
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4" />
-                  <span>Buscar</span>
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowScanner(true)}
-              className="px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-heading font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-gray-200"
-              title="Abrir lector de código QR"
-            >
-              <QrCode className="w-4 h-4 text-purple-600" />
-              <span className="hidden sm:inline">Escanear</span>
-            </button>
-          </div>
-        </form>
-      </div>
 
       {/* ── Attendee Card & Day Verification ── */}
       {foundUser && evaluation && (
@@ -627,7 +587,7 @@ export default function AccreditationTab() {
               <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-blue-900 flex items-center gap-3">
                 <Sparkles className="w-5 h-5 text-blue-600 shrink-0" />
                 <div className="text-xs font-medium">
-                  <span className="font-bold">Acceso autorizado para ambos días (15/10/2025 y 16/10/2025).</span>{' '}
+                  <span className="font-bold">Acceso autorizado para ambos días (Jueves 15/10/2025 y Viernes 16/10/2025).</span>{' '}
                   El tipo de entrada <span className="font-semibold underline">{evaluation.ticketRules.displayName}</span> autoriza el ingreso en ambas fechas sin restricciones de exclusión.
                 </div>
               </div>
@@ -636,7 +596,7 @@ export default function AccreditationTab() {
             {/* ── Day 1 & Day 2 Decision Cards ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* ── Card Día 1: 15/10/2025 ── */}
+              {/* ── Card Día 1: Jueves 15/10/2025 ── */}
               <div className={`rounded-2xl border p-5 transition-all flex flex-col justify-between ${
                 evaluation.dia1.status === 'ACREDITADO'
                   ? 'bg-emerald-50/50 border-emerald-300 ring-2 ring-emerald-500/20'
@@ -648,7 +608,7 @@ export default function AccreditationTab() {
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-800 border border-gray-200">
                       <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                      DÍA 1 — 15/10/2025
+                      DÍA 1 — JUEVES 15/10/2025
                     </span>
 
                     {/* Status Badge */}
@@ -764,7 +724,7 @@ export default function AccreditationTab() {
                 </div>
               </div>
 
-              {/* ── Card Día 2: 16/10/2025 ── */}
+              {/* ── Card Día 2: Viernes 16/10/2025 ── */}
               <div className={`rounded-2xl border p-5 transition-all flex flex-col justify-between ${
                 evaluation.dia2.status === 'ACREDITADO'
                   ? 'bg-emerald-50/50 border-emerald-300 ring-2 ring-emerald-500/20'
@@ -776,7 +736,7 @@ export default function AccreditationTab() {
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-800 border border-gray-200">
                       <Calendar className="w-3.5 h-3.5 text-purple-600" />
-                      DÍA 2 — 16/10/2025
+                      DÍA 2 — VIERNES 16/10/2025
                     </span>
 
                     {/* Status Badge */}
@@ -908,11 +868,12 @@ export default function AccreditationTab() {
             </h3>
           </div>
           <span className="text-[11px] text-gray-500 font-medium">
-            Últimas {recentLogs.length} entradas registradas
+            Últimas {recentLogs.length} entradas
           </span>
         </div>
 
-        <div className="overflow-x-auto max-w-full">
+        {/* Desktop View Table */}
+        <div className="hidden sm:block overflow-x-auto max-w-full">
           <table className="w-full min-w-[620px] text-left text-xs border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-heading font-bold text-[10px] tracking-wider">
@@ -954,7 +915,7 @@ export default function AccreditationTab() {
                     </td>
                     <td className="px-5 py-3">
                       <span className="font-bold text-gray-800">
-                        {log.dayKey === 'dia1' ? '15/10 (Día 1)' : '16/10 (Día 2)'}
+                        {log.dayKey === 'dia1' ? 'Jue 15/10 (Día 1)' : 'Vie 16/10 (Día 2)'}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-gray-500 text-[11px]">
@@ -965,6 +926,48 @@ export default function AccreditationTab() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View Card List (clean, native feel, no horizontal scrolling) */}
+        <div className="block sm:hidden divide-y divide-gray-150">
+          {recentLogs.length === 0 ? (
+            <div className="p-6 text-center text-xs text-gray-400 font-medium">
+              No hay acreditaciones recientes registradas en el sistema.
+            </div>
+          ) : (
+            recentLogs.map((log, idx) => (
+              <div key={log.id || idx} className="p-3.5 space-y-1.5 hover:bg-gray-50/70 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-heading font-bold text-sm text-gray-900 truncate">
+                    {log.attendeeNombre || 'Asistente'}
+                  </span>
+                  <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold border ${
+                    log.dayKey === 'dia1'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-purple-50 text-purple-700 border-purple-200'
+                  }`}>
+                    {log.dayKey === 'dia1' ? 'Jue 15/10' : 'Vie 16/10'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-gray-800 font-semibold">{log.attendeeCedula || 'Sin cédula'}</span>
+                    <span>•</span>
+                    <span className="truncate max-w-[130px] font-medium text-gray-600">{log.boleta || 'General'}</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-gray-400 shrink-0">
+                    {log.fechaFormateada ? (log.fechaFormateada.includes(',') ? log.fechaFormateada.split(',')[1].trim() : log.fechaFormateada) : new Date(log.fechaHora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div className="text-[10px] text-gray-400 flex items-center justify-between pt-0.5">
+                  <span className="truncate max-w-[180px]">Por: {log.staffNombre || log.staffEmail || 'Staff'}</span>
+                  <span className="text-emerald-600 font-bold flex items-center gap-0.5 shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Acreditado
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       </>
