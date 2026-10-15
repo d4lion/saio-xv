@@ -56,7 +56,7 @@ service cloud.firestore {
       );
       
       // Un usuario solo puede actualizar su propio perfil
-      allow update: if isAdmin() || isStore() || (
+      allow update: if isAdmin() || isCoordinador() || isStore() || (
         isAuthenticated() && 
         request.auth.uid == userId && 
         request.resource.data.rol == resource.data.rol
@@ -150,6 +150,13 @@ service cloud.firestore {
     match /store_rules/{saleId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+    
+    // Colección: acreditaciones (Registro histórico de acreditaciones de ingreso)
+    match /acreditaciones/{acreditacionId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdminOrCoordinador();
+      allow delete: if isAdmin();
     }
   }
 }

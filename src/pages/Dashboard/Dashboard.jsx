@@ -9,7 +9,7 @@ import { storeService } from '../../services/storeService';
 import { ROLES } from '../../constants/roles';
 import Swal from 'sweetalert2';
 import { 
-  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon, Shield, Store
+  LogOut, Cpu, User, RefreshCw, Key, Clock, Gift, CreditCard, Award, Mic, ShoppingBag, Building, Menu, X, Ticket as TicketIcon, Shield, Store, UserCheck
 } from 'lucide-react';
 
 // Subcomponents
@@ -26,6 +26,7 @@ import ComerciosTab from './ComerciosTab';
 import TicketsTab from './TicketsTab';
 import AdminPointsTab from './AdminPointsTab';
 import FoodTab from './FoodTab';
+import AccreditationTab from './AccreditationTab';
 
 // Modals
 import UserModal from './UserModal';
@@ -1304,6 +1305,7 @@ export default function Dashboard() {
     {
       title: 'Logística',
       items: [
+        { path: '/dashboard/acreditacion', label: 'Acreditación', icon: UserCheck, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
         { path: '/dashboard/alimentacion', label: 'Alimentación', icon: Store, roles: [ROLES.ADMIN, ROLES.COORDINADOR] },
       ]
     },
@@ -1453,6 +1455,17 @@ export default function Dashboard() {
               element={
                 user?.rol === ROLES.ADMIN ? (
                   <AdminPointsTab storeRules={storeRules} />
+                ) : (
+                  <Navigate to="/dashboard/codigos" replace />
+                )
+              } 
+            />
+
+            <Route 
+              path="acreditacion" 
+              element={
+                user?.rol === ROLES.ADMIN || user?.rol === ROLES.COORDINADOR ? (
+                  <AccreditationTab />
                 ) : (
                   <Navigate to="/dashboard/codigos" replace />
                 )

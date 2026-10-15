@@ -129,6 +129,34 @@ export default function UserTraceabilityModal({ isOpen, onClose, user, allTransa
             </div>
           </div>
 
+          {/* Accreditation Status Banner */}
+          <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-gray-700">Entrada:</span>
+              <span className="font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                {user.boleta || 'No determinado'}
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500 font-medium">15/10 (Día 1):</span>
+                {user.acreditacion?.dia1?.acreditado ? (
+                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">✅ Ingresó</span>
+                ) : (
+                  <span className="text-gray-400 font-medium">Pendiente</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-500 font-medium">16/10 (Día 2):</span>
+                {user.acreditacion?.dia2?.acreditado ? (
+                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">✅ Ingresó</span>
+                ) : (
+                  <span className="text-gray-400 font-medium">Pendiente</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Tabs and Timeline */}
           <div>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">

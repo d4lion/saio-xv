@@ -29,10 +29,11 @@ const isConfigValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'tu_api
 
 // MOCK INITIAL DATA FOR STORAGE FALLBACK
 const defaultMockUsers = [
-  { uid: '1', nombre: 'Andrés Mendoza', correo: 'andres@saio.com', cedula: '102030', puntos: 15400, rol: 'asistente', activo: true, fechaCreacion: new Date().toISOString() },
-  { uid: '2', nombre: 'Camila Rojas', correo: 'camila@saio.com', cedula: '405060', puntos: 12800, rol: 'asistente', activo: true, fechaCreacion: new Date().toISOString() },
-  { uid: '3', nombre: 'Santiago Delgado', correo: 'santiago@saio.com', cedula: '708090', puntos: 11500, rol: 'coordinador', activo: true, fechaCreacion: new Date().toISOString() },
-  { uid: 'admin-id', nombre: 'Admin Global', correo: 'admin@saio.com', cedula: '999999', puntos: 0, rol: 'admin', activo: true, fechaCreacion: new Date().toISOString() }
+  { uid: '1', nombre: 'Andrés Mendoza', correo: 'andres@saio.com', cedula: '102030', puntos: 15400, rol: 'asistente', boleta: 'Boleta Orbita', activo: true, fechaCreacion: new Date().toISOString() },
+  { uid: '2', nombre: 'Camila Rojas', correo: 'camila@saio.com', cedula: '405060', puntos: 12800, rol: 'asistente', boleta: 'Boleta Supernova', activo: true, fechaCreacion: new Date().toISOString() },
+  { uid: '3', nombre: 'Santiago Delgado', correo: 'santiago@saio.com', cedula: '708090', puntos: 11500, rol: 'coordinador', boleta: 'Boleta Estrella Fugaz', activo: true, fechaCreacion: new Date().toISOString() },
+  { uid: '4', nombre: 'Lucía Morales', correo: 'lucia@saio.com', cedula: '112233', puntos: 5000, rol: 'asistente', boleta: 'Boleta Estrella Fugaz', activo: true, fechaCreacion: new Date().toISOString() },
+  { uid: 'admin-id', nombre: 'Admin Global', correo: 'admin@saio.com', cedula: '999999', puntos: 0, rol: 'admin', boleta: 'Boleta Supernova', activo: true, fechaCreacion: new Date().toISOString() }
 ];
 
 const defaultMockCodes = [
